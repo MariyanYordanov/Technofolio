@@ -1,3 +1,4 @@
+/* client/public/styles/pages/_profile.css */
 .student-profile {
     background-color: var(--bg-color);
     border-radius: var(--border-radius-lg);
@@ -38,31 +39,18 @@
     padding: var(--spacing-xl);
 }
 
-/* ===== КРЕДИТНА СИСТЕМА ===== */
-.credit-system {
-    background-color: var(--bg-color);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-xl);
-}
-
-.credit-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--bg-dark);
-    margin-bottom: var(--spacing-xl);
-}
-
-.tab-btn {
-    padding: var(--spacing-md) var(--spacing-lg);
-    background: none;
-    border: none;
+/* Рейтинги */
+.rating-начинаещ {
+    color: #6a7583;
     font-weight: 600;
-    color: var(--text-light);
-    border-bottom: 2px solid transparent;
-    margin-right: var(--spacing-md);
 }
 
-.tab-btn.active {
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--primary-color);
+.rating-напреднал {
+    color: #2e86de;
+    font-weight: 600;
+}
+
+.rating-мастър {
+    color: #8e44ad;
+    font-weight: 600;
 }

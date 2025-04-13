@@ -50,6 +50,7 @@
       Header.jsx
       Footer.jsx
       ErrorBoundary.jsx
+      TheameToggle.jsx
     /student
       StudentProfile.jsx
       Portfolio.jsx
@@ -81,6 +82,7 @@
     pathUtils.js
     requestUtils.js
     notificationsUtils.js
+    theameUtils.js
   /lib
     request.js
   paths.js

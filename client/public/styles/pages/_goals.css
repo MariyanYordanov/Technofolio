@@ -1,0 +1,44 @@
+/* client/public/styles/pages/_goals.css */
+.goals-view {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.goals-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.goal-card {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.goal-header {
+    padding: var(--spacing-md);
+    background-color: var(--bg-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.goal-content {
+    padding: var(--spacing-md);
+}
+
+.goal-description,
+.goal-activities {
+    margin-bottom: var(--spacing-md);
+}
+
+.goal-description h3,
+.goal-activities h3 {
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-md);
+}

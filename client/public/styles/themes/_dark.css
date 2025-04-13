@@ -1,0 +1,48 @@
+/* client/public/styles/themes/_dark.css */
+body.dark-theme {
+    --bg-color: #1e2033;
+    --bg-light: #2d3147;
+    --bg-dark: #15192a;
+    --text-color: #e1e5ee;
+    --text-light: #a7adc3;
+    --primary-light: #6a7cff;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .site-header {
+    background-color: #15192a;
+}
+
+body.dark-theme .card,
+body.dark-theme .form-container,
+body.dark-theme .student-profile,
+body.dark-theme .credit-system,
+body.dark-theme .events-view,
+body.dark-theme .achievements-view,
+body.dark-theme .goals-view,
+body.dark-theme .interests-view,
+body.dark-theme .portfolio-view,
+body.dark-theme .sanctions-view {
+    background-color: #2d3147;
+}
+
+body.dark-theme .event-card,
+body.dark-theme .achievement-card,
+body.dark-theme .goal-card,
+body.dark-theme .pillar {
+    background-color: #1e2033;
+}
+
+body.dark-theme .form-group input,
+body.dark-theme .form-group select,
+body.dark-theme .form-group textarea {
+    background-color: #15192a;
+    border-color: #3c415c;
+    color: #e1e5ee;
+}
+
+body.dark-theme .table-row:nth-child(even) {
+    background-color: #15192a;
+}

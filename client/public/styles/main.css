@@ -19,6 +19,6 @@
 @import './pages/_interests.css';
 @import './pages/_sanctions.css';
 @import './themes/_light.css';
-/* @import './themes/_dark.css'; */
+@import './themes/_dark.css';
 @import './base/_utilities.css';
-@import './components/notifications.css';
+@import './components/_notifications.css';

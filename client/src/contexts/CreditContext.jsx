@@ -1,5 +1,5 @@
 import { createContext, useReducer, useContext, useEffect, useCallback } from "react";
-import * as creditService from '../components/services/creditService';
+import * as creditService from '../services/creditService';
 import AuthContext from '../contexts/AuthContext';
 
 const CreditContext = createContext();

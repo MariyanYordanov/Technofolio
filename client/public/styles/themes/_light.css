@@ -1,0 +1,8 @@
+/* client/public/styles/themes/_light.css */
+body.light-theme {
+    --bg-color: #ffffff;
+    --bg-light: #f5f7fa;
+    --bg-dark: #e1e5ee;
+    --text-color: #333333;
+    --text-light: #666666;
+}

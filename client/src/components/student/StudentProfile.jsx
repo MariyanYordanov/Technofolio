@@ -2,8 +2,7 @@ import { useContext, useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext';
 import CreditContext from '../../contexts/CreditContext';
-import * as studentService from "../services/studentService";
-
+import * as studentService from "../../services/studentService";
 import Path from '../../paths';
 
 export default function StudentProfile() {

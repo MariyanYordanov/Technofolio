@@ -1,0 +1,94 @@
+/* client/public/styles/pages/_credits.css */
+.credit-system {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.credit-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--bg-dark);
+    margin-bottom: var(--spacing-xl);
+}
+
+.tab-btn {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: var(--text-light);
+    border-bottom: 2px solid transparent;
+    margin-right: var(--spacing-md);
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    margin-top: var(--spacing-lg);
+}
+
+/* Прогрес барове */
+.progress-bar {
+    height: 10px;
+    width: 100%;
+    background-color: var(--bg-dark);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    margin: var(--spacing-sm) 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width var(--transition-normal);
+}
+
+/* Кредитни стълбове */
+.credit-pillars {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.pillar {
+    background-color: var(--bg-light);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.pillar h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+/* Статуси */
+.status-pending {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+.status-validated {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.status-rejected {
+    color: var(--error-color);
+    font-weight: 600;
+}
+
+.status-registered {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.status-confirmed {
+    color: var(--success-color);
+    font-weight: 600;
+}

@@ -1,0 +1,101 @@
+/* client/public/styles/base/_utilities.css */
+/* Responsive дизайн */
+/* Таблети */
+@media (max-width: 1023px) {
+
+    .interests-content,
+    .portfolio-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .site-header {
+        flex-wrap: wrap;
+        height: auto;
+        padding: var(--spacing-md);
+    }
+
+    .nav-links {
+        order: 3;
+        width: 100%;
+        margin-top: var(--spacing-md);
+        justify-content: space-between;
+    }
+}
+
+/* Мобилни устройства */
+@media (max-width: 767px) {
+
+    .table-header,
+    .table-row {
+        grid-template-columns: 1fr;
+    }
+
+    .column {
+        padding: var(--spacing-xs) 0;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profile-image {
+        margin-right: 0;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .events-list,
+    .achievements-list,
+    .goals-container,
+    .sanctions-container {
+        grid-template-columns: 1fr;
+    }
+
+    .credit-tabs {
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        flex: 1;
+        text-align: center;
+        padding: var(--spacing-sm);
+    }
+
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Utility класове */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    font-size: var(--font-size-lg);
+    color: var(--text-light);
+}
+
+.error {
+    color: var(--error-color);
+    padding: var(--spacing-lg);
+    background-color: rgba(255, 74, 74, 0.1);
+    border-radius: var(--border-radius-md);
+    margin: var(--spacing-lg) 0;
+    text-align: center;
+}
+
+.no-data,
+.no-events,
+.no-credits,
+.no-sanctions {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-light);
+}

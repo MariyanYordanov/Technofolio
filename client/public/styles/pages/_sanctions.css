@@ -1,0 +1,66 @@
+/* client/public/styles/pages/_sanctions.css */
+.sanctions-view {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.sanctions-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-lg);
+}
+
+.absences-counts {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-md);
+}
+
+.absence-item {
+    background-color: var(--bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    flex: 1;
+    margin-right: var(--spacing-sm);
+    text-align: center;
+}
+
+.absence-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+}
+
+.absence-value {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.sanctions-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.sanction-item {
+    background-color: var(--bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    border-left: 4px solid var(--error-color);
+}
+
+.sanction-type {
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.sanction-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+}

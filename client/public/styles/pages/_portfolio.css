@@ -1,0 +1,63 @@
+/* client/public/styles/pages/_portfolio.css */
+.portfolio-view {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.portfolio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.portfolio-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.portfolio-section h2 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--bg-dark);
+    padding-bottom: var(--spacing-xs);
+}
+
+.mentor-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    background-color: var(--bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    max-width: 300px;
+}
+
+.mentor-name {
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+}
+
+.mentor-specialization {
+    color: var(--text-light);
+}
+
+.recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.recommendation-item {
+    background-color: var(--bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    border-left: 4px solid var(--primary-color);
+}
+
+.recommendation-author {
+    text-align: right;
+    font-style: italic;
+    color: var(--text-light);
+}
