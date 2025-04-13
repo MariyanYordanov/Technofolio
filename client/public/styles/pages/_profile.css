@@ -1,0 +1,68 @@
+.student-profile {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.profile-header {
+    display: flex;
+    padding: var(--spacing-xl);
+    background-color: var(--primary-light);
+    color: white;
+}
+
+.profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: var(--border-radius-rounded);
+    overflow: hidden;
+    margin-right: var(--spacing-xl);
+    border: 4px solid white;
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-info h1 {
+    margin-bottom: var(--spacing-sm);
+}
+
+.profile-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+}
+
+/* ===== КРЕДИТНА СИСТЕМА ===== */
+.credit-system {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.credit-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--bg-dark);
+    margin-bottom: var(--spacing-xl);
+}
+
+.tab-btn {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: var(--text-light);
+    border-bottom: 2px solid transparent;
+    margin-right: var(--spacing-md);
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
