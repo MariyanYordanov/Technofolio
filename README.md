@@ -11,46 +11,86 @@
 ## Файлова структура
 
 ```
+/public
+  /images
+  /styles
+    /base
+      _reset.css
+      _utilities.css
+      _variables.css
+    /components  
+      _buttons.css
+      _cards.css
+      _forms.css
+      _modals.css
+      _notifications.css
+      _tables.css
+      _tabs.css
+    /layout
+      _footer.css
+      _grid.css
+      _headder.css
+    /pages
+      _achievements.css
+      _auth.css
+      _credits.css
+      _events.css
+      _goals.css
+      _interests.css
+      _portfolio.css
+      _profile.css
+      _sanctions.css
+    /themes
+      _dark.css
+      _light.css
 /src
   /components
     /common
-      Header.jsx          # Хедър с навигация
-      Footer.jsx          # Футър с допълнителна информация
-      ErrorBoundary.jsx   # Компонент за прихващане на грешки
+      Notifications.jsx
+      Header.jsx
+      Footer.jsx
+      ErrorBoundary.jsx
     /student
-      StudentProfile.jsx  # Профил на ученика
-      Portfolio.jsx       # Портфолио с проекти и опит
-      Goals.jsx           # Годишни цели
-      CreditSystem.jsx    # Кредитна система
-      InterestsAndHobbies.jsx  # Интереси и хобита
-      Achievements.jsx    # Постижения
-      Sanctions.jsx       # Забележки и санкции
-      Events.jsx          # Събития и участия
+      StudentProfile.jsx
+      Portfolio.jsx
+      Goals.jsx
+      CreditSystem.jsx
+      InterestsAndHobbies.jsx
+      Achievements.jsx
+      Sanctions.jsx
+      Events.jsx
     /auth
-      Login.jsx           # Вход в системата
-      Register.jsx        # Регистрация на нов потребител
-      AuthGuard.jsx       # Защита на маршрути
-      Logout.jsx          # Изход от системата
+      Login.jsx
+      Register.jsx
+      AuthGuard.jsx
+      Logout.jsx
   /contexts
-    AuthContext.jsx       # Контекст за управление на автентикацията
-    CreditContext.jsx     # Контекст за управление на кредитната система
+    AuthContext.jsx
+    CreditContext.jsx
+    NotificationProvider.jsx
   /services
-    authService.js        # Услуги за автентикация
-    studentService.js     # Услуги за управление на студентски профил
-    creditService.js      # Услуги за кредитната система
-    eventService.js       # Услуги за събития
+    authService.js
+    studentService.js
+    creditService.js
+    eventService.js
   /hooks
-    useForm.js            # Hook за управление на форми
-    useLocalStorage.js    # Hook за запазване на състояние в localStorage
-    usePersistedState.js  # Hook за запазване на състояние в localStorage
+    useForm.js
+    useLocalStorage.js
+    usePersistedState.js
   /utils
-    pathUtils.js          # Помощни функции за работа с пътища
+    pathUtils.js
+    requestUtils.js
+    notificationsUtils.js
   /lib
-    request.js            # Основни функции за HTTP заявки
-  paths.js                # Дефиниции на пътищата в приложението
-  App.jsx                 # Основен компонент на приложението
-  main.jsx                # Входна точка на приложението
-  index.css               # Основни стилове за приложението
+    request.js
+  paths.js
+  App.jsx
+  main.jsx
+.gitignore
+eslint.config.js
+index.html
+vite.config.js
+ 
 ```
 
 ## Използвани дизайн принципи
