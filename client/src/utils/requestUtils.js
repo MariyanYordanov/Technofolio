@@ -1,8 +1,10 @@
+// client/src/utils/requestUtils.js
+const serverUrl = 'http://localhost:3030';
+
 const defaultHeaders = {
     'Content-Type': 'application/json',
 };
 
-// Optional: include a bearer token if available
 function getAuthHeaders() {
     const token = localStorage.getItem('accessToken');
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -20,6 +22,12 @@ async function handleResponse(res) {
             errorText = await res.text();
         }
 
+        if (res.status === 401) {
+            localStorage.removeItem('accessToken');
+            // Незабавно пренасочване към страницата за вход, ако токенът е изтекъл
+            window.location.href = '/login';
+        }
+
         throw new Error(errorText);
     }
 
@@ -27,11 +35,12 @@ async function handleResponse(res) {
         return res.json();
     }
 
-    return res.text(); // fallback
+    return res.text(); // fallback за други формати
 }
 
-// GET
-export async function get(url) {
+// GET заявка
+export async function get(endpoint) {
+    const url = `${serverUrl}${endpoint}`;
     const res = await fetch(url, {
         method: 'GET',
         headers: {
@@ -42,8 +51,9 @@ export async function get(url) {
     return handleResponse(res);
 }
 
-// POST
-export async function post(url, data) {
+// POST заявка
+export async function post(endpoint, data) {
+    const url = `${serverUrl}${endpoint}`;
     const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -55,8 +65,9 @@ export async function post(url, data) {
     return handleResponse(res);
 }
 
-// PUT
-export async function put(url, data) {
+// PUT заявка
+export async function put(endpoint, data) {
+    const url = `${serverUrl}${endpoint}`;
     const res = await fetch(url, {
         method: 'PUT',
         headers: {
@@ -68,8 +79,9 @@ export async function put(url, data) {
     return handleResponse(res);
 }
 
-// PATCH
-export async function patch(url, data) {
+// PATCH заявка
+export async function patch(endpoint, data) {
+    const url = `${serverUrl}${endpoint}`;
     const res = await fetch(url, {
         method: 'PATCH',
         headers: {
@@ -81,8 +93,9 @@ export async function patch(url, data) {
     return handleResponse(res);
 }
 
-// DELETE
-export async function del(url) {
+// DELETE заявка
+export async function del(endpoint) {
+    const url = `${serverUrl}${endpoint}`;
     const res = await fetch(url, {
         method: 'DELETE',
         headers: {
@@ -100,4 +113,5 @@ export const requester = {
     patch,
     del,
 };
+
 export default requester;
