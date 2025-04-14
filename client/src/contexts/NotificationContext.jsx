@@ -1,6 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
-
-import { createContext, useContext } from 'react';
+import { useState, useCallback, useRef, createContext, useContext } from 'react';
 
 const NotificationContext = createContext();
 
