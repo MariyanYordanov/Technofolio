@@ -1,6 +1,9 @@
+// client/src/contexts/CreditContext.jsx
 import { createContext, useReducer, useContext, useEffect, useCallback } from "react";
 import * as creditService from '../services/creditService';
-import AuthContext from '../contexts/AuthContext';
+import * as studentService from '../services/studentService';
+import AuthContext from './AuthContext';
+import { useNotifications } from '../utils/notificationsUtils';
 
 const CreditContext = createContext();
 
@@ -46,94 +49,138 @@ const creditReducer = (state, action) => {
                 error: action.payload,
                 loading: false,
             };
+        case 'SET_STUDENT_PROFILE':
+            return {
+                ...state,
+                studentProfile: action.payload,
+            };
         default:
             return state;
     }
 };
 
-export const CreditProvider = ({
-    children,
-}) => {
+export const CreditProvider = ({ children }) => {
     const { userId, isAuthenticated } = useContext(AuthContext);
+    const { error: showError, success } = useNotifications();
+
     const [state, dispatch] = useReducer(creditReducer, {
         credits: [],
         categories: [],
+        studentProfile: null,
         loading: true,
         error: null,
     });
 
-    const loadCredits = useCallback(async () => {
+    const loadStudentProfile = useCallback(async () => {
+        try {
+            const profile = await studentService.getStudentProfile(userId);
+            if (profile) {
+                dispatch({ type: 'SET_STUDENT_PROFILE', payload: profile });
+                return profile;
+            }
+            return null;
+        } catch (err) {
+            console.error('Error loading student profile:', err);
+            return null;
+        }
+    }, [userId]);
+
+    const loadCredits = useCallback(async (studentId) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
-            const credits = await creditService.getStudentCredits(userId);
+            const credits = await creditService.getStudentCredits(studentId);
             dispatch({ type: 'SET_CREDITS', payload: credits });
+            return credits;
         } catch (error) {
-            console.log(error);
+            console.error('Error loading credits:', error);
             dispatch({ type: 'SET_ERROR', payload: error.message });
+            showError('Грешка при зареждане на кредитите');
+            return [];
         }
-    }, [userId, dispatch]);
+    }, [showError]);
 
     const loadCreditCategories = useCallback(async () => {
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
             const categories = await creditService.getCreditCategories();
             dispatch({ type: 'SET_CREDIT_CATEGORIES', payload: categories });
+            return categories;
         } catch (error) {
-            console.log(error);
+            console.error('Error loading credit categories:', error);
             dispatch({ type: 'SET_ERROR', payload: error.message });
+            showError('Грешка при зареждане на категориите');
+            return [];
         }
-    }, []);
+    }, [showError]);
 
+    // Зареждане на данните при инициализация
     useEffect(() => {
         if (isAuthenticated && userId) {
-            loadCredits();
-            loadCreditCategories();
+            const initializeData = async () => {
+                const profile = await loadStudentProfile();
+                if (profile) {
+                    await loadCredits(profile._id);
+                    await loadCreditCategories();
+                }
+            };
+
+            initializeData();
         }
-    }, [isAuthenticated, userId, loadCredits, loadCreditCategories]);
+    }, [isAuthenticated, userId, loadStudentProfile, loadCredits, loadCreditCategories]);
 
     const addCredit = useCallback(async (creditData) => {
         try {
-            const newCredit = await creditService.addCredit(userId, creditData);
+            if (!state.studentProfile) {
+                throw new Error('Не е зареден профил на ученик');
+            }
+
+            const newCredit = await creditService.addCredit(state.studentProfile._id, creditData);
             dispatch({ type: 'ADD_CREDIT', payload: newCredit });
+            success('Кредитът е добавен успешно!');
             return newCredit;
         } catch (error) {
-            console.log(error);
+            console.error('Error adding credit:', error);
             dispatch({ type: 'SET_ERROR', payload: error.message });
+            showError('Грешка при добавяне на кредит');
             throw error;
         }
-    }, [userId]);
+    }, [state.studentProfile, success, showError]);
 
     const updateCredit = useCallback(async (creditId, creditData) => {
         try {
             const updatedCredit = await creditService.updateCredit(creditId, creditData);
             dispatch({ type: 'UPDATE_CREDIT', payload: updatedCredit });
+            success('Кредитът е обновен успешно!');
             return updatedCredit;
         } catch (error) {
-            console.log(error);
+            console.error('Error updating credit:', error);
             dispatch({ type: 'SET_ERROR', payload: error.message });
+            showError('Грешка при обновяване на кредит');
             throw error;
         }
-    }, []);
+    }, [success, showError]);
 
     const deleteCredit = useCallback(async (creditId) => {
         try {
             await creditService.deleteCredit(creditId);
             dispatch({ type: 'DELETE_CREDIT', payload: creditId });
+            success('Кредитът е изтрит успешно!');
         } catch (error) {
-            console.log(error);
+            console.error('Error deleting credit:', error);
             dispatch({ type: 'SET_ERROR', payload: error.message });
+            showError('Грешка при изтриване на кредит');
             throw error;
         }
-    }, []);
+    }, [success, showError]);
 
     const getStudentGradeLevel = useCallback(() => {
         if (!state.credits.length) return 'Начинаещ';
 
-        const totalCredits = state.credits.length;
+        const validatedCredits = state.credits.filter(credit => credit.status === 'validated').length;
 
-        if (totalCredits >= 15) {
+        if (validatedCredits >= 15) {
             return 'Мастър';
-        } else if (totalCredits >= 8) {
+        } else if (validatedCredits >= 8) {
             return 'Напреднал';
         } else {
             return 'Начинаещ';
@@ -143,16 +190,19 @@ export const CreditProvider = ({
     const getCompletedCredits = useCallback((pillar) => {
         if (!state.credits.length) return 0;
 
+        const validatedCredits = state.credits.filter(credit => credit.status === 'validated');
+
         if (pillar) {
-            return state.credits.filter(credit => credit.pillar === pillar).length;
+            return validatedCredits.filter(credit => credit.pillar === pillar).length;
         }
 
-        return state.credits.length;
+        return validatedCredits.length;
     }, [state.credits]);
 
     const values = {
         ...state,
         loadCredits,
+        loadCreditCategories,
         addCredit,
         updateCredit,
         deleteCredit,

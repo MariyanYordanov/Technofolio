@@ -14,7 +14,6 @@ export const useNotifications = () => {
 
 export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
-
     const removeNotificationRef = useRef(null);
 
     const removeNotification = useCallback((id) => {
@@ -38,16 +37,20 @@ export const NotificationProvider = ({ children }) => {
         return id;
     }, []);
 
-    const success = useCallback((message, duration) => {
+    const success = useCallback((message, duration = 5000) => {
         return addNotification(message, 'success', duration);
     }, [addNotification]);
 
-    const error = useCallback((message, duration) => {
+    const error = useCallback((message, duration = 7000) => {
         return addNotification(message, 'error', duration);
     }, [addNotification]);
 
-    const info = useCallback((message, duration) => {
+    const info = useCallback((message, duration = 5000) => {
         return addNotification(message, 'info', duration);
+    }, [addNotification]);
+
+    const warning = useCallback((message, duration = 6000) => {
+        return addNotification(message, 'warning', duration);
     }, [addNotification]);
 
     const values = {
@@ -56,7 +59,8 @@ export const NotificationProvider = ({ children }) => {
         removeNotification,
         success,
         error,
-        info
+        info,
+        warning
     };
 
     return (
@@ -65,5 +69,3 @@ export const NotificationProvider = ({ children }) => {
         </NotificationContext.Provider>
     );
 };
-
-export default NotificationContext;
