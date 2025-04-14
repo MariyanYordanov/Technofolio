@@ -1,9 +1,8 @@
 // client/src/App.jsx
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { CreditProvider } from './contexts/CreditContext';
-import { NotificationProvider } from './contexts/NotificationProvider';
+import { AuthProvider } from '../contexts/AuthContext.jsx';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import Path from './paths';
 
 // Общи компоненти
