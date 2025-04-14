@@ -67,3 +67,5 @@ export const NotificationProvider = ({ children }) => {
         </NotificationContext.Provider>
     );
 };
+
+export default NotificationContext;

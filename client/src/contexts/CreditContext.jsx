@@ -3,7 +3,7 @@ import { createContext, useReducer, useContext, useEffect, useCallback } from "r
 import * as creditService from '../services/creditService';
 import * as studentService from '../services/studentService';
 import AuthContext from './AuthContext';
-import { useNotifications } from '../utils/notificationsUtils';
+import { useNotifications } from './NotificationContext';
 
 const CreditContext = createContext();
 

@@ -3,7 +3,7 @@ import { createContext, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import * as authService from '../services/authService';
 import usePersistedState from "../hooks/usePersistedState";
-import { useNotifications } from '../utils/notificationsUtils';
+import { useNotifications } from './NotificationContext';
 import Path from '../paths';
 
 const AuthContext = createContext();
