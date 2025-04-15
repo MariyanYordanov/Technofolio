@@ -1,7 +1,8 @@
 // client/src/App.jsx
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider, CreditProvider } from "./contexts/AuthContext.jsx";
+import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { CreditProvider } from "./contexts/CreditContext.jsx";
 import { NotificationProvider } from "./contexts/NotificationContext.jsx";
 import Path from './paths';
 

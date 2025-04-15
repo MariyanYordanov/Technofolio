@@ -105,5 +105,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 AuthContext.displayName = 'AuthContext';
-
-export default AuthContext;
