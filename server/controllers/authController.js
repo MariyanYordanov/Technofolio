@@ -1,7 +1,7 @@
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const User = require("../../data/models/User");
+const User = require("../models/User");
 require("dotenv").config();
 
 const generateToken = (user) => {

@@ -1,9 +1,10 @@
-// client/src/App.jsx
+// src/App.jsx
+
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { CreditProvider } from "./contexts/CreditContext.jsx";
-import { NotificationProvider } from "./contexts/NotificationContext.jsx";
+import { NotificationProvider, useNotifications } from "./contexts/NotificationContext.jsx";
 import Path from './paths';
 
 // Общи компоненти
@@ -33,6 +34,72 @@ const Events = lazy(() => import('./components/student/Events'));
 // Зареждане на тема при стартиране
 import { initTheme } from './utils/themeUtils';
 
+// Компонент, който осигурява правилното подаване на props
+function AppWithNotifications() {
+  const notificationService = useNotifications();
+  
+  return (
+    <AuthProvider notificationService={notificationService}>
+      <AppWithAuth />
+    </AuthProvider>
+  );
+}
+
+// Компонент, който предоставя authService на CreditProvider
+function AppWithAuth() {
+  const auth = useAuth();
+  const notifications = useNotifications();
+  
+  return (
+    <CreditProvider
+      authService={auth}
+      notificationService={notifications}
+    >
+      <div id="app-container">
+        <Header />
+        <main className="content-container">
+          <Notifications />
+          <Suspense fallback={
+            <div className="loading">
+              <div className="loading-spinner"></div>
+              <p>Зареждане...</p>
+            </div>
+          }>
+            <Routes>
+              {/* Публични маршрути */}
+              <Route path={Path.Home} element={<StudentProfile />} />
+              <Route path={Path.Login} element={<Login />} />
+              <Route path={Path.Register} element={<Register />} />
+
+              {/* Защитени маршрути */}
+              <Route element={<AuthGuard />}>
+                <Route path={Path.StudentProfile} element={<StudentProfile />} />
+                <Route path={Path.Portfolio} element={<Portfolio />} />
+                <Route path={Path.Goals} element={<Goals />} />
+                <Route path={Path.Credits} element={<CreditSystem />} />
+                <Route path={Path.Interests} element={<InterestsAndHobbies />} />
+                <Route path={Path.Achievements} element={<Achievements />} />
+                <Route path={Path.Sanctions} element={<Sanctions />} />
+                <Route path={Path.Events} element={<Events />} />
+                <Route path={Path.Logout} element={<Logout />} />
+              </Route>
+
+              {/* Маршрут за несъществуващи страници */}
+              <Route path="*" element={
+                <div className="not-found">
+                  <h1>404</h1>
+                  <p>Страницата не е намерена</p>
+                </div>
+              } />
+            </Routes>
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    </CreditProvider>
+  );
+}
+
 function App() {
   // Инициализиране на тема
   initTheme();
@@ -40,51 +107,7 @@ function App() {
   return (
     <ErrorBoundary>
       <NotificationProvider>
-        <AuthProvider>
-          <CreditProvider>
-            <div id="app-container">
-              <Header />
-              <main className="content-container">
-                <Notifications />
-                <Suspense fallback={
-                  <div className="loading">
-                    <div className="loading-spinner"></div>
-                    <p>Зареждане...</p>
-                  </div>
-                }>
-                  <Routes>
-                    {/* Публични маршрути */}
-                    <Route path={Path.Home} element={<StudentProfile />} />
-                    <Route path={Path.Login} element={<Login />} />
-                    <Route path={Path.Register} element={<Register />} />
-
-                    {/* Защитени маршрути */}
-                    <Route element={<AuthGuard />}>
-                      <Route path={Path.StudentProfile} element={<StudentProfile />} />
-                      <Route path={Path.Portfolio} element={<Portfolio />} />
-                      <Route path={Path.Goals} element={<Goals />} />
-                      <Route path={Path.Credits} element={<CreditSystem />} />
-                      <Route path={Path.Interests} element={<InterestsAndHobbies />} />
-                      <Route path={Path.Achievements} element={<Achievements />} />
-                      <Route path={Path.Sanctions} element={<Sanctions />} />
-                      <Route path={Path.Events} element={<Events />} />
-                      <Route path={Path.Logout} element={<Logout />} />
-                    </Route>
-
-                    {/* Маршрут за несъществуващи страници */}
-                    <Route path="*" element={
-                      <div className="not-found">
-                        <h1>404</h1>
-                        <p>Страницата не е намерена</p>
-                      </div>
-                    } />
-                  </Routes>
-                </Suspense>
-              </main>
-              <Footer />
-            </div>
-          </CreditProvider>
-        </AuthProvider>
+        <AppWithNotifications />
       </NotificationProvider>
     </ErrorBoundary>
   );
