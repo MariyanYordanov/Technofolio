@@ -1,3 +1,4 @@
+// src/components/auth/Register.jsx
 import { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext';
@@ -6,6 +7,7 @@ import useForm from '../../hooks/useForm';
 export default function Register() {
     const { registerSubmitHandler } = useContext(AuthContext);
     const [passwordError, setPasswordError] = useState('');
+    const [selectedRole, setSelectedRole] = useState('student');
 
     const { values, onChange, onSubmit } = useForm((formValues) => {
         if (formValues.password !== formValues.rePassword) {
@@ -14,7 +16,7 @@ export default function Register() {
         }
 
         setPasswordError('');
-        registerSubmitHandler(formValues);
+        registerSubmitHandler({...formValues, role: selectedRole});
     }, {
         email: '',
         password: '',
@@ -82,43 +84,71 @@ export default function Register() {
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label htmlFor="grade">Клас:</label>
-                            <select
-                                id="grade"
-                                name="grade"
-                                value={values.grade}
-                                onChange={onChange}
-                                required
-                            >
-                                <option value="">Избери клас</option>
-                                {grades.map(grade => (
-                                    <option key={grade} value={grade}>
-                                        {grade} клас
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="specialization">Специалност:</label>
-                            <select
-                                id="specialization"
-                                name="specialization"
-                                value={values.specialization}
-                                onChange={onChange}
-                                required
-                            >
-                                <option value="">Избери специалност</option>
-                                {specializations.map(spec => (
-                                    <option key={spec} value={spec}>
-                                        {spec}
-                                    </option>
-                                ))}
-                            </select>
+                    <div className="form-group">
+                        <label>Роля:</label>
+                        <div className="role-selection">
+                            <label className="role-option">
+                                <input
+                                    type="radio"
+                                    name="role"
+                                    value="student"
+                                    checked={selectedRole === 'student'}
+                                    onChange={() => setSelectedRole('student')}
+                                />
+                                Ученик
+                            </label>
+                            <label className="role-option">
+                                <input
+                                    type="radio"
+                                    name="role"
+                                    value="teacher"
+                                    checked={selectedRole === 'teacher'}
+                                    onChange={() => setSelectedRole('teacher')}
+                                />
+                                Учител
+                            </label>
                         </div>
                     </div>
+
+                    {selectedRole === 'student' && (
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="grade">Клас:</label>
+                                <select
+                                    id="grade"
+                                    name="grade"
+                                    value={values.grade}
+                                    onChange={onChange}
+                                    required
+                                >
+                                    <option value="">Избери клас</option>
+                                    {grades.map(grade => (
+                                        <option key={grade} value={grade}>
+                                            {grade} клас
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="specialization">Специалност:</label>
+                                <select
+                                    id="specialization"
+                                    name="specialization"
+                                    value={values.specialization}
+                                    onChange={onChange}
+                                    required={selectedRole === 'student'}
+                                >
+                                    <option value="">Избери специалност</option>
+                                    {specializations.map(spec => (
+                                        <option key={spec} value={spec}>
+                                            {spec}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label htmlFor="password">Парола:</label>

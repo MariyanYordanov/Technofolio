@@ -11,6 +11,8 @@ const Path = {
     Achievements: '/achievements',
     Sanctions: '/sanctions',
     Events: '/events',
+    EmailLogin: '/login/email',
+    ConfirmRegistration: '/register/confirm',
 };
 
 export default Path;

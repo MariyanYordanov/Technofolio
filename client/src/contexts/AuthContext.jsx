@@ -42,40 +42,65 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         verifyAuth();
     }, []);
 
-    const loginSubmitHandler = async (values) => {
+    // Функция за изпращане на имейл за вход
+    // Функция за изпращане на имейл за вход
+const loginSubmitHandler = async (values) => {
+    try {
+        setIsLoading(true);
+        // Изпращаме само имейл за автентикация
+        await authService.requestLoginLink(values.email);
+        success('Линк за вход е изпратен на вашия имейл!');
+        // Показваме съобщение за успешно изпратен имейл
+    } catch (err) {
+        console.log(err);
+        showError(err.message || 'Неуспешен опит за изпращане на линк. Проверете имейла си.');
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+    // Функция за обработка на връщането от имейл линка
+    const handleEmailLogin = useCallback(async (token) => {
         try {
             setIsLoading(true);
-            const result = await authService.login(values.email, values.password);
+            const result = await authService.verifyEmailLogin(token);
             setAuth(result.user);
             success('Успешен вход в системата!');
             navigate(Path.Home);
         } catch (err) {
             console.log(err);
-            showError(err.message || 'Неуспешен опит за вход. Проверете имейла и паролата си.');
+            showError(err.message || 'Невалиден или изтекъл линк за вход.');
+            navigate(Path.Login);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [navigate, success, showError]);
 
+    // Функция за регистрация
     const registerSubmitHandler = async (values) => {
         try {
             setIsLoading(true);
-            const { email, password, firstName, lastName, grade, specialization } = values;
-
+            const { email, password, firstName, lastName, grade, specialization, role } = values;
+    
             const registrationData = {
                 email,
                 password,
                 firstName,
                 lastName,
-                grade: Number(grade),
-                specialization,
-                role: 'student',
+                role: role || 'student', 
             };
-
-            const result = await authService.register(email, password, registrationData);
-            setAuth(result.user);
-            success('Успешна регистрация!');
-            navigate(Path.Home);
+    
+            // Добавяме grade и specialization само ако ролята е ученик
+            if (role === 'student') {
+                registrationData.grade = Number(grade);
+                registrationData.specialization = specialization;
+            }
+    
+            // Правим заявка за регистрация
+            await authService.register(email, password, registrationData);
+            // При успех показваме съобщение за изпратен имейл за потвърждение
+            success('Регистрацията е успешна! Моля, проверете имейла си за потвърждение.');
+            navigate(Path.Login);
         } catch (err) {
             console.log(err);
             showError(err.message || 'Неуспешен опит за регистрация. Опитайте отново по-късно.');
@@ -84,6 +109,24 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         }
     };
 
+    // Функция за потвърждаване на регистрация чрез имейл
+    const confirmRegistration = useCallback(async (token) => {
+        try {
+            setIsLoading(true);
+            const result = await authService.confirmRegistration(token);
+            setAuth(result.user);
+            success('Регистрацията е потвърдена успешно!');
+            navigate(Path.Home);
+        } catch (err) {
+            console.log(err);
+            showError(err.message || 'Невалиден или изтекъл линк за потвърждение.');
+            navigate(Path.Register);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [navigate, success, showError]);
+
+    // Функция за изход
     const logoutHandler = useCallback(async () => {
         try {
             setIsLoading(true);
@@ -108,6 +151,8 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
     const contextValue = {
         loginSubmitHandler,
         registerSubmitHandler,
+        handleEmailLogin,
+        confirmRegistration,
         logoutHandler,
         username: auth?.username || auth?.email,
         email: auth?.email,

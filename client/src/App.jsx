@@ -1,28 +1,22 @@
-// src/App.jsx
-
+// Файл: client/src/App.jsx
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { CreditProvider } from "./contexts/CreditContext.jsx";
 import { NotificationProvider, useNotifications } from "./contexts/NotificationContext.jsx";
 import Path from './paths';
-
-// Общи компоненти
+import Home from './components/common/Home.jsx';
+import EmailLogin from './components/auth/EmailLogin';
 import Header from "./components/common/Header";
 import Footer from "./components/common/Footer";
 import Notifications from './components/common/Notifications';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AuthGuard from './components/auth/AuthGuard';
-
-// Компоненти за автентикация
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Logout from './components/auth/Logout';
-
-// Основни компоненти (зареждат се веднага)
 import StudentProfile from './components/student/StudentProfile';
-
-// Компоненти, които се зареждат с lazy loading за оптимизация
+import { initTheme } from './utils/themeUtils';
 const Portfolio = lazy(() => import('./components/student/Portfolio'));
 const Goals = lazy(() => import('./components/student/Goals'));
 const CreditSystem = lazy(() => import('./components/student/CreditSystem'));
@@ -31,10 +25,10 @@ const Achievements = lazy(() => import('./components/student/Achievements'));
 const Sanctions = lazy(() => import('./components/student/Sanctions'));
 const Events = lazy(() => import('./components/student/Events'));
 
-// Зареждане на тема при стартиране
-import { initTheme } from './utils/themeUtils';
+import ConfirmRegistration from './components/auth/ConfirmRegistration';
 
-// Компонент, който осигурява правилното подаване на props
+
+
 function AppWithNotifications() {
   const notificationService = useNotifications();
   
@@ -67,9 +61,11 @@ function AppWithAuth() {
           }>
             <Routes>
               {/* Публични маршрути */}
-              <Route path={Path.Home} element={<StudentProfile />} />
+              <Route path={Path.Home} element={<Home />} />
               <Route path={Path.Login} element={<Login />} />
               <Route path={Path.Register} element={<Register />} />
+              <Route path={Path.EmailLogin} element={<EmailLogin />} />
+              <Route path={Path.ConfirmRegistration} element={<ConfirmRegistration />} />
 
               {/* Защитени маршрути */}
               <Route element={<AuthGuard />}>
