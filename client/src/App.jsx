@@ -1,5 +1,5 @@
 // Файл: client/src/App.jsx
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { CreditProvider } from "./contexts/CreditContext.jsx";
@@ -31,7 +31,7 @@ import ConfirmRegistration from './components/auth/ConfirmRegistration';
 
 function AppWithNotifications() {
   const notificationService = useNotifications();
-  
+
   return (
     <AuthProvider notificationService={notificationService}>
       <AppWithAuth />
@@ -43,7 +43,7 @@ function AppWithNotifications() {
 function AppWithAuth() {
   const auth = useAuth();
   const notifications = useNotifications();
-  
+
   return (
     <CreditProvider
       authService={auth}
@@ -97,8 +97,10 @@ function AppWithAuth() {
 }
 
 function App() {
-  // Инициализиране на тема
-  initTheme();
+  // Инициализиране на тема в useEffect, за да не се извиква при всеки рендер
+  useEffect(() => {
+    initTheme();
+  }, []);
 
   return (
     <ErrorBoundary>

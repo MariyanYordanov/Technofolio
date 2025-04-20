@@ -21,43 +21,49 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
     const navigate = useNavigate();
     const [auth, setAuth] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [authInitialized, setAuthInitialized] = useState(false);
 
     // Деструктуриране на notificationService с fallback функции
-    const { success = () => {}, error: showError = () => {} } = notificationService;
+    const { success = () => { }, error: showError = () => { } } = notificationService;
 
     // Проверка дали потребителят е автентикиран при първоначално зареждане
     useEffect(() => {
+        // Предотвратяваме многократно изпълнение
+        if (authInitialized) return;
+
         const verifyAuth = async () => {
             try {
                 const userData = await authService.getMe();
                 setAuth(userData);
             } catch (err) {
                 console.log('User not authenticated:', err);
+                // Почистваме локалното хранилище, за да сме сигурни, че няма остатъчни токени
+                localStorage.removeItem('accessToken');
                 setAuth(null);
             } finally {
                 setIsLoading(false);
+                setAuthInitialized(true);
             }
         };
 
         verifyAuth();
-    }, []);
+    }, [authInitialized]);
 
     // Функция за изпращане на имейл за вход
-    // Функция за изпращане на имейл за вход
-const loginSubmitHandler = async (values) => {
-    try {
-        setIsLoading(true);
-        // Изпращаме само имейл за автентикация
-        await authService.requestLoginLink(values.email);
-        success('Линк за вход е изпратен на вашия имейл!');
-        // Показваме съобщение за успешно изпратен имейл
-    } catch (err) {
-        console.log(err);
-        showError(err.message || 'Неуспешен опит за изпращане на линк. Проверете имейла си.');
-    } finally {
-        setIsLoading(false);
-    }
-};
+    const loginSubmitHandler = async (values) => {
+        try {
+            setIsLoading(true);
+            // Изпращаме само имейл за автентикация
+            await authService.requestLoginLink(values.email);
+            success('Линк за вход е изпратен на вашия имейл!');
+            // Показваме съобщение за успешно изпратен имейл
+        } catch (err) {
+            console.log(err);
+            showError(err.message || 'Неуспешен опит за изпращане на линк. Проверете имейла си.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Функция за обработка на връщането от имейл линка
     const handleEmailLogin = useCallback(async (token) => {
@@ -81,21 +87,21 @@ const loginSubmitHandler = async (values) => {
         try {
             setIsLoading(true);
             const { email, password, firstName, lastName, grade, specialization, role } = values;
-    
+
             const registrationData = {
                 email,
                 password,
                 firstName,
                 lastName,
-                role: role || 'student', 
+                role: role || 'student',
             };
-    
+
             // Добавяме grade и specialization само ако ролята е ученик
             if (role === 'student') {
                 registrationData.grade = Number(grade);
                 registrationData.specialization = specialization;
             }
-    
+
             // Правим заявка за регистрация
             await authService.register(email, password, registrationData);
             // При успех показваме съобщение за изпратен имейл за потвърждение
@@ -131,12 +137,20 @@ const loginSubmitHandler = async (values) => {
         try {
             setIsLoading(true);
             await authService.logout();
+
+            // Изрично изчистваме токена от локалното хранилище
+            localStorage.removeItem('accessToken');
+
             setAuth(null);
             success('Успешно излизане от системата!');
             navigate(Path.Login);
         } catch (err) {
             console.log(err);
+            // Дори при грешка, изчистваме локалното състояние
+            localStorage.removeItem('accessToken');
+            setAuth(null);
             showError('Възникна проблем при излизане от системата.');
+            navigate(Path.Login);
         } finally {
             setIsLoading(false);
         }
@@ -165,7 +179,8 @@ const loginSubmitHandler = async (values) => {
         isStudent,
         isTeacher,
         isAdmin,
-        isLoading
+        isLoading,
+        authInitialized
     };
 
     return (
