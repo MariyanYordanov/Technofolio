@@ -1,7 +1,6 @@
-import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { SessionProvider } from "next-auth/react";
-import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { lazy, Suspense, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { CreditProvider } from "./contexts/CreditContext.jsx";
 import { NotificationProvider } from "./contexts/NotificationContext.jsx";
 import Path from './paths';
@@ -13,6 +12,9 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import VerifyRequest from './components/auth/VerifyRequest';
+import EmailLogin from './components/auth/EmailLogin';
+import ConfirmRegistration from './components/auth/ConfirmRegistration';
+import Logout from './components/auth/Logout';
 import StudentProfile from './components/student/StudentProfile';
 import { initTheme } from './utils/themeUtils';
 
@@ -53,56 +55,86 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <SessionProvider>
-        <NotificationProvider>
-          <AuthProvider>
-            <CreditProvider>
-              <div id="app-container">
-                <Header />
-                <main className="content-container">
-                  <Notifications />
-                  <Suspense fallback={
-                    <div className="loading">
-                      <div className="loading-spinner"></div>
-                      <p>Зареждане...</p>
-                    </div>
-                  }>
-                    <Routes>
-                      {/* Публични маршрути */}
-                      <Route path={Path.Home} element={<Home />} />
-                      <Route path={Path.Login} element={<Login />} />
-                      <Route path={Path.Register} element={<Register />} />
-                      <Route path="/auth/verify-request" element={<VerifyRequest />} />
+      <NotificationProvider>
+        <AuthProvider>
+          <CreditProvider>
+            <div id="app-container">
+              <Header />
+              <main className="content-container">
+                <Notifications />
+                <Suspense fallback={
+                  <div className="loading">
+                    <div className="loading-spinner"></div>
+                    <p>Зареждане...</p>
+                  </div>
+                }>
+                  <Routes>
+                    {/* Публични маршрути */}
+                    <Route path={Path.Home} element={<Home />} />
+                    <Route path={Path.Login} element={<Login />} />
+                    <Route path={Path.Register} element={<Register />} />
+                    <Route path="/auth/verify-request" element={<VerifyRequest />} />
+                    <Route path={Path.EmailLogin} element={<EmailLogin />} />
+                    <Route path={Path.ConfirmRegistration} element={<ConfirmRegistration />} />
+                    <Route path={Path.Logout} element={<Logout />} />
 
-                      {/* Защитени маршрути */}
-                      <Route path={Path.StudentProfile} element={
-                        <RequireAuth>
-                          <StudentProfile />
-                        </RequireAuth>
-                      } />
-                      <Route path={Path.Portfolio} element={
-                        <RequireAuth>
-                          <Portfolio />
-                        </RequireAuth>
-                      } />
-                      {/* Останалите защитени маршрути следват същия модел */}
+                    {/* Защитени маршрути */}
+                    <Route path={Path.StudentProfile} element={
+                      <RequireAuth>
+                        <StudentProfile />
+                      </RequireAuth>
+                    } />
+                    <Route path={Path.Portfolio} element={
+                      <RequireAuth>
+                        <Portfolio />
+                      </RequireAuth>
+                    } />
+                    <Route path={Path.Goals} element={
+                      <RequireAuth>
+                        <Goals />
+                      </RequireAuth>
+                    } />
+                    <Route path={Path.Credits} element={
+                      <RequireAuth>
+                        <CreditSystem />
+                      </RequireAuth>
+                    } />
+                    <Route path={Path.Interests} element={
+                      <RequireAuth>
+                        <InterestsAndHobbies />
+                      </RequireAuth>
+                    } />
+                    <Route path={Path.Achievements} element={
+                      <RequireAuth>
+                        <Achievements />
+                      </RequireAuth>
+                    } />
+                    <Route path={Path.Sanctions} element={
+                      <RequireAuth>
+                        <Sanctions />
+                      </RequireAuth>
+                    } />
+                    <Route path={Path.Events} element={
+                      <RequireAuth>
+                        <Events />
+                      </RequireAuth>
+                    } />
 
-                      {/* Маршрут за несъществуващи страници */}
-                      <Route path="*" element={
-                        <div className="not-found">
-                          <h1>404</h1>
-                          <p>Страницата не е намерена</p>
-                        </div>
-                      } />
-                    </Routes>
-                  </Suspense>
-                </main>
-                <Footer />
-              </div>
-            </CreditProvider>
-          </AuthProvider>
-        </NotificationProvider>
-      </SessionProvider>
+                    {/* Маршрут за несъществуващи страници */}
+                    <Route path="*" element={
+                      <div className="not-found">
+                        <h1>404</h1>
+                        <p>Страницата не е намерена</p>
+                      </div>
+                    } />
+                  </Routes>
+                </Suspense>
+              </main>
+              <Footer />
+            </div>
+          </CreditProvider>
+        </AuthProvider>
+      </NotificationProvider>
     </ErrorBoundary>
   );
 }

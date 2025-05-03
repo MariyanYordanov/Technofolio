@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const CreditSchema = new mongoose.Schema({
+const CreditSchema = new Schema({
     student: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Student',
         required: true
     },
@@ -25,7 +25,7 @@ const CreditSchema = new mongoose.Schema({
         default: 'pending'
     },
     validatedBy: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'User'
     },
     validationDate: {
@@ -37,4 +37,4 @@ const CreditSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Credit', CreditSchema);
+export default model('Credit', CreditSchema);

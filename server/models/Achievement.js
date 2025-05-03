@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const AchievementSchema = new mongoose.Schema({
+const AchievementSchema = new Schema({
     student: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Student',
         required: true
     },
@@ -34,4 +34,4 @@ const AchievementSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Achievement', AchievementSchema);
+export default model('Achievement', AchievementSchema);

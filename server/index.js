@@ -1,13 +1,14 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const { handlers } = require('./auth');
-const connectDB = require('./config/db');
+// index.js
+import 'dotenv/config'; // Вместо require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import connectDB from './config/db.js';
 
 // Импортиране на маршрути
-const studentRoutes = require('./routes/studentRoutes');
-const eventsRoutes = require('./routes/eventsRoutes');
-const creditsRoutes = require('./routes/creditsRoutes');
+import authRoutes from './routes/authRoutes.js'; // Добавяме authRoutes
+import studentRoutes from './routes/studentRoutes.js';
+import eventsRoutes from './routes/eventsRoutes.js';
+import creditsRoutes from './routes/creditsRoutes.js';
 
 // Инициализиране на app
 const app = express();
@@ -16,7 +17,7 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(express.json());
+app.use(express.json()); // Използваме express.json() вместо импортираната функция json
 
 // CORS настройки
 app.use(cors({
@@ -26,8 +27,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Маршрути за автентикация от Auth.js
-app.use('/api/auth', handlers);
+// Маршрути за автентикация
+app.use('/api/auth', authRoutes); // Използваме authRoutes вместо handlers
 
 // Други маршрути
 app.use('/api/students', studentRoutes);

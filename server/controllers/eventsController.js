@@ -1,10 +1,10 @@
-const { validationResult } = require('express-validator');
-const Event = require('../models/Event');
-const EventParticipation = require('../models/EventParticipation');
-const Student = require('../models/Student');
+import { validationResult } from 'express-validator';
+import Event from '../models/Event.js';
+import EventParticipation from '../models/EventParticipation.js';
+import Student from '../models/Student.js';
 
 // Получаване на всички събития
-exports.getAllEvents = async (req, res, next) => {
+export async function getAllEvents(req, res, next) {
     try {
         const events = await Event.find()
             .sort({ startDate: 1 });
@@ -13,10 +13,10 @@ exports.getAllEvents = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Получаване на събитие по ID
-exports.getEventById = async (req, res, next) => {
+export async function getEventById(req, res, next) {
     try {
         const eventId = req.params.eventId;
 
@@ -30,10 +30,10 @@ exports.getEventById = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Създаване на ново събитие (само за учители и администратори)
-exports.createEvent = async (req, res, next) => {
+export async function createEvent(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -66,10 +66,10 @@ exports.createEvent = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Обновяване на събитие (само за създателя и администратори)
-exports.updateEvent = async (req, res, next) => {
+export async function updateEvent(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -110,10 +110,10 @@ exports.updateEvent = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Изтриване на събитие (само за създателя и администратори)
-exports.deleteEvent = async (req, res, next) => {
+export async function deleteEvent(req, res, next) {
     try {
         const eventId = req.params.eventId;
 
@@ -129,8 +129,8 @@ exports.deleteEvent = async (req, res, next) => {
             return res.status(403).json({ message: 'Нямате права да изтривате това събитие' });
         }
 
-        // Изтриване на събитието
-        await event.remove();
+        // Изтриване на събитието - .remove() е остарял метод
+        await Event.deleteOne({ _id: eventId });
 
         // Изтриване на свързаните участия
         await EventParticipation.deleteMany({ event: eventId });
@@ -139,10 +139,10 @@ exports.deleteEvent = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Регистриране за събитие
-exports.participateInEvent = async (req, res, next) => {
+export async function participateInEvent(req, res, next) {
     try {
         const eventId = req.params.eventId;
 
@@ -179,10 +179,10 @@ exports.participateInEvent = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Потвърждаване на участие в събитие
-exports.confirmParticipation = async (req, res, next) => {
+export async function confirmParticipation(req, res, next) {
     try {
         const participationId = req.params.participationId;
 
@@ -212,10 +212,10 @@ exports.confirmParticipation = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Получаване на регистрациите на студент
-exports.getStudentParticipations = async (req, res, next) => {
+export async function getStudentParticipations(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
@@ -238,4 +238,4 @@ exports.getStudentParticipations = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}

@@ -1,9 +1,9 @@
-const { validationResult } = require('express-validator');
-const Achievement = require('../models/Achievement');
-const Student = require('../models/Student');
+import { validationResult } from 'express-validator';
+import Achievement from '../models/Achievement.js';
+import Student from '../models/Student.js';
 
 // Получаване на постиженията на студент
-exports.getStudentAchievements = async (req, res, next) => {
+export async function getStudentAchievements(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
@@ -21,10 +21,10 @@ exports.getStudentAchievements = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Добавяне на ново постижение
-exports.addAchievement = async (req, res, next) => {
+export async function addAchievement(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -63,10 +63,10 @@ exports.addAchievement = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Изтриване на постижение
-exports.removeAchievement = async (req, res, next) => {
+export async function removeAchievement(req, res, next) {
     try {
         const studentId = req.params.studentId;
         const achievementId = req.params.achievementId;
@@ -93,11 +93,11 @@ exports.removeAchievement = async (req, res, next) => {
             return res.status(403).json({ message: 'Нямате права да изтривате постижения за този студент' });
         }
 
-        // Изтриване на постижението
-        await achievement.remove();
+        // Изтриване на постижението - .remove() е остарял метод
+        await Achievement.deleteOne({ _id: achievementId });
 
         res.status(200).json({ message: 'Постижението е изтрито успешно' });
     } catch (error) {
         next(error);
     }
-};
+}

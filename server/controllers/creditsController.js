@@ -1,10 +1,10 @@
-const { validationResult } = require('express-validator');
-const Credit = require('../models/Credit');
-const CreditCategory = require('../models/CreditCategory');
-const Student = require('../models/Student');
+import { validationResult } from 'express-validator';
+import Credit from '../models/Credit.js';
+import CreditCategory from '../models/CreditCategory.js';
+import Student from '../models/Student.js';
 
 // Получаване на кредитите на студент
-exports.getStudentCredits = async (req, res, next) => {
+export async function getStudentCredits(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
@@ -27,10 +27,10 @@ exports.getStudentCredits = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Получаване на категориите кредити
-exports.getCreditCategories = async (req, res, next) => {
+export async function getCreditCategories(req, res, next) {
     try {
         const categories = await CreditCategory.find().sort({ pillar: 1, name: 1 });
 
@@ -38,10 +38,10 @@ exports.getCreditCategories = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Добавяне на нов кредит
-exports.addCredit = async (req, res, next) => {
+export async function addCredit(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -72,10 +72,10 @@ exports.addCredit = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Валидиране на кредит (само за учители и администратори)
-exports.validateCredit = async (req, res, next) => {
+export async function validateCredit(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -110,10 +110,10 @@ exports.validateCredit = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Изтриване на кредит
-exports.deleteCredit = async (req, res, next) => {
+export async function deleteCredit(req, res, next) {
     try {
         const creditId = req.params.creditId;
 
@@ -140,10 +140,10 @@ exports.deleteCredit = async (req, res, next) => {
         }
 
         // Изтриване на кредита
-        await credit.remove();
+        await Credit.deleteOne({ _id: creditId });
 
         res.status(200).json({ message: 'Кредитът е изтрит успешно' });
     } catch (error) {
         next(error);
     }
-};
+}

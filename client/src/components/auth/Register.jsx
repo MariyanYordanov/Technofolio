@@ -1,8 +1,8 @@
 // src/components/auth/Register.jsx
 import { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
-import AuthContext from '../../contexts/AuthContext';
-import useForm from '../../hooks/useForm';
+import AuthContext from '../../contexts/AuthContext.jsx';
+import useForm from '../../hooks/useForm.js';
 
 export default function Register() {
     const { registerSubmitHandler } = useContext(AuthContext);

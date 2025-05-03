@@ -1,13 +1,13 @@
-const express = require('express');
-const { body } = require('express-validator');
-const eventsController = require('../controllers/eventsController');
-const authMiddleware = require('../middleware/auth');
+import { Router } from 'express';
+import { body } from 'express-validator';
+import { getAllEvents, getEventById, createEvent, updateEvent, deleteEvent, participateInEvent, confirmParticipation, getStudentParticipations } from '../controllers/eventsController.js';
+import authMiddleware from '../middleware/auth.js';
 
-const router = express.Router();
+const router = Router();
 
 // Защита на всички маршрути с изключение на getAllEvents и getEventById
-router.get('/', eventsController.getAllEvents);
-router.get('/:eventId', eventsController.getEventById);
+router.get('/', getAllEvents);
+router.get('/:eventId', getEventById);
 
 // Защита на останалите маршрути
 router.use(authMiddleware);
@@ -21,7 +21,7 @@ router.post(
         body('location').notEmpty().withMessage('Мястото е задължително'),
         body('organizer').notEmpty().withMessage('Организаторът е задължителен')
     ],
-    eventsController.createEvent
+    createEvent
 );
 
 router.put(
@@ -33,14 +33,14 @@ router.put(
         body('location').optional().notEmpty().withMessage('Мястото е задължително'),
         body('organizer').optional().notEmpty().withMessage('Организаторът е задължителен')
     ],
-    eventsController.updateEvent
+    updateEvent
 );
 
-router.delete('/:eventId', eventsController.deleteEvent);
+router.delete('/:eventId', deleteEvent);
 
 // Участие в събития
-router.post('/:eventId/participate', eventsController.participateInEvent);
-router.post('/participations/:participationId/confirm', eventsController.confirmParticipation);
-router.get('/students/:studentId/participations', eventsController.getStudentParticipations);
+router.post('/:eventId/participate', participateInEvent);
+router.post('/participations/:participationId/confirm', confirmParticipation);
+router.get('/students/:studentId/participations', getStudentParticipations);
 
-module.exports = router;
+export default router;

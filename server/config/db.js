@@ -1,14 +1,23 @@
-const mongoose = require('mongoose');
-const config = require('./config');
+// server/config/db.js
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/technofolio';
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(config.MONGODB_URI);
-        console.log('MongoDB свързана успешно');
+        const conn = await mongoose.connect(MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+
+        console.log(`MongoDB свързана успешно: ${conn.connection.host}`);
     } catch (err) {
-        console.error('Грешка при свързване с MongoDB', err.message);
+        console.error(`Грешка при свързване с MongoDB: ${err.message}`);
         process.exit(1);
     }
 };
 
-module.exports = connectDB;
+export default connectDB;

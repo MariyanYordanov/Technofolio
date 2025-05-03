@@ -1,18 +1,18 @@
-const express = require('express');
-const { body } = require('express-validator');
-const creditsController = require('../controllers/creditsController');
-const authMiddleware = require('../middleware/auth');
+import { Router } from 'express';
+import { body } from 'express-validator';
+import { getCreditCategories, getStudentCredits, addCredit, validateCredit, deleteCredit } from '../controllers/creditsController.js';
+import authMiddleware from '../middleware/auth.js';
 
-const router = express.Router();
+const router = Router();
 
 // Защита на всички маршрути
 router.use(authMiddleware);
 
 // Кредитни категории
-router.get('/categories', creditsController.getCreditCategories);
+router.get('/categories', getCreditCategories);
 
 // Кредити на студент
-router.get('/students/:studentId', creditsController.getStudentCredits);
+router.get('/students/:studentId', getStudentCredits);
 
 // Добавяне на кредит
 router.post(
@@ -22,7 +22,7 @@ router.post(
         body('activity').notEmpty().withMessage('Дейността е задължителна'),
         body('description').notEmpty().withMessage('Описанието е задължително')
     ],
-    creditsController.addCredit
+    addCredit
 );
 
 // Валидиране на кредит
@@ -31,10 +31,10 @@ router.patch(
     [
         body('status').isIn(['validated', 'rejected']).withMessage('Невалиден статус')
     ],
-    creditsController.validateCredit
+    validateCredit
 );
 
 // Изтриване на кредит
-router.delete('/:creditId', creditsController.deleteCredit);
+router.delete('/:creditId', deleteCredit);
 
-module.exports = router;
+export default router;

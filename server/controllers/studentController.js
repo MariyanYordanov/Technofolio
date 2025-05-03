@@ -1,9 +1,7 @@
-const { validationResult } = require('express-validator');
-const Student = require('../models/Student');
-const User = require('../models/User');
+import Student from '../models/Student.js';
 
 // Създаване на студентски профил
-exports.createStudentProfile = async (req, res, next) => {
+export async function createStudentProfile(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -33,10 +31,10 @@ exports.createStudentProfile = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Получаване на студентски профил по userId
-exports.getStudentProfileByUserId = async (req, res, next) => {
+export async function getStudentProfileByUserId(req, res, next) {
     try {
         const student = await Student.findOne({ user: req.params.userId });
 
@@ -48,10 +46,10 @@ exports.getStudentProfileByUserId = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Получаване на профила на текущия студент
-exports.getCurrentStudentProfile = async (req, res, next) => {
+export async function getCurrentStudentProfile(req, res, next) {
     try {
         const student = await Student.findOne({ user: req.user.id });
 
@@ -63,10 +61,10 @@ exports.getCurrentStudentProfile = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Обновяване на студентски профил
-exports.updateStudentProfile = async (req, res, next) => {
+export async function updateStudentProfile(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -96,10 +94,10 @@ exports.updateStudentProfile = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Изтриване на студентски профил
-exports.deleteStudentProfile = async (req, res, next) => {
+export async function deleteStudentProfile(req, res, next) {
     try {
         const student = await Student.findOne({ user: req.user.id });
 
@@ -107,10 +105,10 @@ exports.deleteStudentProfile = async (req, res, next) => {
             return res.status(404).json({ message: 'Студентският профил не е намерен' });
         }
 
-        await student.remove();
+        await Student.deleteOne({ _id: student._id });
 
         res.status(200).json({ message: 'Студентският профил е изтрит успешно' });
     } catch (error) {
         next(error);
     }
-};
+}

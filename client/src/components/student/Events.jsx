@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
-import AuthContext from '../../contexts/AuthContext';
-import * as eventService from '../../services/eventService';
+import AuthContext from '../../contexts/AuthContext.jsx';
+import * as eventService from '../../services/eventService.js';
 
 export default function Events() {
     const { userId, isAuthenticated } = useContext(AuthContext);

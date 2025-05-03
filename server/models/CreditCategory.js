@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const CreditCategorySchema = new mongoose.Schema({
+const CreditCategorySchema = new Schema({
     pillar: {
         type: String,
         required: true,
@@ -19,4 +19,4 @@ const CreditCategorySchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('CreditCategory', CreditCategorySchema);
+export default model('CreditCategory', CreditCategorySchema);

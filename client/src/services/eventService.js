@@ -1,5 +1,5 @@
 // client/src/services/eventService.js
-import * as request from '../utils/requestUtils';
+import * as request from '../utils/requestUtils.js';
 
 const endpoints = {
     events: '/data/events',

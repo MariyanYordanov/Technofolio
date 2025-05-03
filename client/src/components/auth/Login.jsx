@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from "../../contexts/NotificationContext";
-import useForm from '../../hooks/useForm';
+import { useAuth } from '../../contexts/AuthContext.jsx';
+import { useNotifications } from "../../contexts/NotificationContext.jsx";
+import useForm from '../../hooks/useForm.js';
 
 export default function Login() {
   const { loginSubmitHandler, handleEmailLogin, isLoading } = useAuth();

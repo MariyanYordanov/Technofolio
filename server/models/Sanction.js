@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const SanctionSchema = new mongoose.Schema({
+const SanctionSchema = new Schema({
     student: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Student',
         required: true
     },
@@ -53,4 +53,4 @@ const SanctionSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Sanction', SanctionSchema);
+export default model('Sanction', SanctionSchema);

@@ -1,9 +1,9 @@
-const { validationResult } = require('express-validator');
-const Portfolio = require('../models/Portfolio');
-const Student = require('../models/Student');
+import { validationResult } from 'express-validator';
+import Portfolio from '../models/Portfolio.js';
+import Student from '../models/Student.js';
 
 // Получаване на портфолио на студент
-exports.getStudentPortfolio = async (req, res, next) => {
+export async function getStudentPortfolio(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
@@ -30,10 +30,10 @@ exports.getStudentPortfolio = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Обновяване на портфолио
-exports.updatePortfolio = async (req, res, next) => {
+export async function updatePortfolio(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -83,10 +83,10 @@ exports.updatePortfolio = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Добавяне на препоръка към портфолио
-exports.addRecommendation = async (req, res, next) => {
+export async function addRecommendation(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -127,10 +127,10 @@ exports.addRecommendation = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Изтриване на препоръка от портфолио
-exports.removeRecommendation = async (req, res, next) => {
+export async function removeRecommendation(req, res, next) {
     try {
         const studentId = req.params.studentId;
         const recommendationId = req.params.recommendationId;
@@ -171,4 +171,4 @@ exports.removeRecommendation = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}

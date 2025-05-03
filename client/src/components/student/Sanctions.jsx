@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AuthContext from '../../contexts/AuthContext';
-import * as studentService from '../../services/studentService';
+import AuthContext from '../../contexts/AuthContext.jsx';
+import * as studentService from '../../services/studentService.js';
 
 export default function Sanctions() {
     const navigate = useNavigate();

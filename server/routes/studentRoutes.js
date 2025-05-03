@@ -1,14 +1,14 @@
-const express = require('express');
-const { body } = require('express-validator');
-const studentController = require('../controllers/studentController');
-const portfolioController = require('../controllers/portfolioController');
-const goalsController = require('../controllers/goalsController');
-const interestsController = require('../controllers/interestsController');
-const achievementsController = require('../controllers/achievementsController');
-const sanctionsController = require('../controllers/sanctionsController');
-const authMiddleware = require('../middleware/auth');
+import { Router } from 'express';
+import { body } from 'express-validator';
+import { createStudentProfile, getCurrentStudentProfile, getStudentProfileByUserId, updateStudentProfile, deleteStudentProfile } from '../controllers/studentController.js';
+import { getStudentPortfolio, updatePortfolio, addRecommendation, removeRecommendation } from '../controllers/portfolioController.js';
+import { getStudentGoals, updateGoal } from '../controllers/goalsController.js';
+import { getStudentInterests, updateInterests } from '../controllers/interestsController.js';
+import { getStudentAchievements, addAchievement, removeAchievement } from '../controllers/achievementsController.js';
+import { getStudentSanctions, updateAbsences, updateSchooloRemarks, addActiveSanction, removeActiveSanction } from '../controllers/sanctionsController.js';
+import authMiddleware from '../middleware/auth.js';
 
-const router = express.Router();
+const router = Router();
 
 // Защита на всички маршрути
 router.use(authMiddleware);
@@ -20,11 +20,11 @@ router.post(
         body('grade').isIn(['8', '9', '10', '11', '12']).withMessage('Невалиден клас'),
         body('specialization').notEmpty().withMessage('Специалността е задължителна')
     ],
-    studentController.createStudentProfile
+    createStudentProfile
 );
 
-router.get('/me', studentController.getCurrentStudentProfile);
-router.get('/:userId', studentController.getStudentProfileByUserId);
+router.get('/me', getCurrentStudentProfile);
+router.get('/:userId', getStudentProfileByUserId);
 
 router.put(
     '/:profileId',
@@ -33,13 +33,13 @@ router.put(
         body('specialization').optional().notEmpty().withMessage('Специалността е задължителна'),
         body('averageGrade').optional().isFloat({ min: 2, max: 6 }).withMessage('Средният успех трябва да е между 2 и 6')
     ],
-    studentController.updateStudentProfile
+    updateStudentProfile
 );
 
-router.delete('/:profileId', studentController.deleteStudentProfile);
+router.delete('/:profileId', deleteStudentProfile);
 
 // Портфолио
-router.get('/:studentId/portfolio', portfolioController.getStudentPortfolio);
+router.get('/:studentId/portfolio', getStudentPortfolio);
 
 router.put(
     '/:studentId/portfolio',
@@ -48,7 +48,7 @@ router.put(
         body('projects').optional(),
         body('mentorId').optional()
     ],
-    portfolioController.updatePortfolio
+    updatePortfolio
 );
 
 router.post(
@@ -57,13 +57,13 @@ router.post(
         body('text').notEmpty().withMessage('Текстът на препоръката е задължителен'),
         body('author').notEmpty().withMessage('Авторът на препоръката е задължителен')
     ],
-    portfolioController.addRecommendation
+    addRecommendation
 );
 
-router.delete('/:studentId/portfolio/recommendations/:recommendationId', portfolioController.removeRecommendation);
+router.delete('/:studentId/portfolio/recommendations/:recommendationId', removeRecommendation);
 
 // Цели
-router.get('/:studentId/goals', goalsController.getStudentGoals);
+router.get('/:studentId/goals', getStudentGoals);
 
 router.put(
     '/:studentId/goals/:category',
@@ -71,11 +71,11 @@ router.put(
         body('description').notEmpty().withMessage('Описанието е задължително'),
         body('activities').notEmpty().withMessage('Дейностите са задължителни')
     ],
-    goalsController.updateGoal
+    updateGoal
 );
 
 // Интереси и хобита
-router.get('/:studentId/interests', interestsController.getStudentInterests);
+router.get('/:studentId/interests', getStudentInterests);
 
 router.put(
     '/:studentId/interests',
@@ -83,11 +83,11 @@ router.put(
         body('interests').optional().isArray(),
         body('hobbies').optional().isArray()
     ],
-    interestsController.updateInterests
+    updateInterests
 );
 
 // Постижения
-router.get('/:studentId/achievements', achievementsController.getStudentAchievements);
+router.get('/:studentId/achievements', getStudentAchievements);
 
 router.post(
     '/:studentId/achievements',
@@ -96,13 +96,13 @@ router.post(
         body('title').notEmpty().withMessage('Заглавието е задължително'),
         body('date').isISO8601().withMessage('Невалидна дата')
     ],
-    achievementsController.addAchievement
+    addAchievement
 );
 
-router.delete('/:studentId/achievements/:achievementId', achievementsController.removeAchievement);
+router.delete('/:studentId/achievements/:achievementId', removeAchievement);
 
 // Санкции и забележки
-router.get('/:studentId/sanctions', sanctionsController.getStudentSanctions);
+router.get('/:studentId/sanctions', getStudentSanctions);
 
 router.put(
     '/:studentId/sanctions/absences',
@@ -111,7 +111,7 @@ router.put(
         body('unexcused').optional().isInt({ min: 0 }).withMessage('Невалиден брой неизвинени отсъствия'),
         body('maxAllowed').optional().isInt({ min: 0 }).withMessage('Невалиден брой максимално допустими отсъствия')
     ],
-    sanctionsController.updateAbsences
+    updateAbsences
 );
 
 router.put(
@@ -119,7 +119,7 @@ router.put(
     [
         body('schooloRemarks').isInt({ min: 0 }).withMessage('Невалиден брой забележки')
     ],
-    sanctionsController.updateSchooloRemarks
+    updateSchooloRemarks
 );
 
 router.post(
@@ -130,9 +130,9 @@ router.post(
         body('startDate').isISO8601().withMessage('Невалидна начална дата'),
         body('issuedBy').notEmpty().withMessage('Издателят на санкцията е задължителен')
     ],
-    sanctionsController.addActiveSanction
+    addActiveSanction
 );
 
-router.delete('/:studentId/sanctions/active/:sanctionId', sanctionsController.removeActiveSanction);
+router.delete('/:studentId/sanctions/active/:sanctionId', removeActiveSanction);
 
-module.exports = router;
+export default router;

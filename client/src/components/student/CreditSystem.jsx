@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
-import AuthContext from '../../contexts/AuthContext';
-import CreditContext from '../../contexts/CreditContext';
-import useForm from '../../hooks/useForm';
+import AuthContext from '../../contexts/AuthContext.jsx';
+import CreditContext from '../../contexts/CreditContext.jsx';
+import useForm from '../../hooks/useForm.js';
 
 export default function CreditSystem() {
     const { isAuthenticated } = useContext(AuthContext);

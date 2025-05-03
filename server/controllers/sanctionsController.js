@@ -1,9 +1,9 @@
-const { validationResult } = require('express-validator');
-const Sanction = require('../models/Sanction');
-const Student = require('../models/Student');
+import { validationResult } from 'express-validator';
+import Sanction from '../models/Sanction.js';
+import Student from '../models/Student.js';
 
 // Получаване на санкциите на студент
-exports.getStudentSanctions = async (req, res, next) => {
+export async function getStudentSanctions(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
@@ -33,10 +33,10 @@ exports.getStudentSanctions = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Обновяване на отсъствията на студент
-exports.updateAbsences = async (req, res, next) => {
+export async function updateAbsences(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -89,10 +89,10 @@ exports.updateAbsences = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Обновяване на забележките в Школо
-exports.updateSchooloRemarks = async (req, res, next) => {
+export async function updateSchooloRemarks(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -142,10 +142,10 @@ exports.updateSchooloRemarks = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Добавяне на активна санкция
-exports.addActiveSanction = async (req, res, next) => {
+export async function addActiveSanction(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -208,10 +208,10 @@ exports.addActiveSanction = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Премахване на активна санкция
-exports.removeActiveSanction = async (req, res, next) => {
+export async function removeActiveSanction(req, res, next) {
     try {
         const studentId = req.params.studentId;
         const sanctionId = req.params.sanctionId;
@@ -252,4 +252,4 @@ exports.removeActiveSanction = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}

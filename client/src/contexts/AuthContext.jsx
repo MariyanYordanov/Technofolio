@@ -2,8 +2,166 @@
 
 import { createContext, useEffect, useCallback, useState, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
-import * as authService from '../services/authService';
 import Path from '../paths';
+
+// Вградена имплементация на authService
+const authService = {
+    // Конфигурация на API endpoints
+    endpoints: {
+        login: '/api/auth/login',
+        register: '/api/auth/register',
+        logout: '/api/auth/logout',
+        getMe: '/api/auth/me',
+        emailLogin: '/api/auth/email-login',
+        confirmRegistration: '/api/auth/confirm-registration',
+        requestLoginLink: '/api/auth/request-login-link',
+        verifyEmailLogin: '/api/auth/verify-email',
+    },
+
+    // Помощни функции за HTTP заявки
+    async request(url, method, data) {
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        // Добавяне на authorization хедър, ако има токен
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            options.headers.Authorization = `Bearer ${token}`;
+        }
+
+        // Добавяне на тяло към заявката, ако има данни
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+
+        // Изпращане на заявката
+        const response = await fetch(url, options);
+
+        // Проверка за грешки
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Възникна грешка при комуникацията със сървъра');
+        }
+
+        // Проверка дали има съдържание
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        }
+
+        return response.text();
+    },
+
+    // Заявки към API
+    async getMe() {
+        try {
+            const result = await this.request(this.endpoints.getMe, 'GET');
+
+            // Ако имаме валиден отговор, връщаме данните за потребителя
+            if (result && !result.error) {
+                return result;
+            }
+
+            // Ако нямаме валиден отговор, хвърляме грешка
+            throw new Error('Не е намерен активен потребител');
+        } catch (error) {
+            console.error('Error fetching current user:', error);
+            throw error;
+        }
+    },
+
+    async login(email, password) {
+        try {
+            const result = await this.request(this.endpoints.login, 'POST', { email, password });
+
+            if (result && result.accessToken) {
+                // Запазваме accessToken в localStorage за последващи заявки
+                localStorage.setItem('accessToken', result.accessToken);
+                return result;
+            }
+
+            throw new Error(result.message || 'Неуспешен вход');
+        } catch (error) {
+            console.error('Login error:', error);
+            throw error;
+        }
+    },
+
+    async register(email, password, userData) {
+        try {
+            const result = await this.request(this.endpoints.register, 'POST', {
+                email,
+                password,
+                ...userData
+            });
+
+            return result;
+        } catch (error) {
+            console.error('Registration error:', error);
+            throw error;
+        }
+    },
+
+    async confirmRegistration(token) {
+        try {
+            const result = await this.request(`${this.endpoints.confirmRegistration}?token=${token}`, 'GET');
+
+            if (result && result.accessToken) {
+                localStorage.setItem('accessToken', result.accessToken);
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Confirmation error:', error);
+            throw error;
+        }
+    },
+
+    async requestLoginLink(email) {
+        try {
+            const result = await this.request(this.endpoints.requestLoginLink, 'POST', { email });
+            return result;
+        } catch (error) {
+            console.error('Error requesting login link:', error);
+            throw error;
+        }
+    },
+
+    async verifyEmailLogin(token) {
+        try {
+            const result = await this.request(`${this.endpoints.verifyEmailLogin}?token=${token}`, 'GET');
+
+            if (result && result.accessToken) {
+                localStorage.setItem('accessToken', result.accessToken);
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Email verification error:', error);
+            throw error;
+        }
+    },
+
+    async logout() {
+        try {
+            const result = await this.request(this.endpoints.logout, 'POST');
+
+            // Винаги изчистваме токена от localStorage, независимо от резултата
+            localStorage.removeItem('accessToken');
+
+            return result;
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Изчистваме токена дори при грешка
+            localStorage.removeItem('accessToken');
+            throw error;
+        }
+    }
+};
 
 // Създаване на контекста
 const AuthContext = createContext();

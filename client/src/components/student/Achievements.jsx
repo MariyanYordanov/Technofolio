@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AuthContext from '../../contexts/AuthContext';
-import * as studentService from '../../services/studentService';
-import useForm from '../../hooks/useForm';
+import AuthContext from '../../contexts/AuthContext.jsx';
+import * as studentService from '../../services/studentService.js';
+import useForm from '../../hooks/useForm.js';
 
 export default function Achievements() {
     const navigate = useNavigate();

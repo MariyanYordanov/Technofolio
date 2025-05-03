@@ -1,8 +1,8 @@
 // src/components/auth/EmailLogin.jsx
 import { useContext, useEffect } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
-import AuthContext from '../../contexts/AuthContext';
-import Path from '../../paths';
+import AuthContext from '../../contexts/AuthContext.jsx';
+import Path from '../../paths.js';
 
 export default function EmailLogin() {
   const location = useLocation();

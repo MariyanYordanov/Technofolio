@@ -1,5 +1,5 @@
 // client/src/services/studentService.js
-import * as request from '../utils/requestUtils';
+import * as request from '../utils/requestUtils.js';
 
 const endpoints = {
     students: '/data/students',

@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import AuthContext from '../../contexts/AuthContext';
-import CreditContext from '../../contexts/CreditContext';
-import * as studentService from "../../services/studentService";
-import Path from '../../paths';
+import AuthContext from '../../contexts/AuthContext.jsx';
+import CreditContext from '../../contexts/CreditContext.jsx';
+import * as studentService from "../../services/studentService.js";
+import Path from '../../paths.js';
 
 export default function StudentProfile() {
     const { userId, isAuthenticated } = useContext(AuthContext);

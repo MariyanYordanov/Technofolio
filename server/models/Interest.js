@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const InterestSchema = new mongoose.Schema({
+const InterestSchema = new Schema({
     student: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Student',
         required: true
     },
@@ -29,4 +29,4 @@ const InterestSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Interest', InterestSchema);
+export default model('Interest', InterestSchema);

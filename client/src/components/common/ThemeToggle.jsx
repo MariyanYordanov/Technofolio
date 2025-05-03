@@ -1,6 +1,6 @@
 /* client/src/components/common/ThemeToggle.jsx */
 import { useState, useEffect } from 'react';
-import { initTheme, toggleTheme } from '../../utils/themeUtils';
+import { initTheme, toggleTheme } from '../../utils/themeUtils.js';
 
 export default function ThemeToggle() {
     const [theme, setTheme] = useState('light');

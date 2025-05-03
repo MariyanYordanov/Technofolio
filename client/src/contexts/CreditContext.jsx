@@ -1,9 +1,9 @@
 // client/src/contexts/CreditContext.jsx
 import { createContext, useReducer, useContext, useEffect, useCallback } from "react";
-import * as creditService from '../services/creditService';
-import * as studentService from '../services/studentService';
-import AuthContext from './AuthContext';
-import { useNotifications } from './NotificationContext';
+import * as creditService from '../services/creditService.js';
+import * as studentService from '../services/studentService.js';
+import AuthContext from './AuthContext.jsx';
+import { useNotifications } from './NotificationContext.jsx';
 
 const CreditContext = createContext();
 

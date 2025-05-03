@@ -1,9 +1,9 @@
-const { validationResult } = require('express-validator');
-const Goal = require('../models/Goals');
-const Student = require('../models/Student');
+import { validationResult } from 'express-validator';
+import Goals from '../models/Goals.js';
+import Student from '../models/Student.js';
 
 // Получаване на целите на студент
-exports.getStudentGoals = async (req, res, next) => {
+export async function getStudentGoals(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
@@ -14,7 +14,7 @@ exports.getStudentGoals = async (req, res, next) => {
         }
 
         // Намиране на целите
-        const goals = await Goal.find({ student: studentId });
+        const goals = await Goals.find({ student: studentId });
 
         // Форматиране на данните за клиентската част
         const formattedGoals = goals.reduce((acc, goal) => {
@@ -32,7 +32,7 @@ exports.getStudentGoals = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Помощна функция за заглавия на категории
 function getCategoryTitle(category) {
@@ -48,7 +48,7 @@ function getCategoryTitle(category) {
 }
 
 // Създаване или обновяване на цел
-exports.updateGoal = async (req, res, next) => {
+export async function updateGoal(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -74,7 +74,7 @@ exports.updateGoal = async (req, res, next) => {
         }
 
         // Проверка дали целта съществува
-        let goal = await Goal.findOne({ student: studentId, category });
+        let goal = await Goals.findOne({ student: studentId, category });
 
         if (goal) {
             // Обновяване на съществуваща цел
@@ -84,7 +84,7 @@ exports.updateGoal = async (req, res, next) => {
             await goal.save();
         } else {
             // Създаване на нова цел
-            goal = await Goal.create({
+            goal = await Goals.create({
                 student: studentId,
                 category,
                 title: getCategoryTitle(category),
@@ -94,7 +94,7 @@ exports.updateGoal = async (req, res, next) => {
         }
 
         // Получаване на всички цели след обновяването
-        const goals = await Goal.find({ student: studentId });
+        const goals = await Goals.find({ student: studentId });
 
         // Форматиране на данните за клиентската част
         const formattedGoals = goals.reduce((acc, g) => {
@@ -112,4 +112,4 @@ exports.updateGoal = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}

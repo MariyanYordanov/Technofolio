@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const GoalSchema = new mongoose.Schema({
+const GoalSchema = new Schema({
     student: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Student',
         required: true
     },
@@ -20,8 +20,8 @@ const GoalSchema = new mongoose.Schema({
         required: true
     },
     activities: {
-        type: String,
-        required: true
+        type: [String],  // Променено от String на масив от String
+        default: []
     },
     createdAt: {
         type: Date,
@@ -33,4 +33,7 @@ const GoalSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Goal', GoalSchema);
+// Добавен уникален индекс за student+category
+GoalSchema.index({ student: 1, category: 1 }, { unique: true });
+
+export default model('Goals', GoalSchema);  // Променено от 'Goal' на 'Goals'

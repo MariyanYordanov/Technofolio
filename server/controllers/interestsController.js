@@ -1,9 +1,9 @@
-const { validationResult } = require('express-validator');
-const Interest = require('../models/Interest');
-const Student = require('../models/Student');
+import { validationResult } from 'express-validator';
+import Interest from '../models/Interest.js';
+import Student from '../models/Student.js';
 
 // Получаване на интересите на студент
-exports.getStudentInterests = async (req, res, next) => {
+export async function getStudentInterests(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
@@ -28,10 +28,10 @@ exports.getStudentInterests = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
 
 // Обновяване на интересите на студент
-exports.updateInterests = async (req, res, next) => {
+export async function updateInterests(req, res, next) {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -77,4 +77,4 @@ exports.updateInterests = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+}
