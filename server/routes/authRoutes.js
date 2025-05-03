@@ -1,64 +1,61 @@
 const express = require('express');
-const { body } = require('express-validator');
-const authController = require('../controllers/authController');
-const authMiddleware = require('../middleware/auth');
+const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
 
 const router = express.Router();
 
-// Регистрация
+// Регистрация - тъй като Auth.js не включва регистрация, трябва да я имплементираме
 router.post(
     '/register',
     [
         body('email').isEmail().withMessage('Моля въведете валиден email'),
         body('password').isLength({ min: 6 }).withMessage('Паролата трябва да е минимум 6 символа'),
         body('firstName').notEmpty().withMessage('Името е задължително'),
-        body('lastName').notEmpty().withMessage('Фамилията е задължителна'),
-        body('role').isIn(['student', 'teacher', 'admin']).withMessage('Невалидна роля')
+        body('lastName').notEmpty().withMessage('Фамилията е задължителна')
     ],
-    authController.register
+    async (req, res) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ message: errors.array()[0].msg });
+            }
+
+            const { email, password, role, firstName, lastName } = req.body;
+
+            // Проверка за съществуващ потребител
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ message: "Потребител с този имейл вече съществува" });
+            }
+
+            // Хеширане на паролата
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Създаване на потребител
+            const user = await User.create({
+                email,
+                password: hashedPassword,
+                role: role || "student",
+                firstName,
+                lastName
+            });
+
+            res.status(201).json({
+                message: 'Регистрацията е успешна!',
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    role: user.role,
+                    firstName: user.firstName,
+                    lastName: user.lastName
+                }
+            });
+        } catch (err) {
+            console.error('Грешка при регистрация:', err);
+            res.status(500).json({ message: "Грешка при регистрацията", error: err.message });
+        }
+    }
 );
-
-// Вход
-router.post(
-    '/login',
-    [
-        body('email').isEmail().withMessage('Моля въведете валиден email'),
-        body('password').notEmpty().withMessage('Паролата е задължителна')
-    ],
-    authController.login
-);
-
-// Вход чрез имейл линк - заявка
-router.post(
-    '/request-login-link',
-    [
-        body('email').isEmail().withMessage('Моля въведете валиден email')
-    ],
-    authController.requestLoginLink
-);
-
-// Вход чрез имейл линк - проверка
-router.post(
-    '/verify-email-login',
-    [
-        body('token').notEmpty().withMessage('Токенът е задължителен')
-    ],
-    authController.verifyEmailLogin
-);
-
-// Потвърждаване на регистрация
-router.post(
-    '/confirm-registration',
-    [
-        body('token').notEmpty().withMessage('Токенът е задължителен')
-    ],
-    authController.confirmRegistration
-);
-
-// Изход
-router.get('/logout', authController.logout);
-
-// Текущ потребител
-router.get('/me', authMiddleware, authController.getMe);
 
 module.exports = router;

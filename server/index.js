@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { handlers } = require('./auth');
 const connectDB = require('./config/db');
 
 // Импортиране на маршрути
-const authRoutes = require('./routes/authRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const eventsRoutes = require('./routes/eventsRoutes');
 const creditsRoutes = require('./routes/creditsRoutes');
@@ -20,13 +20,16 @@ app.use(express.json());
 
 // CORS настройки
 app.use(cors({
-    origin: 'http://localhost:5173',  // URL на React приложението
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Маршрути
-app.use('/api/auth', authRoutes);
+// Маршрути за автентикация от Auth.js
+app.use('/api/auth', handlers);
+
+// Други маршрути
 app.use('/api/students', studentRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/credits', creditsRoutes);
