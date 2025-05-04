@@ -1,35 +1,38 @@
 // server/middleware/rateLimiter.js
-const rateLimit = require('express-rate-limit');
+import rateLimit from 'express-rate-limit';
 
-// Общ лимитер за всички заявки
-const globalLimiter = rateLimit({
+// Основен rate limiter
+export const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 минути
-    max: 100, // максимален брой заявки от IP адрес
+    max: 100, // ограничение до 100 заявки на IP
     standardHeaders: true,
     legacyHeaders: false,
-    message: 'Твърде много заявки от този IP адрес, моля опитайте отново по-късно.'
+    message: {
+        status: 'error',
+        message: 'Твърде много заявки от този IP адрес, моля опитайте отново след 15 минути'
+    }
 });
 
-// Лимитер за автентикационни заявки
-const authLimiter = rateLimit({
+// Лимитер за вход и регистрация
+export const authLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 час
-    max: 10, // максимален брой заявки от IP адрес
+    max: 10, // 10 опита за вход/регистрация
     standardHeaders: true,
     legacyHeaders: false,
-    message: 'Твърде много опити за автентикация, моля опитайте отново по-късно.'
+    message: {
+        status: 'error',
+        message: 'Твърде много опити за вход. Моля, опитайте отново след 1 час.'
+    }
 });
 
-// Лимитер за имейл заявки
-const emailLimiter = rateLimit({
+// Лимитер за нулиране на парола
+export const passwordResetLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 час
-    max: 5, // максимален брой заявки от IP адрес
+    max: 3, // 3 опита за нулиране на парола
     standardHeaders: true,
     legacyHeaders: false,
-    message: 'Твърде много имейл заявки, моля опитайте отново по-късно.'
+    message: {
+        status: 'error',
+        message: 'Твърде много заявки за нулиране на парола. Моля, опитайте отново след 1 час.'
+    }
 });
-
-module.exports = {
-    globalLimiter,
-    authLimiter,
-    emailLimiter
-};
