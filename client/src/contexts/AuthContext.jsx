@@ -2,7 +2,7 @@
 
 import { createContext, useEffect, useCallback, useState, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
-import Path from '../paths';
+import Path from '../paths.js';
 
 // Вградена имплементация на authService
 const authService = {
@@ -24,7 +24,8 @@ const authService = {
             method,
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            credentials: 'include'
         };
 
         // Добавяне на authorization хедър, ако има токен

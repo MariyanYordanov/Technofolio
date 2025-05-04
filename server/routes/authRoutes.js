@@ -12,10 +12,12 @@ import {
     verifyTwoFactor,
     enableTwoFactor,
     confirmTwoFactor,
-    refreshToken
+    refreshToken,
+    requestLoginLink,    // Добавяме тези нови контролери
+    verifyEmailLogin     // Добавяме тези нови контролери
 } from '../controllers/authController.js';
 import authMiddleware from '../middleware/auth.js';
-import { authLimiter } from '../middleware/rateLimiter.js';  // Премахнат emailLimiter
+import { authLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
@@ -36,31 +38,20 @@ router.post(
     register
 );
 
-// Заявка за нулиране на парола
+// Заявка за логин линк
 router.post(
-    '/forgot-password',
-    authLimiter,  // Заменено emailLimiter с authLimiter
+    '/request-login-link',
+    authLimiter,
     [
         body('email').isEmail().withMessage('Моля, въведете валиден имейл')
     ],
-    forgotPassword
+    requestLoginLink
 );
 
-// Нулиране на парола
-router.patch(
-    '/reset-password/:token',
-    authLimiter,
-    [
-        body('password')
-            .isLength({ min: 8 })
-            .withMessage('Паролата трябва да бъде поне 8 символа')
-            .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
-            .withMessage('Паролата трябва да съдържа главна буква, малка буква, цифра и специален символ')
-    ],
-    resetPassword
-);
+// Верификация на имейл за логин
+router.get('/verify-email', verifyEmailLogin);
 
-// Вход с имейл и парола
+// Логин с потребителско име и парола
 router.post(
     '/login',
     authLimiter,
@@ -99,5 +90,8 @@ router.patch(
 
 // Защитен маршрут - получаване на информация за текущия потребител
 router.get('/me', authMiddleware, getMe);
+
+// Потвърждаване на регистрация
+router.get('/confirm-registration', register);
 
 export default router;

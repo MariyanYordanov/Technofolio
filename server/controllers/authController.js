@@ -489,3 +489,99 @@ export const updatePassword = catchAsync(async (req, res, next) => {
     // Връщане на отговор с JWT токен
     sendTokenResponse(user, 200, res);
 });
+
+// Функция за изпращане на имейл линк за вход
+export const requestLoginLink = catchAsync(async (req, res, next) => {
+    const { email } = req.body;
+
+    // Проверка дали потребителят съществува
+    const user = await User.findOne({ email });
+    if (!user) {
+        return next(new AppError('Потребител с този имейл не е намерен', 404));
+    }
+
+    // Генериране на токен за вход
+    const loginToken = jwt.sign(
+        { id: user._id, email: user.email, purpose: 'email-login' },
+        config.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+
+    // Създаване на URL за вход
+    const loginURL = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login/email?token=${loginToken}`;
+
+    try {
+        // Изпращане на имейл с линк за вход
+        await sendEmail({
+            email: user.email,
+            subject: 'Вход в Технофолио',
+            text: `Здравейте ${user.firstName},\n\nИзползвайте следния линк за вход в Технофолио: ${loginURL}\n\nЛинкът е валиден 1 час.\n\nПоздрави,\nЕкипът на Технофолио`,
+            html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <h2 style="color: #4a4a4a; text-align: center;">Вход в Технофолио</h2>
+          <p>Здравейте ${user.firstName},</p>
+          <p>Използвайте бутона по-долу за вход в системата:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${loginURL}" style="background-color: #4285f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Вход в Технофолио</a>
+          </div>
+          <p>Линкът е валиден 1 час.</p>
+          <p style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 10px; font-size: 12px; color: #777;">
+            С уважение,<br>
+            Екипът на Технофолио
+          </p>
+        </div>
+      `
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Имейл с линк за вход е изпратен успешно!'
+        });
+    } catch (error) {
+        console.error('Грешка при изпращане на имейл:', error);
+        return next(new AppError('Възникна грешка при изпращането на имейла. Моля, опитайте отново по-късно!', 500));
+    }
+});
+
+// Функция за верификация на имейл линка за вход
+export const verifyEmailLogin = catchAsync(async (req, res, next) => {
+    const { token } = req.query;
+
+    if (!token) {
+        return next(new AppError('Липсва токен за верификация', 400));
+    }
+
+    try {
+        // Проверка на токена
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+
+        if (decoded.purpose !== 'email-login') {
+            return next(new AppError('Невалиден токен за вход', 400));
+        }
+
+        // Намиране на потребителя
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            return next(new AppError('Потребителят не е намерен', 404));
+        }
+
+        // Генериране на access token
+        const accessToken = signToken(user._id);
+
+        // Връщане на отговор с токена и данните за потребителя
+        res.status(200).json({
+            success: true,
+            accessToken,
+            user: {
+                id: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        return next(new AppError('Невалиден или изтекъл токен', 401));
+    }
+});
