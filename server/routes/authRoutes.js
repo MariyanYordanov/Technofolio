@@ -4,34 +4,10 @@ import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';  // Не забравяй да добавиш .js разширението
-import dotenv from 'dotenv';
-
-dotenv.config();
+import config from '../config/config.js';
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
-const JWT_EXPIRE = process.env.JWT_EXPIRE || '1d';
-
-// Middleware за проверка на автентикация
-const authMiddleware = (req, res, next) => {
-    // Взимаме токена от хедъра на заявката
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Не е предоставен token за достъп' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    try {
-        // Проверяваме валидността на токена
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        console.error('Auth middleware error:', error);
-        return res.status(401).json({ message: 'Невалиден token за достъп' });
-    }
-};
 
 // GET /api/auth/me - Вземане на информация за текущо логнатия потребител
 router.get('/me', authMiddleware, async (req, res) => {
@@ -104,7 +80,7 @@ router.post(
                 role: user.role
             };
 
-            const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+            const token = jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRE });
 
             res.status(201).json({
                 message: 'Регистрацията е успешна!',
@@ -160,7 +136,7 @@ router.post(
                 role: user.role
             };
 
-            const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+            const token = jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRE });
 
             res.json({
                 user: {
@@ -205,7 +181,7 @@ router.post(
             // Създаваме временен токен с кратък живот
             const token = jwt.sign(
                 { id: user.id, email: user.email, purpose: 'email-login' },
-                JWT_SECRET,
+                config.JWT_SECRET,
                 { expiresIn: '15m' }
             );
 
@@ -232,7 +208,7 @@ router.get('/verify-email', async (req, res) => {
 
         try {
             // Проверяваме валидността на токена
-            const decoded = jwt.verify(token, JWT_SECRET);
+            const decoded = jwt.verify(token, config.JWT_SECRET);
 
             // Проверяваме дали токенът е създаден за имейл вход
             if (decoded.purpose !== 'email-login') {
@@ -252,7 +228,7 @@ router.get('/verify-email', async (req, res) => {
                 role: user.role
             };
 
-            const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+            const accessToken = jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRE });
 
             res.json({
                 user: {
@@ -292,7 +268,7 @@ router.get('/confirm-registration', async (req, res) => {
 
         try {
             // Проверяваме валидността на токена
-            const decoded = jwt.verify(token, JWT_SECRET);
+            const decoded = jwt.verify(token, config.JWT_SECRET);
 
             // Проверяваме дали токенът е за потвърждаване на регистрация
             if (decoded.purpose !== 'confirm-registration') {
@@ -316,7 +292,7 @@ router.get('/confirm-registration', async (req, res) => {
                 role: user.role
             };
 
-            const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+            const accessToken = jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRE });
 
             res.json({
                 message: 'Регистрацията е потвърдена успешно!',

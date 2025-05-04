@@ -350,5 +350,4 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
 
 AuthContext.displayName = 'AuthContext';
 
-// Добавяме default export, който е критичен за правилната работа на импортите
 export default AuthContext;

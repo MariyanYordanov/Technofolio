@@ -1,20 +1,26 @@
+// server/middleware/auth.js
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../config/config.js';
+import config from '../config/config.js';
 
-export default function authMiddleware(req, res, next) {
-    // Извличане на токена от хедъра
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-
-    if (!token) {
-        return res.status(401).json({ message: 'Не е предоставен токен за автентикация' });
+// Middleware за проверка на автентикация
+const authMiddleware = (req, res, next) => {
+    // Взимаме токена от хедъра на заявката
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Не е предоставен token за достъп' });
     }
 
+    const token = authHeader.split(' ')[1];
+
     try {
-        // Верифициране на токена
-        const decoded = jwt.verify(token, JWT_SECRET);
+        // Проверяваме валидността на токена
+        const decoded = jwt.verify(token, config.JWT_SECRET);
         req.user = decoded;
         next();
     } catch (error) {
-        res.status(401).json({ message: 'Невалиден токен' });
+        console.error('Auth middleware error:', error);
+        return res.status(401).json({ message: 'Невалиден token за достъп' });
     }
-}
+};
+
+export default authMiddleware;
