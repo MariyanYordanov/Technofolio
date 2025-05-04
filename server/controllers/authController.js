@@ -1,6 +1,5 @@
 // server/controllers/authController.js
 import jwt from 'jsonwebtoken';
-import bcryptjs from 'bcryptjs';
 import crypto from 'crypto';
 import User from '../models/User.js';
 import config from '../config/config.js';

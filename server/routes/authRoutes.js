@@ -1,9 +1,21 @@
 // server/routes/authRoutes.js
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { register, confirmEmail, requestLoginLink, verifyEmailLogin, requestPasswordReset, resetPassword, login, getMe } from '../controllers/authController';
-import authMiddleware from '../middleware/auth';
-import { authLimiter, emailLimiter } from '../middleware/rateLimiter';
+import {
+    register,
+    login,
+    logout,
+    getMe,
+    forgotPassword,
+    resetPassword,
+    updatePassword,
+    verifyTwoFactor,
+    enableTwoFactor,
+    confirmTwoFactor,
+    refreshToken
+} from '../controllers/authController.js';
+import authMiddleware from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rateLimiter.js';  // Премахнат emailLimiter
 
 const router = Router();
 
@@ -24,39 +36,22 @@ router.post(
     register
 );
 
-// Потвърждаване на имейл
-router.get('/confirm-email/:token', confirmEmail);
-
-// Заявка за линк за вход
-router.post(
-    '/request-login-link',
-    emailLimiter,
-    [
-        body('email').isEmail().withMessage('Моля, въведете валиден имейл')
-    ],
-    requestLoginLink
-);
-
-// Вход с линк от имейл
-router.get('/verify-email-login/:token', verifyEmailLogin);
-
 // Заявка за нулиране на парола
 router.post(
     '/forgot-password',
-    emailLimiter,
+    authLimiter,  // Заменено emailLimiter с authLimiter
     [
         body('email').isEmail().withMessage('Моля, въведете валиден имейл')
     ],
-    requestPasswordReset
+    forgotPassword
 );
 
 // Нулиране на парола
-router.post(
-    '/reset-password',
+router.patch(
+    '/reset-password/:token',
     authLimiter,
     [
-        body('token').notEmpty().withMessage('Токенът е задължителен'),
-        body('newPassword')
+        body('password')
             .isLength({ min: 8 })
             .withMessage('Паролата трябва да бъде поне 8 символа')
             .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
@@ -74,6 +69,32 @@ router.post(
         body('password').notEmpty().withMessage('Паролата е задължителна')
     ],
     login
+);
+
+// Изход от системата
+router.post('/logout', authMiddleware, logout);
+
+// Обновяване на токен
+router.post('/refresh-token', refreshToken);
+
+// Двуфакторна автентикация
+router.post('/verify-two-factor', verifyTwoFactor);
+router.post('/enable-two-factor', authMiddleware, enableTwoFactor);
+router.post('/confirm-two-factor', authMiddleware, confirmTwoFactor);
+
+// Промяна на парола
+router.patch(
+    '/update-password',
+    authMiddleware,
+    [
+        body('currentPassword').notEmpty().withMessage('Текущата парола е задължителна'),
+        body('newPassword')
+            .isLength({ min: 8 })
+            .withMessage('Новата парола трябва да бъде поне 8 символа')
+            .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+            .withMessage('Паролата трябва да съдържа главна буква, малка буква, цифра и специален символ')
+    ],
+    updatePassword
 );
 
 // Защитен маршрут - получаване на информация за текущия потребител
