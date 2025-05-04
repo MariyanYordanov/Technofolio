@@ -1,6 +1,6 @@
 // server/models/User.js
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import bcryptjs from 'bcryptjs';
 
 const studentInfoSchema = new mongoose.Schema({
     grade: {
@@ -97,7 +97,7 @@ userSchema.virtual('fullName').get(function () {
 
 // Метод за проверка на паролата
 userSchema.methods.checkPassword = async function (candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
+    return await bcryptjs.compare(candidatePassword, this.password);
 };
 
 // Проверка дали паролата е променена след издаването на JWT
@@ -115,8 +115,8 @@ userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next();
 
     // Хеширане на паролата
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    const salt = await bcryptjs.genSalt(10);
+    this.password = await bcryptjs.hash(this.password, salt);
 
     // Ако изрично записваме passwordChangedAt
     if (this.isModified('password') && !this.isNew) {
