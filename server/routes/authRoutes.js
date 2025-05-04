@@ -1,319 +1,82 @@
 // server/routes/authRoutes.js
-import express from 'express';
-import { body, validationResult } from 'express-validator';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';  // Не забравяй да добавиш .js разширението
-import config from '../config/config.js';
-import authMiddleware from '../middleware/auth.js';
+import { Router } from 'express';
+import { body } from 'express-validator';
+import { register, confirmEmail, requestLoginLink, verifyEmailLogin, requestPasswordReset, resetPassword, login, getMe } from '../controllers/authController';
+import authMiddleware from '../middleware/auth';
+import { authLimiter, emailLimiter } from '../middleware/rateLimiter';
 
-const router = express.Router();
+const router = Router();
 
-// GET /api/auth/me - Вземане на информация за текущо логнатия потребител
-router.get('/me', authMiddleware, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select('-password');
-
-        if (!user) {
-            return res.status(404).json({ message: 'Потребителят не е намерен' });
-        }
-
-        res.json(user);
-    } catch (error) {
-        console.error('Error fetching user:', error);
-        res.status(500).json({ message: 'Грешка при извличане на данни за потребителя' });
-    }
-});
-
-// POST /api/auth/register - Регистрация на нов потребител
+// Регистрация
 router.post(
     '/register',
+    authLimiter,
     [
-        body('email').isEmail().withMessage('Моля въведете валиден email'),
-        body('password').isLength({ min: 6 }).withMessage('Паролата трябва да е минимум 6 символа'),
+        body('email').isEmail().withMessage('Моля, въведете валиден имейл'),
+        body('password')
+            .isLength({ min: 8 })
+            .withMessage('Паролата трябва да бъде поне 8 символа')
+            .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+            .withMessage('Паролата трябва да съдържа главна буква, малка буква, цифра и специален символ'),
         body('firstName').notEmpty().withMessage('Името е задължително'),
-        body('lastName').notEmpty().withMessage('Фамилията е задължителна'),
-        body('role').isIn(['student', 'teacher', 'admin']).withMessage('Невалидна роля')
+        body('lastName').notEmpty().withMessage('Фамилията е задължителна')
     ],
-    async (req, res) => {
-        try {
-            const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ message: errors.array()[0].msg });
-            }
-
-            const { email, password, role, firstName, lastName, grade, specialization } = req.body;
-
-            // Проверка за съществуващ потребител
-            const existingUser = await User.findOne({ email });
-            if (existingUser) {
-                return res.status(400).json({ message: "Потребител с този имейл вече съществува" });
-            }
-
-            // Хеширане на паролата
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-
-            // Създаване на потребител
-            const user = new User({
-                email,
-                password: hashedPassword,
-                role: role || "student",
-                firstName,
-                lastName
-            });
-
-            // Добавяме допълнителни полета за ученици
-            if (role === 'student' && grade && specialization) {
-                user.studentInfo = {
-                    grade,
-                    specialization
-                };
-            }
-
-            await user.save();
-
-            // Създаваме JWT токен
-            const payload = {
-                id: user.id,
-                email: user.email,
-                role: user.role
-            };
-
-            const token = jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRE });
-
-            res.status(201).json({
-                message: 'Регистрацията е успешна!',
-                user: {
-                    _id: user.id,
-                    email: user.email,
-                    role: user.role,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    studentInfo: user.studentInfo
-                },
-                accessToken: token
-            });
-        } catch (err) {
-            console.error('Грешка при регистрация:', err);
-            res.status(500).json({ message: "Грешка при регистрацията", error: err.message });
-        }
-    }
+    register
 );
 
-// POST /api/auth/login - Вход в системата
-router.post(
-    '/login',
-    [
-        body('email').isEmail().withMessage('Моля въведете валиден email'),
-        body('password').notEmpty().withMessage('Моля въведете парола')
-    ],
-    async (req, res) => {
-        try {
-            const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ message: errors.array()[0].msg });
-            }
+// Потвърждаване на имейл
+router.get('/confirm-email/:token', confirmEmail);
 
-            const { email, password } = req.body;
-
-            // Намираме потребителя
-            const user = await User.findOne({ email });
-            if (!user) {
-                return res.status(401).json({ message: 'Невалидни данни за вход' });
-            }
-
-            // Проверяваме паролата
-            const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch) {
-                return res.status(401).json({ message: 'Невалидни данни за вход' });
-            }
-
-            // Създаваме JWT токен
-            const payload = {
-                id: user.id,
-                email: user.email,
-                role: user.role
-            };
-
-            const token = jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRE });
-
-            res.json({
-                user: {
-                    _id: user.id,
-                    email: user.email,
-                    role: user.role,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    studentInfo: user.studentInfo
-                },
-                accessToken: token
-            });
-        } catch (err) {
-            console.error('Грешка при вход:', err);
-            res.status(500).json({ message: 'Грешка при вход в системата', error: err.message });
-        }
-    }
-);
-
-// POST /api/auth/request-login-link - Изпращане на линк за вход чрез имейл
+// Заявка за линк за вход
 router.post(
     '/request-login-link',
+    emailLimiter,
     [
-        body('email').isEmail().withMessage('Моля въведете валиден email')
+        body('email').isEmail().withMessage('Моля, въведете валиден имейл')
     ],
-    async (req, res) => {
-        try {
-            const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ message: errors.array()[0].msg });
-            }
-
-            const { email } = req.body;
-
-            // Проверяваме дали потребителят съществува
-            const user = await User.findOne({ email });
-            if (!user) {
-                // За сигурност не разкриваме дали имейлът съществува
-                return res.json({ message: 'Ако имейлът съществува, ще получите линк за вход' });
-            }
-
-            // Създаваме временен токен с кратък живот
-            const token = jwt.sign(
-                { id: user.id, email: user.email, purpose: 'email-login' },
-                config.JWT_SECRET,
-                { expiresIn: '15m' }
-            );
-
-            // TODO: Имплементирай изпращане на имейл с линк
-            // Тук можеш да използваш nodemailer или друга библиотека
-            // за изпращане на имейли
-            console.log(`Email login link for ${email}: http://localhost:5173/login/email?token=${token}`);
-
-            res.json({ message: 'Ако имейлът съществува, ще получите линк за вход' });
-        } catch (err) {
-            console.error('Грешка при заявка за имейл вход:', err);
-            res.status(500).json({ message: 'Грешка при обработка на заявката', error: err.message });
-        }
-    }
+    requestLoginLink
 );
 
-// GET /api/auth/verify-email - Проверка на токен от имейл линк
-router.get('/verify-email', async (req, res) => {
-    try {
-        const { token } = req.query;
-        if (!token) {
-            return res.status(400).json({ message: 'Липсващ токен' });
-        }
+// Вход с линк от имейл
+router.get('/verify-email-login/:token', verifyEmailLogin);
 
-        try {
-            // Проверяваме валидността на токена
-            const decoded = jwt.verify(token, config.JWT_SECRET);
+// Заявка за нулиране на парола
+router.post(
+    '/forgot-password',
+    emailLimiter,
+    [
+        body('email').isEmail().withMessage('Моля, въведете валиден имейл')
+    ],
+    requestPasswordReset
+);
 
-            // Проверяваме дали токенът е създаден за имейл вход
-            if (decoded.purpose !== 'email-login') {
-                return res.status(401).json({ message: 'Невалиден токен' });
-            }
+// Нулиране на парола
+router.post(
+    '/reset-password',
+    authLimiter,
+    [
+        body('token').notEmpty().withMessage('Токенът е задължителен'),
+        body('newPassword')
+            .isLength({ min: 8 })
+            .withMessage('Паролата трябва да бъде поне 8 символа')
+            .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+            .withMessage('Паролата трябва да съдържа главна буква, малка буква, цифра и специален символ')
+    ],
+    resetPassword
+);
 
-            // Намираме потребителя
-            const user = await User.findById(decoded.id);
-            if (!user || user.email !== decoded.email) {
-                return res.status(404).json({ message: 'Потребителят не е намерен' });
-            }
+// Вход с имейл и парола
+router.post(
+    '/login',
+    authLimiter,
+    [
+        body('email').isEmail().withMessage('Моля, въведете валиден имейл'),
+        body('password').notEmpty().withMessage('Паролата е задължителна')
+    ],
+    login
+);
 
-            // Създаваме нов токен за автентикация
-            const payload = {
-                id: user.id,
-                email: user.email,
-                role: user.role
-            };
-
-            const accessToken = jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRE });
-
-            res.json({
-                user: {
-                    _id: user.id,
-                    email: user.email,
-                    role: user.role,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    studentInfo: user.studentInfo
-                },
-                accessToken
-            });
-        } catch (error) {
-            console.error('Грешка при верификация на имейл:', error);
-            return res.status(401).json({ message: 'Невалиден или изтекъл токен' });
-        }
-    } catch (err) {
-        console.error('Грешка при верификация на имейл:', err);
-        res.status(500).json({ message: 'Грешка при обработка на заявката', error: err.message });
-    }
-});
-
-// POST /api/auth/logout - Изход от системата
-router.post('/logout', (req, res) => {
-    // На клиента трябва да изчистим токена от localStorage
-    // На сървъра не е нужно да правим нищо повече
-    res.json({ message: 'Успешен изход от системата' });
-});
-
-// GET /api/auth/confirm-registration - Потвърждаване на регистрация
-router.get('/confirm-registration', async (req, res) => {
-    try {
-        const { token } = req.query;
-        if (!token) {
-            return res.status(400).json({ message: 'Липсващ токен' });
-        }
-
-        try {
-            // Проверяваме валидността на токена
-            const decoded = jwt.verify(token, config.JWT_SECRET);
-
-            // Проверяваме дали токенът е за потвърждаване на регистрация
-            if (decoded.purpose !== 'confirm-registration') {
-                return res.status(401).json({ message: 'Невалиден токен' });
-            }
-
-            // Намираме потребителя
-            const user = await User.findById(decoded.id);
-            if (!user || user.email !== decoded.email) {
-                return res.status(404).json({ message: 'Потребителят не е намерен' });
-            }
-
-            // Отбелязваме потребителя като потвърден
-            user.emailConfirmed = true;
-            await user.save();
-
-            // Създаваме нов токен за автентикация
-            const payload = {
-                id: user.id,
-                email: user.email,
-                role: user.role
-            };
-
-            const accessToken = jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRE });
-
-            res.json({
-                message: 'Регистрацията е потвърдена успешно!',
-                user: {
-                    _id: user.id,
-                    email: user.email,
-                    role: user.role,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    studentInfo: user.studentInfo
-                },
-                accessToken
-            });
-        } catch (error) {
-            console.error('Грешка при потвърждаване на регистрация:', error);
-            return res.status(401).json({ message: 'Невалиден или изтекъл токен' });
-        }
-    } catch (err) {
-        console.error('Грешка при потвърждаване на регистрация:', err);
-        res.status(500).json({ message: 'Грешка при обработка на заявката', error: err.message });
-    }
-});
+// Защитен маршрут - получаване на информация за текущия потребител
+router.get('/me', authMiddleware, getMe);
 
 export default router;

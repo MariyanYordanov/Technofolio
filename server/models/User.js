@@ -1,81 +1,77 @@
 // server/models/User.js
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const studentInfoSchema = new mongoose.Schema({
-    grade: {
-        type: Number,
-        required: true,
-        min: 8,
-        max: 12
-    },
-    specialization: {
-        type: String,
-        required: true
-    },
-    averageGrade: {
-        type: Number,
-        min: 2,
-        max: 6,
-        default: 2
-    }
-});
-
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
     email: {
         type: String,
         required: true,
         unique: true,
+        trim: true,
         lowercase: true,
-        trim: true
     },
     password: {
         type: String,
-        required: true
+        required: true,
     },
     firstName: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
     },
     lastName: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
     },
     role: {
         type: String,
         enum: ['student', 'teacher', 'admin'],
-        default: 'student'
+        default: 'student',
     },
-    emailConfirmed: {
+    emailVerified: {
         type: Boolean,
-        default: false
+        default: false,
     },
-    studentInfo: studentInfoSchema,
+    grade: {
+        type: Number,
+        min: 8,
+        max: 12,
+        required: function () {
+            return this.role === 'student';
+        },
+    },
+    specialization: {
+        type: String,
+        required: function () {
+            return this.role === 'student';
+        },
+    },
+    lastLoginAt: {
+        type: Date,
+        default: null,
+    },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
     },
     updatedAt: {
         type: Date,
-        default: Date.now
-    }
-}, {
-    timestamps: true
+        default: Date.now,
+    },
 });
 
-// Виртуално поле за пълно име
-userSchema.virtual('fullName').get(function () {
-    return `${this.firstName} ${this.lastName}`;
+// Обновяваме updatedAt при промяна
+userSchema.pre('save', function (next) {
+    this.updatedAt = Date.now();
+    next();
 });
 
-// Премахваме чувствителни данни при преобразуване към JSON
-userSchema.methods.toJSON = function () {
-    const userObject = this.toObject();
-    delete userObject.password;
-    return userObject;
+// Метод за проверка дали потребителят има определена роля
+userSchema.methods.hasRole = function (role) {
+    return this.role === role;
 };
 
 const User = mongoose.model('User', userSchema);
 
-export default User;
+module.exports = User;

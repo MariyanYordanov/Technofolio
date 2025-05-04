@@ -1,26 +1,39 @@
 // server/middleware/auth.js
-import jwt from 'jsonwebtoken';
-import config from '../config/config.js';
+import { verify } from 'jsonwebtoken';
+import { JWT_SECRET } from '../config/config';
 
-// Middleware за проверка на автентикация
-const authMiddleware = (req, res, next) => {
-    // Взимаме токена от хедъра на заявката
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Не е предоставен token за достъп' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
+export default (req, res, next) => {
     try {
-        // Проверяваме валидността на токена
-        const decoded = jwt.verify(token, config.JWT_SECRET);
-        req.user = decoded;
+        // Извличане на токена от header-а
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ message: 'Неоторизиран достъп' });
+        }
+
+        const token = authHeader.split(' ')[1];
+
+        // Верифициране на токена
+        const decoded = verify(token, JWT_SECRET, {
+            algorithms: ['HS256'] // Експлицитно указваме алгоритъм
+        });
+
+        // Добавяне на данните от токена към request обекта
+        req.userId = decoded.userId;
+        req.userEmail = decoded.email;
+        req.userRole = decoded.role;
+
         next();
     } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: 'Сесията ви е изтекла, моля влезте отново' });
+        }
+
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Невалиден токен' });
+        }
+
         console.error('Auth middleware error:', error);
-        return res.status(401).json({ message: 'Невалиден token за достъп' });
+        res.status(401).json({ message: 'Неоторизиран достъп' });
     }
 };
-
-export default authMiddleware;

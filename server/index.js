@@ -1,14 +1,15 @@
-// index.js
-import 'dotenv/config'; // Вместо require('dotenv').config();
-import express from 'express';
-import cors from 'cors';
-import connectDB from './config/db.js';
+// server/index.js
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const connectDB = require('./config/db');
+const emailService = require('./services/emailService');
 
 // Импортиране на маршрути
-import authRoutes from './routes/authRoutes.js'; // Добавяме authRoutes
-import studentRoutes from './routes/studentRoutes.js';
-import eventsRoutes from './routes/eventsRoutes.js';
-import creditsRoutes from './routes/creditsRoutes.js';
+const authRoutes = require('./routes/authRoutes').default;
+const studentRoutes = require('./routes/studentRoutes');
+const eventsRoutes = require('./routes/eventsRoutes');
+const creditsRoutes = require('./routes/creditsRoutes');
 
 // Инициализиране на app
 const app = express();
@@ -17,20 +18,20 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(express.json()); // Използваме express.json() вместо импортираната функция json
+app.use(express.json());
 
 // CORS настройки
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.NODE_ENV === 'production'
+        ? process.env.CLIENT_URL
+        : 'http://localhost:5173',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Маршрути за автентикация
-app.use('/api/auth', authRoutes); // Използваме authRoutes вместо handlers
-
-// Други маршрути
+// Маршрути
+app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/credits', creditsRoutes);
@@ -52,6 +53,19 @@ app.use((error, req, res, next) => {
     const message = error.message || 'Възникна грешка в сървъра';
     res.status(status).json({ message });
 });
+
+// Проверка на имейл конфигурацията
+emailService.verifyEmailConfig()
+    .then(isConfigValid => {
+        if (isConfigValid) {
+            console.log('Имейл сървърът е готов за използване');
+        } else {
+            console.warn('Имейл сървърът не е правилно конфигуриран');
+        }
+    })
+    .catch(error => {
+        console.error('Грешка при проверка на имейл конфигурацията:', error);
+    });
 
 // Стартиране на сървъра
 const PORT = process.env.PORT || 3030;
