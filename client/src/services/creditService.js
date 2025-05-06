@@ -2,8 +2,8 @@
 import * as request from '../utils/requestUtils.js';
 
 const endpoints = {
-    credits: '/data/credits',
-    categories: '/data/creditCategories',
+    credits: '/api/credits',
+    categories: '/api/creditCategories',
 };
 
 // Извличане на кредити на ученик

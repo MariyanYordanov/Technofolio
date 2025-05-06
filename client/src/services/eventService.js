@@ -2,8 +2,8 @@
 import * as request from '../utils/requestUtils.js';
 
 const endpoints = {
-    events: '/data/events',
-    participations: '/data/eventParticipations',
+    events: '/api/events',
+    participations: '/api/eventParticipations',
 };
 
 // Получаване на всички събития

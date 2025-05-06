@@ -9,10 +9,14 @@ import {
     forgotPassword,
     resetPassword,
     updatePassword,
+    verifyTwoFactor,
+    enableTwoFactor,
+    confirmTwoFactor,
     refreshToken,
     requestLoginLink,
     verifyEmailLogin,
-    confirmRegistration
+    confirmRegistration,
+    checkTokenValidity
 } from '../controllers/authController.js';
 import authMiddleware from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -36,40 +40,7 @@ router.post(
     register
 );
 
-// Вход с имейл и парола
-router.post(
-    '/login',
-    authLimiter,
-    [
-        body('email').isEmail().withMessage('Моля, въведете валиден имейл'),
-        body('password').notEmpty().withMessage('Паролата е задължителна')
-    ],
-    login
-);
-
-// Заявка за изпращане на линк за вход
-router.post(
-    '/request-login-link',
-    authLimiter,
-    [
-        body('email').isEmail().withMessage('Моля, въведете валиден имейл')
-    ],
-    requestLoginLink
-);
-
-// Проверка на имейл линк за вход
-router.get('/verify-email', verifyEmailLogin);
-
-// Потвърждаване на регистрация
-router.get('/confirm-registration', confirmRegistration);
-
-// Изход от системата
-router.post('/logout', authMiddleware, logout);
-
-// Обновяване на токен
-router.post('/refresh-token', refreshToken);
-
-// Забравена парола
+// Заявка за нулиране на парола
 router.post(
     '/forgot-password',
     authLimiter,
@@ -93,6 +64,44 @@ router.patch(
     resetPassword
 );
 
+// Вход с имейл и парола
+router.post(
+    '/login',
+    authLimiter,
+    [
+        body('email').isEmail().withMessage('Моля, въведете валиден имейл'),
+        body('password').notEmpty().withMessage('Паролата е задължителна')
+    ],
+    login
+);
+
+// Заявка за имейл линк за вход
+router.post(
+    '/request-login-link',
+    authLimiter,
+    [
+        body('email').isEmail().withMessage('Моля, въведете валиден имейл')
+    ],
+    requestLoginLink
+);
+
+// Проверка на имейл линк за вход
+router.get('/verify-email', verifyEmailLogin);
+
+// Потвърждение на регистрация
+router.get('/confirm-registration', confirmRegistration);
+
+// Изход от системата
+router.post('/logout', authMiddleware, logout);
+
+// Обновяване на токен
+router.post('/refresh-token', refreshToken);
+
+// Двуфакторна автентикация
+router.post('/verify-two-factor', verifyTwoFactor);
+router.post('/enable-two-factor', authMiddleware, enableTwoFactor);
+router.post('/confirm-two-factor', authMiddleware, confirmTwoFactor);
+
 // Промяна на парола
 router.patch(
     '/update-password',
@@ -108,7 +117,10 @@ router.patch(
     updatePassword
 );
 
-// Получаване на информация за текущия потребител
+// Проверка на валидността на токена
+router.get('/check-token', authMiddleware, checkTokenValidity);
+
+// Защитен маршрут - получаване на информация за текущия потребител
 router.get('/me', authMiddleware, getMe);
 
 export default router;

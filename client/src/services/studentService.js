@@ -2,13 +2,13 @@
 import * as request from '../utils/requestUtils.js';
 
 const endpoints = {
-    students: '/data/students',
-    portfolios: '/data/portfolios',
-    goals: '/data/goals',
-    interests: '/data/interests',
-    achievements: '/data/achievements',
-    sanctions: '/data/sanctions',
-    mentors: '/data/mentors',
+    students: '/api/students',
+    portfolios: '/api/portfolios',
+    goals: '/api/goals',
+    interests: '/api/interests',
+    achievements: '/api/achievements',
+    sanctions: '/api/sanctions',
+    mentors: '/api/mentors',
 };
 
 // Извличане на профил на ученик по userId
