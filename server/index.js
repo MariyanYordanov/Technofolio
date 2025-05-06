@@ -1,12 +1,17 @@
 // index.js
-import 'dotenv/config'; // Вместо require('dotenv').config();
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 
 // Импортиране на маршрути
-import authRoutes from './routes/authRoutes.js'; // Добавяме authRoutes
+import authRoutes from './routes/authRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import eventsRoutes from './routes/eventsRoutes.js';
 import creditsRoutes from './routes/creditsRoutes.js';
@@ -17,22 +22,35 @@ const app = express();
 // Свързване с базата данни
 connectDB();
 
-// Middleware
-app.use(express.json()); // Използваме express.json() вместо импортираната функция json
-app.use(cookieParser()); // Добавяме cookieParser за работа с cookies
+// Глобален rate limiter за защита срещу DoS атаки
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 минути
+    max: 100, // Лимит от 100 заявки на IP за този период
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Middleware за сигурност
+app.use(helmet()); // Сигурностни HTTP хедъри
+app.use(mongoSanitize()); // Предотвратяване на NoSQL инжекции
+app.use(xss()); // Защита срещу XSS атаки
+app.use(limiter); // Rate limiting
+app.use(compression()); // Компресиране на отговорите
+
+// Middleware за обработка на заявки
+app.use(express.json({ limit: '10kb' })); // Ограничаване на размера на body
+app.use(cookieParser()); // Обработка на cookies
 
 // CORS настройки - актуализирани за работа с React приложението
 app.use(cors({
     origin: 'http://localhost:5173',
-    credentials: true,
+    credentials: true, // Важно за работа с cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Маршрути за автентикация
-app.use('/api/auth', authRoutes); // Използваме authRoutes вместо handlers
-
-// Други маршрути
+// Маршрути за API
+app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/credits', creditsRoutes);

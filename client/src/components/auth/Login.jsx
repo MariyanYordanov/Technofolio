@@ -1,3 +1,4 @@
+// src/components/auth/Login.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
@@ -5,7 +6,7 @@ import { useNotifications } from "../../contexts/NotificationContext.jsx";
 import useForm from '../../hooks/useForm.js';
 
 export default function Login() {
-  const { loginSubmitHandler, handleEmailLogin, isLoading } = useAuth();
+  const { loginSubmitHandler, isLoading } = useAuth();
   const { error } = useNotifications();
   const [formError, setFormError] = useState('');
   const [isEmailLogin, setIsEmailLogin] = useState(false);
@@ -14,8 +15,10 @@ export default function Login() {
     try {
       setFormError('');
       if (isEmailLogin) {
-        await handleEmailLogin(formValues.email);
+        // Режим за изпращане на линк за вход
+        await loginSubmitHandler({ email: formValues.email });
       } else {
+        // Стандартен вход с имейл и парола
         await loginSubmitHandler(formValues);
       }
     } catch (err) {
@@ -39,12 +42,14 @@ export default function Login() {
           <button
             className={!isEmailLogin ? 'active' : ''}
             onClick={() => setIsEmailLogin(false)}
+            type="button"
           >
             С парола
           </button>
           <button
             className={isEmailLogin ? 'active' : ''}
             onClick={() => setIsEmailLogin(true)}
+            type="button"
           >
             С имейл линк
           </button>

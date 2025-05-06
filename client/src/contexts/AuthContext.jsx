@@ -1,7 +1,7 @@
 // src/contexts/AuthContext.jsx
 
 import { createContext, useEffect, useCallback, useState, useContext } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Path from '../paths.js';
 
 // Вградена имплементация на authService
@@ -178,6 +178,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children, notificationService = {} }) => {
     const navigate = useNavigate();
+    const location = useLocation(); // Добавяме location hook за достъп до текущия път
     const [auth, setAuth] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [authInitialized, setAuthInitialized] = useState(false);
@@ -185,18 +186,37 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
     // Деструктуриране на notificationService с fallback функции
     const { success = () => { }, error: showError = () => { } } = notificationService;
 
+    // Проверка дали текущия път е за автентикация (вход, регистрация и т.н.)
+    const isAuthPath = () => {
+        const pathname = location.pathname;
+        return pathname === Path.Login ||
+            pathname === Path.Register ||
+            pathname.startsWith(Path.EmailLogin) ||
+            pathname.startsWith(Path.ConfirmRegistration) ||
+            pathname === '/'; // Добавяме началната страница също
+    };
+
     // Проверка дали потребителят е автентикиран при първоначално зареждане
     useEffect(() => {
         // Предотвратяваме многократно изпълнение
         if (authInitialized) return;
 
         const verifyAuth = async () => {
+            // Ако сме на страница за автентикация или начална страница, не правим проверка за автентикация
+            if (isAuthPath()) {
+                console.log('Skipping auth check for auth path:', location.pathname);
+                setIsLoading(false);
+                setAuthInitialized(true);
+                return;
+            }
+
             try {
+                setIsLoading(true);
                 const userData = await authService.getMe();
-                setAuth(userData);
+                setAuth(userData.user || userData); // Поддръжка за различни формати
             } catch (err) {
+                // Само логваме грешката, без да показваме нищо на потребителя
                 console.log('User not authenticated:', err);
-                // Почистваме локалното хранилище, за да сме сигурни, че няма остатъчни токени
                 localStorage.removeItem('accessToken');
                 setAuth(null);
             } finally {
@@ -206,19 +226,27 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         };
 
         verifyAuth();
-    }, [authInitialized]);
+    }, [authInitialized, location.pathname]);
 
     // Функция за изпращане на имейл за вход
     const loginSubmitHandler = async (values) => {
         try {
             setIsLoading(true);
-            // Изпращаме само имейл за автентикация
+            // При вход с имейл и парола
+            if (values.password) {
+                const result = await authService.login(values.email, values.password);
+                setAuth(result.user || result);
+                success('Успешен вход в системата!');
+                navigate(Path.Home);
+                return;
+            }
+
+            // При заявка за имейл линк
             await authService.requestLoginLink(values.email);
             success('Линк за вход е изпратен на вашия имейл!');
-            // Показваме съобщение за успешно изпратен имейл
         } catch (err) {
             console.log(err);
-            showError(err.message || 'Неуспешен опит за изпращане на линк. Проверете имейла си.');
+            showError(err.message || 'Неуспешен опит за вход. Моля, опитайте отново.');
         } finally {
             setIsLoading(false);
         }
@@ -229,7 +257,7 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         try {
             setIsLoading(true);
             const result = await authService.verifyEmailLogin(token);
-            setAuth(result.user);
+            setAuth(result.user || result);
             success('Успешен вход в системата!');
             navigate(Path.Home);
         } catch (err) {
@@ -256,8 +284,8 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
             };
 
             // Добавяме grade и specialization само ако ролята е ученик
-            if (role === 'student') {
-                registrationData.grade = Number(grade);
+            if (role === 'student' || !role) {
+                registrationData.grade = grade;
                 registrationData.specialization = specialization;
             }
 
@@ -279,7 +307,7 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         try {
             setIsLoading(true);
             const result = await authService.confirmRegistration(token);
-            setAuth(result.user);
+            setAuth(result.user || result);
             success('Регистрацията е потвърдена успешно!');
             navigate(Path.Home);
         } catch (err) {
