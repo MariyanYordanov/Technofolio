@@ -585,3 +585,50 @@ export const verifyEmailLogin = catchAsync(async (req, res, next) => {
         return next(new AppError('Невалиден или изтекъл токен', 401));
     }
 });
+
+// Функция за потвърждаване на регистрация
+export const confirmRegistration = catchAsync(async (req, res, next) => {
+    const { token } = req.query;
+
+    if (!token) {
+        return next(new AppError('Липсва токен за потвърждение', 400));
+    }
+
+    try {
+        // Проверка на токена
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+
+        if (decoded.purpose !== 'confirm-registration') {
+            return next(new AppError('Невалиден тип на токена', 400));
+        }
+
+        // Намиране на потребителя
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            return next(new AppError('Потребителят не е намерен', 404));
+        }
+
+        // Потвърждаване на имейла
+        user.emailConfirmed = true;
+        await user.save({ validateBeforeSave: false });
+
+        // Генериране на access token
+        const accessToken = signToken(user._id);
+
+        // Връщане на отговор с токена и данните за потребителя
+        res.status(200).json({
+            success: true,
+            accessToken,
+            user: {
+                id: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        return next(new AppError('Невалиден или изтекъл токен', 401));
+    }
+});
