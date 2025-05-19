@@ -1,7 +1,10 @@
+// server/controllers/eventsController.js
 import { validationResult } from 'express-validator';
 import Event from '../models/Event.js';
 import EventParticipation from '../models/EventParticipation.js';
 import Student from '../models/Student.js';
+import User from '../models/User.js';
+import * as notificationService from '../services/notificationService.js';
 
 // Получаване на всички събития
 export async function getAllEvents(req, res, next) {
@@ -62,6 +65,12 @@ export async function createEvent(req, res, next) {
             createdBy: req.user.id
         });
 
+        // Известяване на всички ученици за новото събитие
+        const students = await User.find({ role: 'student' }).select('_id');
+        const studentIds = students.map(student => student._id);
+
+        await notificationService.notifyAboutNewEvent(event, studentIds);
+
         res.status(201).json(event);
     } catch (error) {
         next(error);
@@ -106,6 +115,28 @@ export async function updateEvent(req, res, next) {
 
         await event.save();
 
+        // Ако датата на събитието е променена, известяваме регистрираните участници
+        if (startDate && new Date(startDate).getTime() !== event.startDate.getTime()) {
+            const participations = await EventParticipation.find({ event: eventId, status: { $in: ['registered', 'confirmed'] } })
+                .populate('student', 'user');
+
+            const participantIds = participations.map(p => p.student.user);
+
+            if (participantIds.length > 0) {
+                await notificationService.createBulkNotifications(participantIds, {
+                    title: 'Промяна в дата на събитие',
+                    message: `Датата на събитие "${event.title}" е променена на ${new Date(startDate).toLocaleDateString('bg-BG')}`,
+                    type: 'warning',
+                    category: 'event',
+                    relatedTo: {
+                        model: 'Event',
+                        id: event._id
+                    },
+                    sendEmail: true
+                });
+            }
+        }
+
         res.status(200).json(event);
     } catch (error) {
         next(error);
@@ -129,11 +160,28 @@ export async function deleteEvent(req, res, next) {
             return res.status(403).json({ message: 'Нямате права да изтривате това събитие' });
         }
 
+        // Намиране на всички регистрирани участници за известяване
+        const participations = await EventParticipation.find({ event: eventId, status: { $in: ['registered', 'confirmed'] } })
+            .populate('student', 'user');
+
+        const participantIds = participations.map(p => p.student.user);
+
         // Изтриване на събитието - .remove() е остарял метод
         await Event.deleteOne({ _id: eventId });
 
         // Изтриване на свързаните участия
         await EventParticipation.deleteMany({ event: eventId });
+
+        // Известяване на регистрираните участници за отмяната
+        if (participantIds.length > 0) {
+            await notificationService.createBulkNotifications(participantIds, {
+                title: 'Събитие отменено',
+                message: `Събитие "${event.title}", планирано за ${new Date(event.startDate).toLocaleDateString('bg-BG')}, беше отменено.`,
+                type: 'error',
+                category: 'event',
+                sendEmail: true
+            });
+        }
 
         res.status(200).json({ message: 'Събитието е изтрито успешно' });
     } catch (error) {
@@ -175,6 +223,23 @@ export async function participateInEvent(req, res, next) {
             status: 'registered'
         });
 
+        // Известяване на организатора на събитието
+        const organizer = await User.findById(event.createdBy);
+        if (organizer) {
+            await notificationService.createNotification({
+                recipient: organizer._id,
+                title: 'Нова регистрация за събитие',
+                message: `Студент ${student.user.firstName} ${student.user.lastName} се регистрира за събитие "${event.title}"`,
+                type: 'info',
+                category: 'event',
+                relatedTo: {
+                    model: 'Event',
+                    id: event._id
+                },
+                sendEmail: false
+            });
+        }
+
         res.status(201).json(participation);
     } catch (error) {
         next(error);
@@ -194,12 +259,12 @@ export async function confirmParticipation(req, res, next) {
         }
 
         // Проверка дали студентът има права
-        const student = await Student.findById(participation.student);
+        const student = await Student.findById(participation.student).populate('user', 'firstName lastName');
         if (!student) {
             return res.status(404).json({ message: 'Студентът не е намерен' });
         }
 
-        if (student.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        if (student.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'Нямате права да потвърждавате това участие' });
         }
 
@@ -207,6 +272,25 @@ export async function confirmParticipation(req, res, next) {
         participation.status = 'confirmed';
         participation.confirmedAt = Date.now();
         await participation.save();
+
+        // Известяване на организатора на събитието
+        const event = await Event.findById(participation.event);
+        const organizer = event ? await User.findById(event.createdBy) : null;
+
+        if (organizer) {
+            await notificationService.createNotification({
+                recipient: organizer._id,
+                title: 'Потвърдено участие в събитие',
+                message: `Студент ${student.user.firstName} ${student.user.lastName} потвърди участието си в събитие "${event.title}"`,
+                type: 'success',
+                category: 'event',
+                relatedTo: {
+                    model: 'Event',
+                    id: event._id
+                },
+                sendEmail: false
+            });
+        }
 
         res.status(200).json(participation);
     } catch (error) {
@@ -235,6 +319,158 @@ export async function getStudentParticipations(req, res, next) {
             .populate('event', 'title startDate endDate location organizer feedbackUrl');
 
         res.status(200).json(participations);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Отбелязване на посетено събитие (ново)
+export async function markAttendance(req, res, next) {
+    try {
+        const participationId = req.params.participationId;
+
+        // Проверка дали потребителят има права (само учител или администратор)
+        if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Нямате права да отбелязвате присъствие' });
+        }
+
+        // Намиране на регистрацията
+        const participation = await EventParticipation.findById(participationId)
+            .populate('student', 'user')
+            .populate('event', 'title');
+
+        if (!participation) {
+            return res.status(404).json({ message: 'Регистрацията не е намерена' });
+        }
+
+        // Обновяване на статуса
+        participation.status = 'attended';
+        participation.attendedAt = Date.now();
+        await participation.save();
+
+        // Известяване на студента
+        await notificationService.createNotification({
+            recipient: participation.student.user,
+            title: 'Отбелязано присъствие на събитие',
+            message: `Вашето присъствие на събитие "${participation.event.title}" беше отбелязано.`,
+            type: 'success',
+            category: 'event',
+            relatedTo: {
+                model: 'Event',
+                id: participation.event._id
+            },
+            sendEmail: false
+        });
+
+        res.status(200).json(participation);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Предоставяне на обратна връзка за събитие (ново)
+export async function provideFeedback(req, res, next) {
+    try {
+        const participationId = req.params.participationId;
+        const { feedback } = req.body;
+
+        if (!feedback || typeof feedback !== 'string') {
+            return res.status(400).json({ message: 'Невалидна обратна връзка' });
+        }
+
+        // Намиране на регистрацията
+        const participation = await EventParticipation.findById(participationId);
+
+        if (!participation) {
+            return res.status(404).json({ message: 'Регистрацията не е намерена' });
+        }
+
+        // Проверка дали студентът има права
+        const student = await Student.findById(participation.student);
+        if (!student) {
+            return res.status(404).json({ message: 'Студентът не е намерен' });
+        }
+
+        if (student.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Нямате права да предоставяте обратна връзка за това участие' });
+        }
+
+        // Проверка дали събитието е посетено
+        if (participation.status !== 'attended') {
+            return res.status(400).json({ message: 'Не можете да предоставите обратна връзка за непосетено събитие' });
+        }
+
+        // Обновяване на обратната връзка
+        participation.feedback = feedback;
+        participation.feedbackDate = Date.now();
+        await participation.save();
+
+        // Известяване на организатора на събитието
+        const event = await Event.findById(participation.event);
+        const organizer = event ? await User.findById(event.createdBy) : null;
+
+        if (organizer) {
+            await notificationService.createNotification({
+                recipient: organizer._id,
+                title: 'Нова обратна връзка за събитие',
+                message: `Получена е нова обратна връзка за събитие "${event.title}".`,
+                type: 'info',
+                category: 'event',
+                relatedTo: {
+                    model: 'Event',
+                    id: event._id
+                },
+                sendEmail: false
+            });
+        }
+
+        res.status(200).json(participation);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Отмяна на регистрация за събитие (ново)
+export async function cancelParticipation(req, res, next) {
+    try {
+        const participationId = req.params.participationId;
+
+        // Намиране на регистрацията
+        const participation = await EventParticipation.findById(participationId)
+            .populate('event', 'title createdBy')
+            .populate('student', 'user');
+
+        if (!participation) {
+            return res.status(404).json({ message: 'Регистрацията не е намерена' });
+        }
+
+        // Проверка дали студентът има права
+        if (participation.student.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Нямате права да отменяте тази регистрация' });
+        }
+
+        // Обновяване на статуса
+        participation.status = 'cancelled';
+        await participation.save();
+
+        // Известяване на организатора
+        const organizer = participation.event.createdBy;
+        if (organizer) {
+            await notificationService.createNotification({
+                recipient: organizer,
+                title: 'Отменена регистрация за събитие',
+                message: `Регистрацията за събитие "${participation.event.title}" беше отменена.`,
+                type: 'warning',
+                category: 'event',
+                relatedTo: {
+                    model: 'Event',
+                    id: participation.event._id
+                },
+                sendEmail: false
+            });
+        }
+
+        res.status(200).json({ message: 'Регистрацията е отменена успешно' });
     } catch (error) {
         next(error);
     }

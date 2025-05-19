@@ -15,6 +15,9 @@ import authRoutes from './routes/authRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import eventsRoutes from './routes/eventsRoutes.js';
 import creditsRoutes from './routes/creditsRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import reportsRoutes from './routes/reportsRoutes.js';
+import notificationsRoutes from './routes/notificationsRoutes.js';
 
 // Инициализиране на app
 const app = express();
@@ -54,6 +57,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/credits', creditsRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Обикновен маршрут за тестване
 app.get('/', (req, res) => {
@@ -72,6 +78,8 @@ app.use((error, req, res, next) => {
     const message = error.message || 'Възникна грешка в сървъра';
     res.status(status).json({ message });
 });
+
+
 
 // Стартиране на сървъра
 const PORT = process.env.PORT || 3030;
