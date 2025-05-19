@@ -1,24 +1,24 @@
-import { lazy, Suspense, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+// Файл: client/src/App.jsx
+import { lazy, Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { CreditProvider } from "./contexts/CreditContext.jsx";
-import { NotificationProvider } from "./contexts/NotificationContext.jsx";
+import { NotificationProvider, useNotifications } from "./contexts/NotificationContext.jsx";
 import Path from './paths';
 import Home from './components/common/Home.jsx';
-import Header from "./components/common/Header";
-import Footer from "./components/common/Footer";
-import Notifications from './components/common/Notifications';
-import ErrorBoundary from './components/common/ErrorBoundary';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
-import VerifyRequest from './components/auth/VerifyRequest';
-import EmailLogin from './components/auth/EmailLogin';
-import ConfirmRegistration from './components/auth/ConfirmRegistration';
-import Logout from './components/auth/Logout';
-import StudentProfile from './components/student/StudentProfile';
-import { initTheme } from './utils/themeUtils';
+import EmailLogin from './components/auth/EmailLogin.jsx';
+import Header from "./components/common/Header.jsx";
+import Footer from "./components/common/Footer.jsx";
+import Notifications from './components/common/Notifications.jsx';
+import ErrorBoundary from './components/common/ErrorBoundary.jsx';
+import AuthGuard from './components/auth/AuthGuard.jsx';
+import Login from './components/auth/Login.jsx';
+import Register from './components/auth/Register.jsx';
+import Logout from './components/auth/Logout.jsx';
+import StudentProfile from './components/student/StudentProfile.jsx';
+import { initTheme } from './utils/themeUtils.js';
 
-// Lazy-loaded components
+// Зареждане на студентски компоненти
 const Portfolio = lazy(() => import('./components/student/Portfolio'));
 const Goals = lazy(() => import('./components/student/Goals'));
 const CreditSystem = lazy(() => import('./components/student/CreditSystem'));
@@ -27,113 +27,98 @@ const Achievements = lazy(() => import('./components/student/Achievements'));
 const Sanctions = lazy(() => import('./components/student/Sanctions'));
 const Events = lazy(() => import('./components/student/Events'));
 
-// Компонент за проверка на автентикация
-function RequireAuth({ children }) {
-  const { isAuthenticated, isLoading } = useAuth();
+// Зареждане на учителски компоненти
+const TeacherDashboard = lazy(() => import('./components/teacher/TeacherDashboard'));
+const TeacherStudents = lazy(() => import('./components/teacher/TeacherStudents'));
+const TeacherCredits = lazy(() => import('./components/teacher/TeacherCredits'));
+const TeacherEvents = lazy(() => import('./components/teacher/TeacherEvents'));
 
-  if (isLoading) {
-    return (
-      <div className="loading">
-        <div className="loading-spinner"></div>
-        <p>Зареждане...</p>
+import ConfirmRegistration from './components/auth/ConfirmRegistration.jsx';
+
+function AppWithNotifications() {
+  const notificationService = useNotifications();
+
+  return (
+    <AuthProvider notificationService={notificationService}>
+      <AppWithAuth />
+    </AuthProvider>
+  );
+}
+
+// Компонент, който предоставя authService на CreditProvider
+function AppWithAuth() {
+  const auth = useAuth();
+  const notifications = useNotifications();
+
+  return (
+    <CreditProvider
+      authService={auth}
+      notificationService={notifications}
+    >
+      <div id="app-container">
+        <Header />
+        <main className="content-container">
+          <Notifications />
+          <Suspense fallback={
+            <div className="loading">
+              <div className="loading-spinner"></div>
+              <p>Зареждане...</p>
+            </div>
+          }>
+            <Routes>
+              {/* Публични маршрути */}
+              <Route path={Path.Home} element={<Home />} />
+              <Route path={Path.Login} element={<Login />} />
+              <Route path={Path.Register} element={<Register />} />
+              <Route path={Path.EmailLogin} element={<EmailLogin />} />
+              <Route path={Path.ConfirmRegistration} element={<ConfirmRegistration />} />
+
+              {/* Защитени маршрути */}
+              <Route element={<AuthGuard />}>
+                {/* Студентски маршрути */}
+                <Route path={Path.StudentProfile} element={<StudentProfile />} />
+                <Route path={Path.Portfolio} element={<Portfolio />} />
+                <Route path={Path.Goals} element={<Goals />} />
+                <Route path={Path.Credits} element={<CreditSystem />} />
+                <Route path={Path.Interests} element={<InterestsAndHobbies />} />
+                <Route path={Path.Achievements} element={<Achievements />} />
+                <Route path={Path.Sanctions} element={<Sanctions />} />
+                <Route path={Path.Events} element={<Events />} />
+
+                {/* Учителски маршрути */}
+                <Route path={Path.TeacherDashboard} element={<TeacherDashboard />} />
+                <Route path={Path.TeacherStudents} element={<TeacherStudents />} />
+                <Route path={Path.TeacherStudentCredits} element={<TeacherCredits />} />
+                <Route path={Path.TeacherEvents} element={<TeacherEvents />} />
+
+                {/* Общи */}
+                <Route path={Path.Logout} element={<Logout />} />
+              </Route>
+
+              {/* Маршрут за несъществуващи страници */}
+              <Route path="*" element={
+                <div className="not-found">
+                  <h1>404</h1>
+                  <p>Страницата не е намерена</p>
+                </div>
+              } />
+            </Routes>
+          </Suspense>
+        </main>
+        <Footer />
       </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to={Path.Login} />;
-  }
-
-  return children;
+    </CreditProvider>
+  );
 }
 
 function App() {
   // Инициализиране на тема
-  useEffect(() => {
-    initTheme();
-  }, []);
+  initTheme();
 
   return (
     <ErrorBoundary>
       <NotificationProvider>
-        <AuthProvider>
-          <CreditProvider>
-            <div id="app-container">
-              <Header />
-              <main className="content-container">
-                <Notifications />
-                <Suspense fallback={
-                  <div className="loading">
-                    <div className="loading-spinner"></div>
-                    <p>Зареждане...</p>
-                  </div>
-                }>
-                  <Routes>
-                    {/* Публични маршрути */}
-                    <Route path={Path.Home} element={<Home />} />
-                    <Route path={Path.Login} element={<Login />} />
-                    <Route path={Path.Register} element={<Register />} />
-                    <Route path="/auth/verify-request" element={<VerifyRequest />} />
-                    <Route path={Path.EmailLogin} element={<EmailLogin />} />
-                    <Route path={Path.ConfirmRegistration} element={<ConfirmRegistration />} />
-                    <Route path={Path.Logout} element={<Logout />} />
-
-                    {/* Защитени маршрути */}
-                    <Route path={Path.StudentProfile} element={
-                      <RequireAuth>
-                        <StudentProfile />
-                      </RequireAuth>
-                    } />
-                    <Route path={Path.Portfolio} element={
-                      <RequireAuth>
-                        <Portfolio />
-                      </RequireAuth>
-                    } />
-                    <Route path={Path.Goals} element={
-                      <RequireAuth>
-                        <Goals />
-                      </RequireAuth>
-                    } />
-                    <Route path={Path.Credits} element={
-                      <RequireAuth>
-                        <CreditSystem />
-                      </RequireAuth>
-                    } />
-                    <Route path={Path.Interests} element={
-                      <RequireAuth>
-                        <InterestsAndHobbies />
-                      </RequireAuth>
-                    } />
-                    <Route path={Path.Achievements} element={
-                      <RequireAuth>
-                        <Achievements />
-                      </RequireAuth>
-                    } />
-                    <Route path={Path.Sanctions} element={
-                      <RequireAuth>
-                        <Sanctions />
-                      </RequireAuth>
-                    } />
-                    <Route path={Path.Events} element={
-                      <RequireAuth>
-                        <Events />
-                      </RequireAuth>
-                    } />
-
-                    {/* Маршрут за несъществуващи страници */}
-                    <Route path="*" element={
-                      <div className="not-found">
-                        <h1>404</h1>
-                        <p>Страницата не е намерена</p>
-                      </div>
-                    } />
-                  </Routes>
-                </Suspense>
-              </main>
-              <Footer />
-            </div>
-          </CreditProvider>
-        </AuthProvider>
+        <AppWithNotifications />
       </NotificationProvider>
     </ErrorBoundary>
   );

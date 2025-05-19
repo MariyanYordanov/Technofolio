@@ -2,12 +2,51 @@ import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import Path from '../../paths.js';
+import ThemeToggle from './ThemeToggle.jsx';
 
 export default function Header() {
     const {
         isAuthenticated,
         username,
+        isTeacher,
+        isAdmin,
+        firstName,
+        lastName
     } = useContext(AuthContext);
+
+    const renderStudentMenu = () => (
+        <ul className="nav-links">
+            <li>
+                <Link to={Path.StudentProfile}>Профил</Link>
+            </li>
+            <li>
+                <Link to={Path.Portfolio}>Портфолио</Link>
+            </li>
+            <li>
+                <Link to={Path.Goals}>Цели</Link>
+            </li>
+            <li>
+                <Link to={Path.Credits}>Кредити</Link>
+            </li>
+            <li>
+                <Link to={Path.Events}>Събития</Link>
+            </li>
+        </ul>
+    );
+
+    const renderTeacherMenu = () => (
+        <ul className="nav-links">
+            <li>
+                <Link to={Path.TeacherDashboard}>Табло</Link>
+            </li>
+            <li>
+                <Link to={Path.TeacherStudents}>Ученици</Link>
+            </li>
+            <li>
+                <Link to={Path.TeacherEvents}>Събития</Link>
+            </li>
+        </ul>
+    );
 
     return (
         <header className="site-header">
@@ -19,30 +58,16 @@ export default function Header() {
 
             <nav className="main-nav">
                 {isAuthenticated && (
-                    <ul className="nav-links">
-                        <li>
-                            <Link to={Path.StudentProfile}>Профил</Link>
-                        </li>
-                        <li>
-                            <Link to={Path.Portfolio}>Портфолио</Link>
-                        </li>
-                        <li>
-                            <Link to={Path.Goals}>Цели</Link>
-                        </li>
-                        <li>
-                            <Link to={Path.Credits}>Кредити</Link>
-                        </li>
-                        <li>
-                            <Link to={Path.Events}>Събития</Link>
-                        </li>
-                    </ul>
+                    isTeacher || isAdmin ? renderTeacherMenu() : renderStudentMenu()
                 )}
             </nav>
 
             <div className="user-actions">
+                <ThemeToggle />
+
                 {isAuthenticated ? (
                     <div className="user-menu">
-                        <span className="username">{username}</span>
+                        <span className="username">{firstName || lastName ? `${firstName} ${lastName}` : username}</span>
                         <Link to={Path.Logout} className="btn logout-btn">Изход</Link>
                     </div>
                 ) : (

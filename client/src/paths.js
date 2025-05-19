@@ -13,6 +13,12 @@ const Path = {
     Events: '/events',
     EmailLogin: '/login/email',
     ConfirmRegistration: '/register/confirm',
+    // Учителски пътища
+    TeacherDashboard: '/teacher/dashboard',
+    TeacherStudents: '/teacher/students',
+    TeacherStudentDetails: '/teacher/students/:studentId/profile',
+    TeacherStudentCredits: '/teacher/students/:studentId/credits',
+    TeacherEvents: '/teacher/events',
 };
 
 export default Path;

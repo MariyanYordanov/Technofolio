@@ -343,11 +343,21 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         }
     }, [navigate, success, showError]);
 
+
     // Изчислени свойства, базирани на auth
     const isAuthenticated = !!auth;
     const isStudent = auth?.role === 'student';
     const isTeacher = auth?.role === 'teacher';
     const isAdmin = auth?.role === 'admin';
+
+    // Редирект към съответното табло след логин, базирано на ролята
+    const redirectAfterLogin = useCallback(() => {
+        if (isTeacher || isAdmin) {
+            navigate(Path.TeacherDashboard);
+        } else {
+            navigate(Path.StudentProfile);
+        }
+    }, [isTeacher, isAdmin, navigate]);
 
     const contextValue = {
         loginSubmitHandler,
@@ -355,6 +365,7 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         handleEmailLogin,
         confirmRegistration,
         logoutHandler,
+        redirectAfterLogin,
         username: auth?.username || auth?.email,
         email: auth?.email,
         userId: auth?._id,
@@ -366,10 +377,9 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         isStudent,
         isTeacher,
         isAdmin,
-        isLoading,
-        authInitialized
+        isLoading
     };
-
+    
     return (
         <AuthContext.Provider value={contextValue}>
             {children}

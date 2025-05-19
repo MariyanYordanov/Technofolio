@@ -1,0 +1,189 @@
+.teacher-dashboard {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.dashboard-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.welcome-message {
+    color: var(--text-light);
+    font-size: var(--font-size-lg);
+    margin-top: var(--spacing-sm);
+}
+
+.dashboard-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.action-card {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.action-card h2 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+.action-card p {
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-light);
+}
+
+.action-card .btn {
+    display: block;
+    text-align: center;
+}
+
+/* Стилове за страници с ученици */
+.teacher-students-view {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.students-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.student-card {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast);
+}
+
+.student-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.student-header {
+    padding: var(--spacing-md);
+    background-color: var(--primary-light);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.student-header h2 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
+.student-grade {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+}
+
+.student-content {
+    padding: var(--spacing-md);
+}
+
+.student-specialization {
+    margin-bottom: var(--spacing-sm);
+}
+
+.student-average {
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+}
+
+.student-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--bg-dark);
+}
+
+/* Стилове за формата за създаване на събития */
+.event-editor {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.event-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Стилове за управление на кредити */
+.teacher-credits-view {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.student-info {
+    background-color: var(--bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.validate-btn {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.reject-btn {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.validation-info {
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* Responsive стилове */
+@media (max-width: 768px) {
+
+    .dashboard-actions,
+    .students-container {
+        grid-template-columns: 1fr;
+    }
+
+    .student-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+}
