@@ -20,7 +20,8 @@
     "nodemailer": "^6.10.1",
     "pdfmake": "^0.2.20",
     "qrcode": "^1.5.3",
-    "speakeasy": "^2.0.0"
+    "speakeasy": "^2.0.0",
+    "xss-clean": "^0.1.4"
   },
   "scripts": {
     "dev": "nodemon index.js"
