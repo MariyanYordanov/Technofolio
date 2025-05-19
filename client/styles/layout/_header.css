@@ -23,6 +23,24 @@
     gap: var(--spacing-lg);
 }
 
+.nav-links li a {
+    color: var(--text-color);
+    font-weight: 500;
+    transition: color var(--transition-fast);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+}
+
+.nav-links li a:hover {
+    color: var(--primary-color);
+    background-color: var(--bg-light);
+}
+
+.nav-links li a.active {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 .user-actions {
     display: flex;
     align-items: center;
@@ -32,4 +50,92 @@
 .username {
     font-weight: 600;
     margin-right: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.role-badge {
+    background-color: var(--primary-light);
+    color: white;
+    font-size: var(--font-size-xs);
+    padding: 2px var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+    font-weight: normal;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.login-btn {
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+}
+
+.login-btn:hover {
+    background-color: var(--primary-light);
+    color: white;
+}
+
+.register-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.register-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.logout-btn {
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+}
+
+.logout-btn:hover {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+/* Responsive стилове */
+@media (max-width: 1023px) {
+    .site-header {
+        flex-wrap: wrap;
+        height: auto;
+        padding: var(--spacing-md);
+    }
+
+    .nav-links {
+        order: 3;
+        width: 100%;
+        margin-top: var(--spacing-md);
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 767px) {
+    .site-header {
+        padding: var(--spacing-sm);
+    }
+
+    .logo h1 {
+        font-size: 20px;
+    }
+
+    .nav-links {
+        gap: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    .user-actions {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .username {
+        font-size: var(--font-size-sm);
+        margin-right: 0;
+    }
 }

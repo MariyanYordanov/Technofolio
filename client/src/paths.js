@@ -18,7 +18,10 @@ const Path = {
     TeacherStudents: '/teacher/students',
     TeacherStudentDetails: '/teacher/students/:studentId/profile',
     TeacherStudentCredits: '/teacher/students/:studentId/credits',
+    TeacherStudentSanctions: '/teacher/students/:studentId/sanctions',
     TeacherEvents: '/teacher/events',
+    TeacherCredits: '/teacher/credits',
+    TeacherReports: '/teacher/reports',
 };
 
 export default Path;

@@ -43,7 +43,13 @@ export default function Header() {
                 <Link to={Path.TeacherStudents}>Ученици</Link>
             </li>
             <li>
+                <Link to={Path.TeacherCredits}>Кредити</Link>
+            </li>
+            <li>
                 <Link to={Path.TeacherEvents}>Събития</Link>
+            </li>
+            <li>
+                <Link to={Path.TeacherReports}>Отчети</Link>
             </li>
         </ul>
     );
@@ -51,7 +57,7 @@ export default function Header() {
     return (
         <header className="site-header">
             <div className="logo">
-                <Link to={Path.Home}>
+                <Link to={isTeacher || isAdmin ? Path.TeacherDashboard : Path.Home}>
                     <h1>Технофолио</h1>
                 </Link>
             </div>
@@ -67,7 +73,10 @@ export default function Header() {
 
                 {isAuthenticated ? (
                     <div className="user-menu">
-                        <span className="username">{firstName || lastName ? `${firstName} ${lastName}` : username}</span>
+                        <span className="username">
+                            {firstName || lastName ? `${firstName} ${lastName}` : username}
+                            {(isTeacher || isAdmin) && <span className="role-badge">{isAdmin ? 'Администратор' : 'Учител'}</span>}
+                        </span>
                         <Link to={Path.Logout} className="btn logout-btn">Изход</Link>
                     </div>
                 ) : (

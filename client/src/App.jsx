@@ -4,7 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { CreditProvider } from "./contexts/CreditContext.jsx";
 import { NotificationProvider, useNotifications } from "./contexts/NotificationContext.jsx";
-import Path from './paths';
+import Path from './paths.js';
 import Home from './components/common/Home.jsx';
 import EmailLogin from './components/auth/EmailLogin.jsx';
 import Header from "./components/common/Header.jsx";
@@ -19,19 +19,22 @@ import StudentProfile from './components/student/StudentProfile.jsx';
 import { initTheme } from './utils/themeUtils.js';
 
 // Зареждане на студентски компоненти
-const Portfolio = lazy(() => import('./components/student/Portfolio'));
-const Goals = lazy(() => import('./components/student/Goals'));
-const CreditSystem = lazy(() => import('./components/student/CreditSystem'));
-const InterestsAndHobbies = lazy(() => import('./components/student/InterestsAndHobbies'));
-const Achievements = lazy(() => import('./components/student/Achievements'));
-const Sanctions = lazy(() => import('./components/student/Sanctions'));
-const Events = lazy(() => import('./components/student/Events'));
+const Portfolio = lazy(() => import('./components/student/Portfolio.jsx'));
+const Goals = lazy(() => import('./components/student/Goals.jsx'));
+const CreditSystem = lazy(() => import('./components/student/CreditSystem.jsx'));
+const InterestsAndHobbies = lazy(() => import('./components/student/InterestsAndHobbies.jsx'));
+const Achievements = lazy(() => import('./components/student/Achievements.jsx'));
+const Sanctions = lazy(() => import('./components/student/Sanctions.jsx'));
+const Events = lazy(() => import('./components/student/Events.jsx'));
 
 // Зареждане на учителски компоненти
-const TeacherDashboard = lazy(() => import('./components/teacher/TeacherDashboard'));
-const TeacherStudents = lazy(() => import('./components/teacher/TeacherStudents'));
-const TeacherCredits = lazy(() => import('./components/teacher/TeacherCredits'));
-const TeacherEvents = lazy(() => import('./components/teacher/TeacherEvents'));
+const TeacherDashboard = lazy(() => import('./components/teacher/TeacherDashboard.jsx'));
+const TeacherStudents = lazy(() => import('./components/teacher/TeacherStudents.jsx'));
+const TeacherStudentDetails = lazy(() => import('./components/teacher/TeacherStudentDetails.jsx'));
+const TeacherCredits = lazy(() => import('./components/teacher/TeacherCreditsManagement.jsx'));
+const TeacherEvents = lazy(() => import('./components/teacher/TeacherEvents.jsx'));
+const TeacherSanctions = lazy(() => import('./components/teacher/TeacherSanctions.jsx'));
+const TeacherReports = lazy(() => import('./components/teacher/TeacherReports.jsx'));
 
 import ConfirmRegistration from './components/auth/ConfirmRegistration.jsx';
 
@@ -88,8 +91,12 @@ function AppWithAuth() {
                 {/* Учителски маршрути */}
                 <Route path={Path.TeacherDashboard} element={<TeacherDashboard />} />
                 <Route path={Path.TeacherStudents} element={<TeacherStudents />} />
+                <Route path={Path.TeacherStudentDetails} element={<TeacherStudentDetails />} />
                 <Route path={Path.TeacherStudentCredits} element={<TeacherCredits />} />
+                <Route path={Path.TeacherStudentSanctions} element={<TeacherSanctions />} />
                 <Route path={Path.TeacherEvents} element={<TeacherEvents />} />
+                <Route path={Path.TeacherCredits} element={<TeacherCredits />} />
+                <Route path={Path.TeacherReports} element={<TeacherReports />} />
 
                 {/* Общи */}
                 <Route path={Path.Logout} element={<Logout />} />

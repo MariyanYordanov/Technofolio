@@ -1,10 +1,20 @@
-.teacher-dashboard {
+/* client/public/styles/pages/_teacher.css */
+/* Общи стилове за учителската част */
+.teacher-dashboard,
+.teacher-students-view,
+.teacher-events-view,
+.teacher-credits-view,
+.teacher-student-details,
+.teacher-sanctions-view,
+.teacher-credits-management,
+.teacher-reports {
     background-color: var(--bg-color);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     padding: var(--spacing-xl);
 }
 
+/* Dashboard */
 .dashboard-header {
     margin-bottom: var(--spacing-xl);
 }
@@ -15,10 +25,104 @@
     margin-top: var(--spacing-sm);
 }
 
+/* Секция със статистики */
+.dashboard-statistics {
+    margin-bottom: var(--spacing-xl);
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.statistic-card {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.statistic-value {
+    font-size: var(--font-size-heading-1);
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.statistic-label {
+    color: var(--text-light);
+}
+
+/* Секция с чакащи кредити */
+.pending-credits-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.pending-credits-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.pending-credit-item {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    display: flex;
+    justify-content: space-between;
+}
+
+.credit-content {
+    flex: 1;
+}
+
+.credit-student {
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+}
+
+.credit-details {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
+    color: var(--text-light);
+}
+
+.credit-description {
+    font-size: var(--font-size-sm);
+}
+
+.credit-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.view-more {
+    text-align: center;
+    margin-top: var(--spacing-md);
+}
+
+/* Секция с действия */
 .dashboard-actions {
+    margin-bottom: var(--spacing-xl);
+}
+
+.actions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--spacing-lg);
+    margin-top: var(--spacing-md);
 }
 
 .action-card {
@@ -34,7 +138,7 @@
     box-shadow: var(--shadow-md);
 }
 
-.action-card h2 {
+.action-card h3 {
     margin-bottom: var(--spacing-md);
     color: var(--primary-color);
 }
@@ -49,141 +153,550 @@
     text-align: center;
 }
 
-/* Стилове за страници с ученици */
-.teacher-students-view {
-    background-color: var(--bg-color);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-xl);
+/* Секция с класове */
+.grades-section,
+.specializations-section {
+    margin-bottom: var(--spacing-xl);
 }
 
-.students-container {
+.grades-grid,
+.specializations-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
 }
 
-.student-card {
+.grade-card,
+.specialization-card {
     background-color: var(--bg-light);
     border-radius: var(--border-radius-md);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    transition: transform var(--transition-fast);
-}
-
-.student-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-}
-
-.student-header {
     padding: var(--spacing-md);
-    background-color: var(--primary-light);
-    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.grade-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: var(--spacing-md);
 }
 
-.student-header h2 {
+.grade-header h3 {
     margin: 0;
-    font-size: var(--font-size-lg);
+    color: var(--primary-color);
 }
 
-.student-grade {
-    background-color: rgba(255, 255, 255, 0.2);
+.students-count {
+    font-size: var(--font-size-sm);
+    background-color: var(--primary-light);
+    color: white;
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius-sm);
+}
+
+.grade-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.specialization-name {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.specialization-count {
     font-size: var(--font-size-sm);
-}
-
-.student-content {
-    padding: var(--spacing-md);
-}
-
-.student-specialization {
-    margin-bottom: var(--spacing-sm);
-}
-
-.student-average {
     color: var(--text-light);
-    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-md);
 }
 
-.student-actions {
+/* Студентски детайли */
+.student-profile-header {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-xl);
+}
+
+.student-profile-info h1 {
+    margin-bottom: var(--spacing-xs);
+}
+
+.student-meta {
+    display: flex;
+    gap: var(--spacing-md);
+    color: var(--text-light);
+}
+
+.student-profile-actions {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.student-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--bg-dark);
+    margin-bottom: var(--spacing-lg);
+}
+
+.tab-btn {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: var(--text-light);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.student-details-card {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.student-details-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.detail-row {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.detail-label {
+    font-weight: 600;
+    min-width: 150px;
+}
+
+/* Портфолио */
+.portfolio-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.portfolio-section h2 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--bg-dark);
+}
+
+/* Секция с кредити */
+.credits-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--bg-dark);
+    margin-bottom: var(--spacing-lg);
+}
+
+.credits-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.credit-card {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
     padding: var(--spacing-md);
-    border-top: 1px solid var(--bg-dark);
+    box-shadow: var(--shadow-sm);
 }
 
-/* Стилове за формата за създаване на събития */
-.event-editor {
-    background-color: var(--bg-color);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-xl);
+.credit-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--bg-dark);
 }
 
-.events-header {
+.label {
+    font-weight: 600;
+    margin-right: var(--spacing-xs);
+}
+
+/* Управление на кредити */
+.filters-section {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.clear-filters-btn {
+    height: 40px;
+}
+
+.credits-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--spacing-lg);
+}
+
+.table-header {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+.table-header,
+.table-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1fr 1fr 2fr;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--bg-dark);
+}
+
+.table-row {
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.table-row:hover {
+    background-color: var(--bg-light);
+}
+
+.student-column {
+    font-weight: 600;
+}
+
+.validate-btn {
+    background-color: var(--success-color);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+.reject-btn {
+    background-color: var(--error-color);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+.credit-details {
+    background-color: var(--bg-light);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-top: -1px;
+    margin-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--bg-dark);
+}
+
+.detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.validated-by {
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* Секция със санкции */
+.sanctions-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-xl);
 }
 
-.event-form {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-/* Стилове за управление на кредити */
-.teacher-credits-view {
-    background-color: var(--bg-color);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-xl);
-}
-
-.student-info {
+.absences-section,
+.schoolo-remarks-section,
+.active-sanctions-section {
     background-color: var(--bg-light);
-    padding: var(--spacing-md);
     border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
 }
 
-.actions {
+.absences-data {
+    margin-top: var(--spacing-md);
+}
+
+.absences-counts {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-md);
+}
+
+.absence-item {
+    background-color: var(--bg-color);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    flex: 1;
+    margin-right: var(--spacing-sm);
+    text-align: center;
+}
+
+.absence-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+}
+
+.absence-value {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.absences-progress,
+.progress-bar {
+    margin-top: var(--spacing-md);
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xs);
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+}
+
+.progress-bar {
+    height: 10px;
+    background-color: var(--bg-dark);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--primary-color);
+}
+
+.sanction-form {
+    margin-top: var(--spacing-md);
+}
+
+.sanction-item {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border-left: 4px solid var(--error-color);
+}
+
+.sanction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.sanction-type {
+    font-weight: 600;
+}
+
+.sanction-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+}
+
+/* Страница с отчети */
+.report-types {
+    margin-bottom: var(--spacing-xl);
+}
+
+.report-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.report-type-card {
+    background-color: var(--bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+}
+
+.report-type-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+}
+
+.report-type-card.active {
+    border-color: var(--primary-color);
+    background-color: var(--primary-light);
+    color: white;
+}
+
+.report-parameters {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.parameters-form {
+    margin-top: var(--spacing-md);
+}
+
+.report-results {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.export-actions {
     display: flex;
     gap: var(--spacing-sm);
 }
 
-.validate-btn {
-    background-color: var(--success-color);
+.export-btn {
+    background-color: var(--primary-color);
     color: white;
 }
 
-.reject-btn {
-    background-color: var(--error-color);
-    color: white;
+.report-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
 }
 
-.validation-info {
+.summary-card {
+    background-color: var(--bg-color);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.summary-value {
+    font-size: var(--font-size-heading-2);
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.summary-label {
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+}
+
+.distribution-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.pillar-card {
+    background-color: var(--bg-color);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.pillar-name {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.pillar-count {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-xs);
+}
+
+.pillar-percentage {
     font-size: var(--font-size-sm);
     color: var(--text-light);
-    font-style: italic;
+}
+
+.top-students h3,
+.credits-distribution h3,
+.students-list h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--bg-dark);
 }
 
 /* Responsive стилове */
 @media (max-width: 768px) {
 
-    .dashboard-actions,
-    .students-container {
+    .student-profile-header,
+    .filters-row,
+    .credit-header,
+    .absences-counts {
+        flex-direction: column;
+    }
+
+    .table-header,
+    .table-row {
         grid-template-columns: 1fr;
     }
 
-    .student-actions {
+    .column {
+        padding: var(--spacing-xs) 0;
+    }
+
+    .student-profile-actions,
+    .credit-actions {
+        margin-top: var(--spacing-md);
+    }
+
+    .statistics-grid,
+    .actions-grid,
+    .grades-grid,
+    .specializations-grid,
+    .report-types-grid,
+    .distribution-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .absence-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .export-actions {
         flex-direction: column;
-        gap: var(--spacing-sm);
     }
 }
