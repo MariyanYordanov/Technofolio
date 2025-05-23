@@ -1,6 +1,5 @@
 // client/src/components/common/Notifications.jsx
-import { useNotifications } from "@/contexts/NotificationContext.jsx";
-
+import useNotifications  from '../../hooks/useNotifications.js';
 
 export default function Notifications() {
     const { notifications, removeNotification } = useNotifications();

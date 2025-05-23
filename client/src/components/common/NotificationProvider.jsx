@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import NotificationContext from './NotificationContext.jsx';
+import NotificationContext from "../../contexts/NotificationContext.jsx";
 
 const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);

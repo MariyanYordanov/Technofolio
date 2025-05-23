@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
-import { useNotifications } from "../../contexts/NotificationContext.jsx";
+import useNotifications from "../../hooks/useNotifications.js";
 import useForm from '../../hooks/useForm.js';
 
 export default function Login() {

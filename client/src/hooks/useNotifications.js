@@ -1,9 +1,12 @@
 import { useContext } from 'react';
-import { NotificationContext } from './NotificationContext.jsx';
+import NotificationContext from '../contexts/NotificationContext.jsx';
 /**
- * Custom hook to use the NotificationContext.
+ * Custom hook to access the NotificationContext.
  * @returns {Object} The context value containing notifications and methods to manage them.
  * @throws Will throw an error if used outside of NotificationProvider.
+ * 
+ * @example
+ * const { notifications, addNotification, removeNotification } = useNotifications();
  */
 
 const useNotifications = () => {

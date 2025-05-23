@@ -3,13 +3,14 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { CreditProvider } from "./contexts/CreditContext.jsx";
-import { NotificationProvider, useNotifications } from "./contexts/NotificationContext.jsx";
+import NotificationProvider from './components/common/NotificationProvider.jsx';
+import useNotifications from './hooks/useNotifications.js';
+import Notifications from './components/common/Notifications.jsx';
 import Path from './paths.js';
 import Home from './components/common/Home.jsx';
 import EmailLogin from './components/auth/EmailLogin.jsx';
 import Header from "./components/common/Header.jsx";
 import Footer from "./components/common/Footer.jsx";
-import Notifications from './components/common/Notifications.jsx';
 import ErrorBoundary from './components/common/ErrorBoundary.jsx';
 import AuthGuard from './components/auth/AuthGuard.jsx';
 import Login from './components/auth/Login.jsx';
@@ -78,7 +79,7 @@ function AppWithAuth() {
 
               {/* Защитени маршрути */}
               <Route element={<AuthGuard />}>
-                {/* Студентски маршрути */}
+                {/* Ученически маршрути */}
                 <Route path={Path.StudentProfile} element={<StudentProfile />} />
                 <Route path={Path.Portfolio} element={<Portfolio />} />
                 <Route path={Path.Goals} element={<Goals />} />
