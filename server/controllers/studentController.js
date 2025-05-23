@@ -1,114 +1,171 @@
-import Student from '../models/Student.js';
+// server/controllers/studentController.js (refactored)
+import { validationResult } from 'express-validator';
+import { catchAsync } from '../utils/catchAsync.js';
+import * as studentService from '../services/studentService.js';
 
 // Създаване на ученически профил
-export async function createStudentProfile(req, res, next) {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({
-                message: 'Валидационна грешка',
-                errors: errors.array()
-            });
-        }
-
-        // Проверка дали потребителят вече има профил
-        const existingStudent = await Student.findOne({ user: req.user.id });
-        if (existingStudent) {
-            return res.status(400).json({ message: 'Потребителят вече има ученически профил' });
-        }
-
-        const { grade, specialization, averageGrade, imageUrl } = req.body;
-
-        const studentProfile = await Student.create({
-            user: req.user.id,
-            grade,
-            specialization,
-            averageGrade: averageGrade || 2,
-            imageUrl: imageUrl || '/default-avatar.png'
+export const createStudentProfile = catchAsync(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            message: 'Валидационна грешка',
+            errors: errors.array()
         });
-
-        res.status(201).json(studentProfile);
-    } catch (error) {
-        next(error);
     }
-}
+
+    const studentProfile = await studentService.createStudentProfile(req.body, req.user.id);
+
+    res.status(201).json({
+        success: true,
+        student: studentProfile
+    });
+});
 
 // Получаване на ученически профил по userId
-export async function getStudentProfileByUserId(req, res, next) {
-    try {
-        const student = await Student.findOne({ user: req.params.userId });
+export const getStudentProfileByUserId = catchAsync(async (req, res, next) => {
+    const student = await studentService.getStudentProfileByUserId(req.params.userId);
 
-        if (!student) {
-            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
-        }
-
-        res.status(200).json(student);
-    } catch (error) {
-        next(error);
-    }
-}
+    res.status(200).json({
+        success: true,
+        student
+    });
+});
 
 // Получаване на профила на текущия ученик
-export async function getCurrentStudentProfile(req, res, next) {
-    try {
-        const student = await Student.findOne({ user: req.user.id });
+export const getCurrentStudentProfile = catchAsync(async (req, res, next) => {
+    const student = await studentService.getCurrentStudentProfile(req.user.id);
 
-        if (!student) {
-            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
-        }
+    res.status(200).json({
+        success: true,
+        student
+    });
+});
 
-        res.status(200).json(student);
-    } catch (error) {
-        next(error);
+// Получаване на ученически профил по studentId
+export const getStudentProfileById = catchAsync(async (req, res, next) => {
+    const student = await studentService.getStudentProfileById(
+        req.params.studentId,
+        req.user.id,
+        req.user.role
+    );
+
+    res.status(200).json({
+        success: true,
+        student
+    });
+});
+
+// Обновяване на ученическия профил (текущ потребител)
+export const updateStudentProfile = catchAsync(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            message: 'Валидационна грешка',
+            errors: errors.array()
+        });
     }
-}
 
-// Обновяване на ученическия профил
-export async function updateStudentProfile(req, res, next) {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({
-                message: 'Валидационна грешка',
-                errors: errors.array()
-            });
-        }
+    const student = await studentService.updateStudentProfile(
+        req.body,
+        req.user.id,
+        req.user.role
+    );
 
-        const { grade, specialization, averageGrade, imageUrl } = req.body;
+    res.status(200).json({
+        success: true,
+        student
+    });
+});
 
-        const student = await Student.findOne({ user: req.user.id });
-
-        if (!student) {
-            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
-        }
-
-        // Обновяване на полетата
-        if (grade) student.grade = grade;
-        if (specialization) student.specialization = specialization;
-        if (averageGrade) student.averageGrade = averageGrade;
-        if (imageUrl) student.imageUrl = imageUrl;
-
-        await student.save();
-
-        res.status(200).json(student);
-    } catch (error) {
-        next(error);
+// Обновяване на профил по studentId (за админи/учители)
+export const updateStudentProfileById = catchAsync(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            message: 'Валидационна грешка',
+            errors: errors.array()
+        });
     }
-}
+
+    const student = await studentService.updateStudentProfileById(
+        req.params.studentId,
+        req.body,
+        req.user.id,
+        req.user.role
+    );
+
+    res.status(200).json({
+        success: true,
+        student
+    });
+});
 
 // Изтриване на ученически профил
-export async function deleteStudentProfile(req, res, next) {
-    try {
-        const student = await Student.findOne({ user: req.user.id });
+export const deleteStudentProfile = catchAsync(async (req, res, next) => {
+    const result = await studentService.deleteStudentProfile(req.user.id, req.user.role);
 
-        if (!student) {
-            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
-        }
+    res.status(200).json({
+        success: true,
+        message: result.message
+    });
+});
 
-        await Student.deleteOne({ _id: student._id });
+// Изтриване на профил по studentId (за админи)
+export const deleteStudentProfileById = catchAsync(async (req, res, next) => {
+    const result = await studentService.deleteStudentProfileById(
+        req.params.studentId,
+        req.user.role
+    );
 
-        res.status(200).json({ message: 'Ученическият профил е изтрит успешно' });
-    } catch (error) {
-        next(error);
-    }
-}
+    res.status(200).json({
+        success: true,
+        message: result.message
+    });
+});
+
+// Получаване на всички ученици (за учители и админи)
+export const getAllStudents = catchAsync(async (req, res, next) => {
+    const filters = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+        grade: req.query.grade,
+        specialization: req.query.specialization,
+        search: req.query.search
+    };
+
+    const result = await studentService.getAllStudents(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        ...result.pagination,
+        students: result.students
+    });
+});
+
+// Получаване на статистики за ученици
+export const getStudentsStatistics = catchAsync(async (req, res, next) => {
+    const stats = await studentService.getStudentsStatistics(req.user.role);
+
+    res.status(200).json({
+        success: true,
+        stats
+    });
+});
+
+// Търсене на ученици
+export const searchStudents = catchAsync(async (req, res, next) => {
+    const searchCriteria = {
+        query: req.query.q,
+        grade: req.query.grade,
+        minAverageGrade: req.query.minGrade ? parseFloat(req.query.minGrade) : undefined,
+        maxAverageGrade: req.query.maxGrade ? parseFloat(req.query.maxGrade) : undefined
+    };
+
+    const students = await studentService.searchStudents(searchCriteria, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        count: students.length,
+        students
+    });
+});
