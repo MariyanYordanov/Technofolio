@@ -1,14 +1,6 @@
-import { useState, useCallback, useRef, createContext, useContext } from 'react';
+import { createContext, useState, useCallback, useRef } from 'react';
 
-const NotificationContext = createContext();
-
-export const useNotifications = () => {
-    const context = useContext(NotificationContext);
-    if (!context) {
-        throw new Error('useNotifications must be used within a NotificationProvider');
-    }
-    return context;
-};
+export const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
@@ -35,21 +27,10 @@ export const NotificationProvider = ({ children }) => {
         return id;
     }, []);
 
-    const success = useCallback((message, duration = 5000) => {
-        return addNotification(message, 'success', duration);
-    }, [addNotification]);
-
-    const error = useCallback((message, duration = 7000) => {
-        return addNotification(message, 'error', duration);
-    }, [addNotification]);
-
-    const info = useCallback((message, duration = 5000) => {
-        return addNotification(message, 'info', duration);
-    }, [addNotification]);
-
-    const warning = useCallback((message, duration = 6000) => {
-        return addNotification(message, 'warning', duration);
-    }, [addNotification]);
+    const success = useCallback((message, duration = 5000) => addNotification(message, 'success', duration), [addNotification]);
+    const error = useCallback((message, duration = 7000) => addNotification(message, 'error', duration), [addNotification]);
+    const info = useCallback((message, duration = 5000) => addNotification(message, 'info', duration), [addNotification]);
+    const warning = useCallback((message, duration = 6000) => addNotification(message, 'warning', duration), [addNotification]);
 
     const values = {
         notifications,
@@ -67,5 +48,3 @@ export const NotificationProvider = ({ children }) => {
         </NotificationContext.Provider>
     );
 };
-
-export default NotificationContext;

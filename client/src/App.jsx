@@ -1,4 +1,4 @@
-// Файл: client/src/App.jsx
+// client/src/App.jsx
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
@@ -18,7 +18,7 @@ import Logout from './components/auth/Logout.jsx';
 import StudentProfile from './components/student/StudentProfile.jsx';
 import { initTheme } from './utils/themeUtils.js';
 
-// Зареждане на студентски компоненти
+// Зареждане на ученически компоненти
 const Portfolio = lazy(() => import('./components/student/Portfolio.jsx'));
 const Goals = lazy(() => import('./components/student/Goals.jsx'));
 const CreditSystem = lazy(() => import('./components/student/CreditSystem.jsx'));

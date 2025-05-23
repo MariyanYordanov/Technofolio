@@ -186,20 +186,21 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
     // Деструктуриране на notificationService с fallback функции
     const { success = () => { }, error: showError = () => { } } = notificationService;
 
-    // Проверка дали текущия път е за автентикация (вход, регистрация и т.н.)
-    const isAuthPath = () => {
-        const pathname = location.pathname;
-        return pathname === Path.Login ||
-            pathname === Path.Register ||
-            pathname.startsWith(Path.EmailLogin) ||
-            pathname.startsWith(Path.ConfirmRegistration) ||
-            pathname === '/'; // Добавяме началната страница също
-    };
 
     // Проверка дали потребителят е автентикиран при първоначално зареждане
     useEffect(() => {
         // Предотвратяваме многократно изпълнение
         if (authInitialized) return;
+
+        // Проверка дали текущия път е за автентикация (вход, регистрация и т.н.)
+        const isAuthPath = () => {
+            const pathname = location.pathname;
+            return pathname === Path.Login ||
+                pathname === Path.Register ||
+                pathname.startsWith(Path.EmailLogin) ||
+                pathname.startsWith(Path.ConfirmRegistration) ||
+                pathname === '/'; // Добавяме началната страница също
+        };
 
         const verifyAuth = async () => {
             // Ако сме на страница за автентикация или начална страница, не правим проверка за автентикация
@@ -379,7 +380,7 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         isAdmin,
         isLoading
     };
-    
+
     return (
         <AuthContext.Provider value={contextValue}>
             {children}

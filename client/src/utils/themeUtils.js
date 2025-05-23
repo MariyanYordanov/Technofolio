@@ -26,7 +26,7 @@ export const initTheme = () => {
 
     const savedTheme = localStorage.getItem('theme') || 'light';
 
-    // Изчистваме всички темови класове преди да добавим новия
+    // Изчистваме всички класове на темаите преди да добавим новия
     document.body.classList.remove('light-theme', 'dark-theme');
     document.body.classList.add(`${savedTheme}-theme`);
 
