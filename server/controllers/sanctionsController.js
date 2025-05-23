@@ -2,18 +2,17 @@
 import { validationResult } from 'express-validator';
 import Sanction from '../models/Sanction.js';
 import Student from '../models/Student.js';
-import User from '../models/User.js';
 import * as notificationService from '../services/notificationService.js';
 
-// Получаване на санкциите на студент
+// Получаване на санкциите на ученик
 export async function getStudentSanctions(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученикът съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Намиране на санкциите
@@ -38,7 +37,7 @@ export async function getStudentSanctions(req, res, next) {
     }
 }
 
-// Обновяване на отсъствията на студент
+// Обновяване на отсъствията на ученик
 export async function updateAbsences(req, res, next) {
     try {
         const errors = validationResult(req);
@@ -52,10 +51,10 @@ export async function updateAbsences(req, res, next) {
         const studentId = req.params.studentId;
         const { excused, unexcused, maxAllowed } = req.body;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученикът съществува
         const student = await Student.findById(studentId).populate('user', 'firstName lastName');
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само учител или администратор)
@@ -138,10 +137,10 @@ export async function updateSchooloRemarks(req, res, next) {
         const studentId = req.params.studentId;
         const { schooloRemarks } = req.body;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId).populate('user', 'firstName lastName');
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само учител или администратор)
@@ -208,10 +207,10 @@ export async function addActiveSanction(req, res, next) {
         const studentId = req.params.studentId;
         const { type, reason, startDate, endDate, issuedBy } = req.body;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId).populate('user', 'firstName lastName');
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само учител или администратор)
@@ -254,9 +253,6 @@ export async function addActiveSanction(req, res, next) {
         const newSanction = sanction.activeSanctions[sanction.activeSanctions.length - 1];
         await notificationService.notifyAboutNewSanction(student, newSanction);
 
-        // Известяване на родителите (ако има информация за тях)
-        // Тук би трябвало да има допълнителна логика за известяване на родителите
-
         res.status(201).json(sanction);
     } catch (error) {
         next(error);
@@ -269,10 +265,10 @@ export async function removeActiveSanction(req, res, next) {
         const studentId = req.params.studentId;
         const sanctionId = req.params.sanctionId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId).populate('user', 'firstName lastName');
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само учител или администратор)
@@ -284,7 +280,7 @@ export async function removeActiveSanction(req, res, next) {
         const sanction = await Sanction.findOne({ student: studentId });
 
         if (!sanction) {
-            return res.status(404).json({ message: 'Няма санкции за този студент' });
+            return res.status(404).json({ message: 'Няма санкции за този ученик' });
         }
 
         // Намиране на индекса на санкцията в масива
@@ -336,7 +332,7 @@ export async function getSanctionsStats(req, res, next) {
             studentQuery.grade = grade;
         }
 
-        // Намиране на студентите според филтъра
+        // Намиране на учениците според филтъра
         const students = await Student.find(studentQuery).select('_id');
         const studentIds = students.map(s => s._id);
 
@@ -424,12 +420,12 @@ export async function exportSanctionsData(req, res, next) {
             studentQuery.grade = grade;
         }
 
-        // Намиране на студентите според филтъра
+        // Намиране на учениците според филтъра
         const students = await Student.find(studentQuery)
             .select('grade specialization user')
             .populate('user', 'firstName lastName');
 
-        // Намиране на санкциите за тези студенти
+        // Намиране на санкциите за тези ученици
         const sanctions = await Sanction.find({
             student: { $in: students.map(s => s._id) }
         });

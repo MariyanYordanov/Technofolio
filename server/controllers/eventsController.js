@@ -166,7 +166,7 @@ export async function deleteEvent(req, res, next) {
 
         const participantIds = participations.map(p => p.student.user);
 
-        // Изтриване на събитието - .remove() е остарял метод
+        // Изтриване на събитието
         await Event.deleteOne({ _id: eventId });
 
         // Изтриване на свързаните участия
@@ -200,10 +200,10 @@ export async function participateInEvent(req, res, next) {
             return res.status(404).json({ message: 'Събитието не е намерено' });
         }
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученикът съществува
         const student = await Student.findOne({ user: req.user.id });
         if (!student) {
-            return res.status(404).json({ message: 'Студентският профил не е намерен' });
+            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
         }
 
         // Проверка дали вече има регистрация
@@ -229,7 +229,7 @@ export async function participateInEvent(req, res, next) {
             await notificationService.createNotification({
                 recipient: organizer._id,
                 title: 'Нова регистрация за събитие',
-                message: `Студент ${student.user.firstName} ${student.user.lastName} се регистрира за събитие "${event.title}"`,
+                message: `Ученикът ${student.user.firstName} ${student.user.lastName} се регистрира за събитие "${event.title}"`,
                 type: 'info',
                 category: 'event',
                 relatedTo: {
@@ -261,7 +261,7 @@ export async function confirmParticipation(req, res, next) {
         // Проверка дали студентът има права
         const student = await Student.findById(participation.student).populate('user', 'firstName lastName');
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         if (student.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
@@ -281,7 +281,7 @@ export async function confirmParticipation(req, res, next) {
             await notificationService.createNotification({
                 recipient: organizer._id,
                 title: 'Потвърдено участие в събитие',
-                message: `Студент ${student.user.firstName} ${student.user.lastName} потвърди участието си в събитие "${event.title}"`,
+                message: `Ученикът ${student.user.firstName} ${student.user.lastName} потвърди участието си в събитие "${event.title}"`,
                 type: 'success',
                 category: 'event',
                 relatedTo: {
@@ -298,15 +298,15 @@ export async function confirmParticipation(req, res, next) {
     }
 }
 
-// Получаване на регистрациите на студент
+// Получаване на регистрациите на ученик
 export async function getStudentParticipations(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права
@@ -388,7 +388,7 @@ export async function provideFeedback(req, res, next) {
         // Проверка дали студентът има права
         const student = await Student.findById(participation.student);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         if (student.user.toString() !== req.user.id && req.user.role !== 'admin') {
@@ -444,7 +444,7 @@ export async function cancelParticipation(req, res, next) {
             return res.status(404).json({ message: 'Регистрацията не е намерена' });
         }
 
-        // Проверка дали студентът има права
+        // Проверка дали ученикът има права
         if (participation.student.user.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'Нямате права да отменяте тази регистрация' });
         }

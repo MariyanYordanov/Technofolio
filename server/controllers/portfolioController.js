@@ -2,15 +2,15 @@ import { validationResult } from 'express-validator';
 import Portfolio from '../models/Portfolio.js';
 import Student from '../models/Student.js';
 
-// Получаване на портфолио на студент
+// Получаване на портфолио на ученик
 export async function getStudentPortfolio(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученик съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Намиране на портфолиото
@@ -45,10 +45,10 @@ export async function updatePortfolio(req, res, next) {
 
         const studentId = req.params.studentId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само собственикът или администратор)
@@ -99,10 +99,10 @@ export async function addRecommendation(req, res, next) {
         const studentId = req.params.studentId;
         const { text, author } = req.body;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Намиране на портфолиото
@@ -135,10 +135,10 @@ export async function removeRecommendation(req, res, next) {
         const studentId = req.params.studentId;
         const recommendationId = req.params.recommendationId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само собственикът или администратор)

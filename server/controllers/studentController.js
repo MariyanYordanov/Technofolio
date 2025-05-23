@@ -1,6 +1,6 @@
 import Student from '../models/Student.js';
 
-// Създаване на студентски профил
+// Създаване на ученически профил
 export async function createStudentProfile(req, res, next) {
     try {
         const errors = validationResult(req);
@@ -14,7 +14,7 @@ export async function createStudentProfile(req, res, next) {
         // Проверка дали потребителят вече има профил
         const existingStudent = await Student.findOne({ user: req.user.id });
         if (existingStudent) {
-            return res.status(400).json({ message: 'Потребителят вече има студентски профил' });
+            return res.status(400).json({ message: 'Потребителят вече има ученически профил' });
         }
 
         const { grade, specialization, averageGrade, imageUrl } = req.body;
@@ -33,13 +33,13 @@ export async function createStudentProfile(req, res, next) {
     }
 }
 
-// Получаване на студентски профил по userId
+// Получаване на ученически профил по userId
 export async function getStudentProfileByUserId(req, res, next) {
     try {
         const student = await Student.findOne({ user: req.params.userId });
 
         if (!student) {
-            return res.status(404).json({ message: 'Студентският профил не е намерен' });
+            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
         }
 
         res.status(200).json(student);
@@ -48,13 +48,13 @@ export async function getStudentProfileByUserId(req, res, next) {
     }
 }
 
-// Получаване на профила на текущия студент
+// Получаване на профила на текущия ученик
 export async function getCurrentStudentProfile(req, res, next) {
     try {
         const student = await Student.findOne({ user: req.user.id });
 
         if (!student) {
-            return res.status(404).json({ message: 'Студентският профил не е намерен' });
+            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
         }
 
         res.status(200).json(student);
@@ -63,7 +63,7 @@ export async function getCurrentStudentProfile(req, res, next) {
     }
 }
 
-// Обновяване на студентски профил
+// Обновяване на ученическия профил
 export async function updateStudentProfile(req, res, next) {
     try {
         const errors = validationResult(req);
@@ -79,7 +79,7 @@ export async function updateStudentProfile(req, res, next) {
         const student = await Student.findOne({ user: req.user.id });
 
         if (!student) {
-            return res.status(404).json({ message: 'Студентският профил не е намерен' });
+            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
         }
 
         // Обновяване на полетата
@@ -96,18 +96,18 @@ export async function updateStudentProfile(req, res, next) {
     }
 }
 
-// Изтриване на студентски профил
+// Изтриване на ученически профил
 export async function deleteStudentProfile(req, res, next) {
     try {
         const student = await Student.findOne({ user: req.user.id });
 
         if (!student) {
-            return res.status(404).json({ message: 'Студентският профил не е намерен' });
+            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
         }
 
         await Student.deleteOne({ _id: student._id });
 
-        res.status(200).json({ message: 'Студентският профил е изтрит успешно' });
+        res.status(200).json({ message: 'Ученическият профил е изтрит успешно' });
     } catch (error) {
         next(error);
     }

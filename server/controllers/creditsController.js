@@ -6,15 +6,15 @@ import Student from '../models/Student.js';
 import User from '../models/User.js';
 import * as notificationService from '../services/notificationService.js';
 
-// Получаване на кредитите на студент
+// Получаване на кредитите нa ученик
 export async function getStudentCredits(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученикът съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права
@@ -59,7 +59,7 @@ export async function addCredit(req, res, next) {
         // Проверка дали студентът съществува
         const student = await Student.findOne({ user: req.user.id }).populate('user', 'firstName lastName');
         if (!student) {
-            return res.status(404).json({ message: 'Студентският профил не е намерен' });
+            return res.status(404).json({ message: 'Ученическият профил не е намерен' });
         }
 
         // Създаване на нов кредит
@@ -79,7 +79,7 @@ export async function addCredit(req, res, next) {
 
             await notificationService.createBulkNotifications(teacherIds, {
                 title: 'Нова заявка за кредит',
-                message: `Студент ${student.user.firstName} ${student.user.lastName} заяви нов кредит за "${activity}".`,
+                message: `Ученикът ${student.user.firstName} ${student.user.lastName} заяви нов кредит за "${activity}".`,
                 type: 'info',
                 category: 'credit',
                 relatedTo: {
@@ -155,10 +155,10 @@ export async function deleteCredit(req, res, next) {
             return res.status(404).json({ message: 'Кредитът не е намерен' });
         }
 
-        // Намиране на студента
+        // Намиране на ученика
         const student = await Student.findById(credit.student);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само собственикът или администратор)

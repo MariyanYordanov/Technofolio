@@ -2,15 +2,15 @@ import { validationResult } from 'express-validator';
 import Interest from '../models/Interest.js';
 import Student from '../models/Student.js';
 
-// Получаване на интересите на студент
+// Получаване на интересите на ученика
 export async function getStudentInterests(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Намиране на интересите
@@ -30,7 +30,7 @@ export async function getStudentInterests(req, res, next) {
     }
 }
 
-// Обновяване на интересите на студент
+// Обновяване на интересите на ученика
 export async function updateInterests(req, res, next) {
     try {
         const errors = validationResult(req);
@@ -44,10 +44,10 @@ export async function updateInterests(req, res, next) {
         const studentId = req.params.studentId;
         const { interests, hobbies } = req.body;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само собственикът или администратор)

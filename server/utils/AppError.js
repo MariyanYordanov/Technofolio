@@ -57,7 +57,7 @@ export const handleError = (err, req, res, next) => {
         }
 
         // Log грешката
-        console.error('ERROR 💥', err);
+        console.error('ERROR', err);
 
         // Изпращане на генерично съобщение
         return res.status(500).json({

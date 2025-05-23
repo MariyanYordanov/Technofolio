@@ -1,5 +1,5 @@
 // server/middleware/securityHeaders.js
-const helmet = require('helmet');
+import { contentSecurityPolicy as _contentSecurityPolicy, xssFilter, noSniff, ieNoOpen, frameguard, hsts, referrerPolicy } from 'helmet';
 
 // Конфигурация на CSP политиката
 const contentSecurityPolicy = {
@@ -16,19 +16,19 @@ const contentSecurityPolicy = {
     },
 };
 
-// Middleware функция за добавяне на сигурностни хедъри
+// Middleware функция за добавяне на хедъри за сигурност
 const securityHeaders = [
-    helmet.contentSecurityPolicy(contentSecurityPolicy),
-    helmet.xssFilter(),
-    helmet.noSniff(),
-    helmet.ieNoOpen(),
-    helmet.frameguard({ action: 'deny' }),
-    helmet.hsts({
+    _contentSecurityPolicy(contentSecurityPolicy),
+    xssFilter(),
+    noSniff(),
+    ieNoOpen(),
+    frameguard({ action: 'deny' }),
+    hsts({
         maxAge: 31536000, // 1 година
         includeSubDomains: true,
         preload: true,
     }),
-    helmet.referrerPolicy({ policy: 'same-origin' }),
+    referrerPolicy({ policy: 'same-origin' }),
 ];
 
-module.exports = securityHeaders;
+export default securityHeaders;

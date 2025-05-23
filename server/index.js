@@ -79,8 +79,6 @@ app.use((error, req, res, next) => {
     res.status(status).json({ message });
 });
 
-
-
 // Стартиране на сървъра
 const PORT = process.env.PORT || 3030;
 app.listen(PORT, () => console.log(`Сървърът работи на порт ${PORT}`));

@@ -2,15 +2,15 @@ import { validationResult } from 'express-validator';
 import Goals from '../models/Goals.js';
 import Student from '../models/Student.js';
 
-// Получаване на целите на студент
+// Получаване на целите на ученика
 export async function getStudentGoals(req, res, next) {
     try {
         const studentId = req.params.studentId;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученика съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Намиране на целите
@@ -62,10 +62,10 @@ export async function updateGoal(req, res, next) {
         const category = req.params.category;
         const { description, activities } = req.body;
 
-        // Проверка дали студентът съществува
+        // Проверка дали ученикът съществува
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({ message: 'Студентът не е намерен' });
+            return res.status(404).json({ message: 'Ученикът не е намерен' });
         }
 
         // Проверка дали потребителят има права (само собственикът или администратор)

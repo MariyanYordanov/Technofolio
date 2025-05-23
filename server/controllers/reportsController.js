@@ -1,5 +1,4 @@
 // server/controllers/reportsController.js
-import { validationResult } from 'express-validator';
 import { AppError } from '../utils/AppError.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { generateExcelReport, generatePdfReport, formatDate } from '../utils/reports/reportGenerator.js';
@@ -7,7 +6,6 @@ import { generateExcelReport, generatePdfReport, formatDate } from '../utils/rep
 // Модели
 import Sanction from '../models/Sanction.js';
 import Student from '../models/Student.js';
-import User from '../models/User.js';
 import EventParticipation from '../models/EventParticipation.js';
 import Event from '../models/Event.js';
 
@@ -297,9 +295,8 @@ export const generateStudentReport = catchAsync(async (req, res, next) => {
     let buffer, filename, contentType;
 
     if (format === 'pdf') {
-        // Създаване на PDF документ с няколко секции
-        // Тук трябва да се използва по-сложна структура за PDF документа
-        // За целите на примера ще генерираме само една секция с отсъствия
+        // TODO Създаване на PDF документ с няколко секции
+        // За момента имаме само една секция с отсъствия
 
         buffer = await generatePdfReport([absencesData], absencesHeaders, title, subtitle);
         filename = `student_report_${student.user.lastName}_${new Date().toISOString().slice(0, 10)}.pdf`;
