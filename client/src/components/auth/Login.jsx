@@ -1,7 +1,7 @@
 // src/components/auth/Login.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext.jsx';
+import useAuth from '../../hooks/useAuth.js';
 import useNotifications from "../../hooks/useNotifications.js";
 import useForm from '../../hooks/useForm.js';
 

@@ -1,7 +1,8 @@
 // client/src/App.jsx
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
+import { AuthProvider } from "./contexts/AuthContext.jsx";
+import useAuth from "./hooks/useAuth.js";
 import { CreditProvider } from "./contexts/CreditContext.jsx";
 import NotificationProvider from './components/common/NotificationProvider.jsx';
 import useNotifications from './hooks/useNotifications.js';
