@@ -1,80 +1,108 @@
+// server/controllers/interestsController.js (refactored)
 import { validationResult } from 'express-validator';
-import Interest from '../models/Interest.js';
-import Student from '../models/Student.js';
+import { catchAsync } from '../utils/catchAsync.js';
+import * as interestsService from '../services/interestsService.js';
 
 // Получаване на интересите на ученика
-export async function getStudentInterests(req, res, next) {
-    try {
-        const studentId = req.params.studentId;
+export const getStudentInterests = catchAsync(async (req, res, next) => {
+    const studentId = req.params.studentId;
 
-        // Проверка дали ученика съществува
-        const student = await Student.findById(studentId);
-        if (!student) {
-            return res.status(404).json({ message: 'Ученикът не е намерен' });
-        }
+    const result = await interestsService.getStudentInterests(
+        studentId,
+        req.user.id,
+        req.user.role
+    );
 
-        // Намиране на интересите
-        let interests = await Interest.findOne({ student: studentId });
-
-        // Ако няма записани интереси, връщаме празен обект
-        if (!interests) {
-            interests = {
-                interests: [],
-                hobbies: []
-            };
-        }
-
-        res.status(200).json(interests);
-    } catch (error) {
-        next(error);
-    }
-}
+    res.status(200).json({
+        success: true,
+        studentName: result.studentName,
+        studentGrade: result.studentGrade,
+        interests: result.interests
+    });
+});
 
 // Обновяване на интересите на ученика
-export async function updateInterests(req, res, next) {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({
-                message: 'Валидационна грешка',
-                errors: errors.array()
-            });
-        }
-
-        const studentId = req.params.studentId;
-        const { interests, hobbies } = req.body;
-
-        // Проверка дали ученика съществува
-        const student = await Student.findById(studentId);
-        if (!student) {
-            return res.status(404).json({ message: 'Ученикът не е намерен' });
-        }
-
-        // Проверка дали потребителят има права (само собственикът или администратор)
-        if (student.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Нямате права да редактирате тези интереси' });
-        }
-
-        // Проверка дали интересите съществуват
-        let interestsDoc = await Interest.findOne({ student: studentId });
-
-        if (interestsDoc) {
-            // Обновяване на съществуващи интереси
-            interestsDoc.interests = interests || interestsDoc.interests;
-            interestsDoc.hobbies = hobbies || interestsDoc.hobbies;
-            interestsDoc.updatedAt = Date.now();
-            await interestsDoc.save();
-        } else {
-            // Създаване на нови интереси
-            interestsDoc = await Interest.create({
-                student: studentId,
-                interests: interests || [],
-                hobbies: hobbies || []
-            });
-        }
-
-        res.status(200).json(interestsDoc);
-    } catch (error) {
-        next(error);
+export const updateInterests = catchAsync(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            message: 'Валидационна грешка',
+            errors: errors.array()
+        });
     }
-}
+
+    const studentId = req.params.studentId;
+
+    const interests = await interestsService.updateInterests(
+        studentId,
+        req.body,
+        req.user.id,
+        req.user.role
+    );
+
+    res.status(200).json({
+        success: true,
+        message: 'Интересите са обновени успешно',
+        interests
+    });
+});
+
+// Получаване на всички интереси (за учители и админи)
+export const getAllInterests = catchAsync(async (req, res, next) => {
+    const filters = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+        grade: req.query.grade,
+        search: req.query.search,
+        hasInterests: req.query.hasInterests,
+        hasHobbies: req.query.hasHobbies
+    };
+
+    const result = await interestsService.getAllInterests(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        ...result.pagination,
+        interests: result.interests
+    });
+});
+
+// Получаване на статистики за интереси
+export const getInterestsStatistics = catchAsync(async (req, res, next) => {
+    const filters = {
+        grade: req.query.grade
+    };
+
+    const stats = await interestsService.getInterestsStatistics(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        stats
+    });
+});
+
+// Експортиране на интереси за отчет
+export const exportInterestsData = catchAsync(async (req, res, next) => {
+    const filters = {
+        grade: req.query.grade
+    };
+
+    const data = await interestsService.exportInterestsData(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        count: data.length,
+        filters,
+        data
+    });
+});
+
+// Получаване на популярни интереси и хобита
+export const getPopularInterestsAndHobbies = catchAsync(async (req, res, next) => {
+    const result = await interestsService.getPopularInterestsAndHobbies(req.user.role);
+
+    res.status(200).json({
+        success: true,
+        popular: result
+    });
+});

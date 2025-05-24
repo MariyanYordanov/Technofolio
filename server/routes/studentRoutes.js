@@ -3,17 +3,18 @@ import { body } from 'express-validator';
 import { createStudentProfile, getCurrentStudentProfile, getStudentProfileByUserId, updateStudentProfile, deleteStudentProfile } from '../controllers/studentController.js';
 import { getStudentPortfolio, updatePortfolio, addRecommendation, removeRecommendation } from '../controllers/portfolioController.js';
 import { getStudentGoals, updateGoal, bulkUpdateGoals, exportGoalsData, getGoalsStatistics, getAllGoals, deleteGoal } from '../controllers/goalsController.js';
-import { getStudentInterests, updateInterests } from '../controllers/interestsController.js';
-import { getStudentAchievements, addAchievement, removeAchievement } from '../controllers/achievementsController.js';
+import { getStudentInterests, updateInterests, getAllInterests, getInterestsStatistics, exportInterestsData, getPopularInterestsAndHobbies } from '../controllers/interestsController.js';
+import { getStudentAchievements, addAchievement, removeAchievement, getAllAchievements, getAchievementsStatistics, exportAchievementsData } from '../controllers/achievementsController.js';
 import { getStudentSanctions, updateAbsences, updateSchooloRemarks, addActiveSanction, removeActiveSanction } from '../controllers/sanctionsController.js';
 import authMiddleware from '../middleware/auth.js';
+import { restrictTo } from '../middleware/auth.js';
 
 const router = Router();
 
 // Защита на всички маршрути
 router.use(authMiddleware);
 
-// Студентски профил
+// ===== СТУДЕНТСКИ ПРОФИЛ =====
 router.post(
     '/',
     [
@@ -38,7 +39,7 @@ router.put(
 
 router.delete('/:profileId', deleteStudentProfile);
 
-// Портфолио
+// ===== ПОРТФОЛИО =====
 router.get('/:studentId/portfolio', getStudentPortfolio);
 
 router.put(
@@ -62,7 +63,8 @@ router.post(
 
 router.delete('/:studentId/portfolio/recommendations/:recommendationId', removeRecommendation);
 
-// Цели
+// ===== ЦЕЛИ =====
+// Индивидуални цели на ученик
 router.get('/:studentId/goals', getStudentGoals);
 
 router.put(
@@ -76,25 +78,44 @@ router.put(
 
 router.delete('/:studentId/goals/:category', deleteGoal);
 
-router.get('/goals', getAllGoals); // За всички цели
-router.get('/goals/stats', getGoalsStatistics); // За статистики
-router.post('/goals/bulk-update', bulkUpdateGoals); // Масови операции ?????
-router.get('/goals/export', exportGoalsData); // Експорт
+// Административни операции за цели (само за учители и админи)
+router.get('/goals', restrictTo('teacher', 'admin'), getAllGoals);
+router.get('/goals/stats', restrictTo('teacher', 'admin'), getGoalsStatistics);
+router.get('/goals/export', restrictTo('teacher', 'admin'), exportGoalsData);
+router.post(
+    '/goals/bulk-update',
+    restrictTo('admin'),
+    [
+        body('updates').isArray().withMessage('Updates трябва да бъде масив'),
+        body('updates.*.studentId').notEmpty().withMessage('Student ID е задължително'),
+        body('updates.*.category').notEmpty().withMessage('Категорията е задължителна'),
+        body('updates.*.description').notEmpty().withMessage('Описанието е задължително'),
+        body('updates.*.activities').isArray().withMessage('Дейностите трябва да бъдат масив')
+    ],
+    bulkUpdateGoals
+);
 
-
-// Интереси и хобита
+// ===== ИНТЕРЕСИ И ХОБИТА =====
+// Индивидуални интереси на ученик
 router.get('/:studentId/interests', getStudentInterests);
 
 router.put(
     '/:studentId/interests',
     [
-        body('interests').optional().isArray(),
-        body('hobbies').optional().isArray()
+        body('interests').optional().isArray().withMessage('Интересите трябва да бъдат масив'),
+        body('hobbies').optional().isArray().withMessage('Хобитата трябва да бъдат масив')
     ],
     updateInterests
 );
 
-// Постижения
+// Административни операции за интереси (само за учители и админи)
+router.get('/interests', restrictTo('teacher', 'admin'), getAllInterests);
+router.get('/interests/stats', restrictTo('teacher', 'admin'), getInterestsStatistics);
+router.get('/interests/export', restrictTo('teacher', 'admin'), exportInterestsData);
+router.get('/interests/popular', restrictTo('teacher', 'admin'), getPopularInterestsAndHobbies);
+
+// ===== ПОСТИЖЕНИЯ =====
+// Индивидуални постижения на ученик
 router.get('/:studentId/achievements', getStudentAchievements);
 
 router.post(
@@ -102,18 +123,27 @@ router.post(
     [
         body('category').isIn(['competition', 'olympiad', 'tournament', 'certificate', 'award', 'other']).withMessage('Невалидна категория'),
         body('title').notEmpty().withMessage('Заглавието е задължително'),
-        body('date').isISO8601().withMessage('Невалидна дата')
+        body('date').isISO8601().withMessage('Невалидна дата'),
+        body('description').optional().isLength({ max: 1000 }).withMessage('Описанието не може да бъде по-дълго от 1000 символа'),
+        body('place').optional().isLength({ max: 100 }).withMessage('Мястото не може да бъде по-дълго от 100 символа'),
+        body('issuer').optional().isLength({ max: 200 }).withMessage('Издателят не може да бъде по-дълъг от 200 символа')
     ],
     addAchievement
 );
 
 router.delete('/:studentId/achievements/:achievementId', removeAchievement);
 
-// Санкции и забележки
+// Административни операции за постижения (само за учители и админи)
+router.get('/achievements', restrictTo('teacher', 'admin'), getAllAchievements);
+router.get('/achievements/stats', restrictTo('teacher', 'admin'), getAchievementsStatistics);
+router.get('/achievements/export', restrictTo('teacher', 'admin'), exportAchievementsData);
+
+// ===== САНКЦИИ И ЗАБЕЛЕЖКИ =====
 router.get('/:studentId/sanctions', getStudentSanctions);
 
 router.put(
     '/:studentId/sanctions/absences',
+    restrictTo('teacher', 'admin'),
     [
         body('excused').optional().isInt({ min: 0 }).withMessage('Невалиден брой извинени отсъствия'),
         body('unexcused').optional().isInt({ min: 0 }).withMessage('Невалиден брой неизвинени отсъствия'),
@@ -124,6 +154,7 @@ router.put(
 
 router.put(
     '/:studentId/sanctions/schoolo-remarks',
+    restrictTo('teacher', 'admin'),
     [
         body('schooloRemarks').isInt({ min: 0 }).withMessage('Невалиден брой забележки')
     ],
@@ -132,15 +163,17 @@ router.put(
 
 router.post(
     '/:studentId/sanctions/active',
+    restrictTo('teacher', 'admin'),
     [
         body('type').notEmpty().withMessage('Типът на санкцията е задължителен'),
         body('reason').notEmpty().withMessage('Причината за санкцията е задължителна'),
         body('startDate').isISO8601().withMessage('Невалидна начална дата'),
+        body('endDate').optional().isISO8601().withMessage('Невалидна крайна дата'),
         body('issuedBy').notEmpty().withMessage('Издателят на санкцията е задължителен')
     ],
     addActiveSanction
 );
 
-router.delete('/:studentId/sanctions/active/:sanctionId', removeActiveSanction);
+router.delete('/:studentId/sanctions/active/:sanctionId', restrictTo('teacher', 'admin'), removeActiveSanction);
 
 export default router;

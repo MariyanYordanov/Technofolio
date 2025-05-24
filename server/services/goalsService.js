@@ -152,7 +152,13 @@ export const updateGoal = async (studentId, category, goalData, currentUserId, c
         });
     }
 
-    return goal;
+    // Получаване на актуализираните цели
+    const updatedGoals = await getStudentGoals(studentId, currentUserId, currentUserRole);
+
+    return {
+        goal,
+        updatedGoals: updatedGoals.goals
+    };
 };
 
 // Изтриване на цел
@@ -400,7 +406,7 @@ export const bulkUpdateGoals = async (updates, currentUserId, currentUserRole) =
                 studentId,
                 category,
                 success: true,
-                goalId: result._id
+                goalId: result.goal._id
             });
         } catch (error) {
             errors.push({

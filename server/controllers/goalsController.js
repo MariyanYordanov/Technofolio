@@ -36,7 +36,7 @@ export const updateGoal = catchAsync(async (req, res, next) => {
     const studentId = req.params.studentId;
     const category = req.params.category;
 
-    const goal = await goalsService.updateGoal(
+    const result = await goalsService.updateGoal(
         studentId,
         category,
         req.body,
@@ -44,18 +44,11 @@ export const updateGoal = catchAsync(async (req, res, next) => {
         req.user.role
     );
 
-    // Получаване на актуализираните цели за връщане
-    const updatedGoals = await goalsService.getStudentGoals(
-        studentId,
-        req.user.id,
-        req.user.role
-    );
-
     res.status(200).json({
         success: true,
-        message: `Целта за категория "${goal.title}" е обновена успешно`,
-        goal,
-        goals: updatedGoals.goals
+        message: `Целта за категория "${result.goal.title}" е обновена успешно`,
+        goal: result.goal,
+        goals: result.updatedGoals
     });
 });
 
