@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { createStudentProfile, getCurrentStudentProfile, getStudentProfileByUserId, updateStudentProfile, deleteStudentProfile } from '../controllers/studentController.js';
 import { getStudentPortfolio, updatePortfolio, addRecommendation, removeRecommendation } from '../controllers/portfolioController.js';
-import { getStudentGoals, updateGoal } from '../controllers/goalsController.js';
+import { getStudentGoals, updateGoal, bulkUpdateGoals, exportGoalsData, getGoalsStatistics, getAllGoals, deleteGoal } from '../controllers/goalsController.js';
 import { getStudentInterests, updateInterests } from '../controllers/interestsController.js';
 import { getStudentAchievements, addAchievement, removeAchievement } from '../controllers/achievementsController.js';
 import { getStudentSanctions, updateAbsences, updateSchooloRemarks, addActiveSanction, removeActiveSanction } from '../controllers/sanctionsController.js';
@@ -25,12 +25,6 @@ router.post(
 
 router.get('/me', getCurrentStudentProfile);
 router.get('/:userId', getStudentProfileByUserId);
-// Добавете тези routes в studentRoutes.js
-router.delete('/:studentId/goals/:category', deleteGoal);
-router.get('/goals', getAllGoals); // За всички цели
-router.get('/goals/stats', getGoalsStatistics); // За статистики
-router.post('/goals/bulk-update', bulkUpdateGoals); // Масови операции
-router.get('/goals/export', exportGoalsData); // Експорт
 
 router.put(
     '/:profileId',
@@ -79,6 +73,14 @@ router.put(
     ],
     updateGoal
 );
+
+router.delete('/:studentId/goals/:category', deleteGoal);
+
+router.get('/goals', getAllGoals); // За всички цели
+router.get('/goals/stats', getGoalsStatistics); // За статистики
+router.post('/goals/bulk-update', bulkUpdateGoals); // Масови операции ?????
+router.get('/goals/export', exportGoalsData); // Експорт
+
 
 // Интереси и хобита
 router.get('/:studentId/interests', getStudentInterests);
