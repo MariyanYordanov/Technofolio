@@ -1,115 +1,159 @@
+// server/controllers/goalsController.js (refactored)
 import { validationResult } from 'express-validator';
-import Goals from '../models/Goals.js';
-import Student from '../models/Student.js';
+import { catchAsync } from '../utils/catchAsync.js';
+import * as goalsService from '../services/goalsService.js';
 
 // Получаване на целите на ученика
-export async function getStudentGoals(req, res, next) {
-    try {
-        const studentId = req.params.studentId;
+export const getStudentGoals = catchAsync(async (req, res, next) => {
+    const studentId = req.params.studentId;
 
-        // Проверка дали ученика съществува
-        const student = await Student.findById(studentId);
-        if (!student) {
-            return res.status(404).json({ message: 'Ученикът не е намерен' });
-        }
+    const result = await goalsService.getStudentGoals(
+        studentId,
+        req.user.id,
+        req.user.role
+    );
 
-        // Намиране на целите
-        const goals = await Goals.find({ student: studentId });
-
-        // Форматиране на данните за клиентската част
-        const formattedGoals = goals.reduce((acc, goal) => {
-            if (!acc[goal.category]) {
-                acc[goal.category] = {
-                    title: getCategoryTitle(goal.category),
-                    description: goal.description,
-                    activities: goal.activities
-                };
-            }
-            return acc;
-        }, {});
-
-        res.status(200).json(formattedGoals);
-    } catch (error) {
-        next(error);
-    }
-}
-
-// Помощна функция за заглавия на категории
-function getCategoryTitle(category) {
-    const titles = {
-        personalDevelopment: 'Личностно развитие',
-        academicDevelopment: 'Академично развитие',
-        profession: 'Професия',
-        extracurricular: 'Извънкласна дейност',
-        community: 'Общност',
-        internship: 'Стаж'
-    };
-    return titles[category] || category;
-}
+    res.status(200).json({
+        success: true,
+        studentName: result.studentName,
+        studentGrade: result.studentGrade,
+        totalGoals: result.totalGoals,
+        completedCategories: result.completedCategories,
+        goals: result.goals
+    });
+});
 
 // Създаване или обновяване на цел
-export async function updateGoal(req, res, next) {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({
-                message: 'Валидационна грешка',
-                errors: errors.array()
-            });
-        }
-
-        const studentId = req.params.studentId;
-        const category = req.params.category;
-        const { description, activities } = req.body;
-
-        // Проверка дали ученикът съществува
-        const student = await Student.findById(studentId);
-        if (!student) {
-            return res.status(404).json({ message: 'Ученикът не е намерен' });
-        }
-
-        // Проверка дали потребителят има права (само собственикът или администратор)
-        if (student.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Нямате права да редактирате тази цел' });
-        }
-
-        // Проверка дали целта съществува
-        let goal = await Goals.findOne({ student: studentId, category });
-
-        if (goal) {
-            // Обновяване на съществуваща цел
-            goal.description = description;
-            goal.activities = activities;
-            goal.updatedAt = Date.now();
-            await goal.save();
-        } else {
-            // Създаване на нова цел
-            goal = await Goals.create({
-                student: studentId,
-                category,
-                title: getCategoryTitle(category),
-                description,
-                activities
-            });
-        }
-
-        // Получаване на всички цели след обновяването
-        const goals = await Goals.find({ student: studentId });
-
-        // Форматиране на данните за клиентската част
-        const formattedGoals = goals.reduce((acc, g) => {
-            if (!acc[g.category]) {
-                acc[g.category] = {
-                    title: getCategoryTitle(g.category),
-                    description: g.description,
-                    activities: g.activities
-                };
-            }
-            return acc;
-        }, {});
-
-        res.status(200).json(formattedGoals);
-    } catch (error) {
-        next(error);
+export const updateGoal = catchAsync(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            message: 'Валидационна грешка',
+            errors: errors.array()
+        });
     }
-}
+
+    const studentId = req.params.studentId;
+    const category = req.params.category;
+
+    const goal = await goalsService.updateGoal(
+        studentId,
+        category,
+        req.body,
+        req.user.id,
+        req.user.role
+    );
+
+    // Получаване на актуализираните цели за връщане
+    const updatedGoals = await goalsService.getStudentGoals(
+        studentId,
+        req.user.id,
+        req.user.role
+    );
+
+    res.status(200).json({
+        success: true,
+        message: `Целта за категория "${goal.title}" е обновена успешно`,
+        goal,
+        goals: updatedGoals.goals
+    });
+});
+
+// Изтриване на цел
+export const deleteGoal = catchAsync(async (req, res, next) => {
+    const studentId = req.params.studentId;
+    const category = req.params.category;
+
+    const result = await goalsService.deleteGoal(
+        studentId,
+        category,
+        req.user.id,
+        req.user.role
+    );
+
+    res.status(200).json({
+        success: true,
+        message: result.message,
+        deletedCategory: result.category,
+        deletedCategoryTitle: result.categoryTitle
+    });
+});
+
+// Получаване на всички цели (за учители и админи)
+export const getAllGoals = catchAsync(async (req, res, next) => {
+    const filters = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+        grade: req.query.grade,
+        category: req.query.category,
+        search: req.query.search
+    };
+
+    const result = await goalsService.getAllGoals(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        ...result.pagination,
+        goals: result.goals
+    });
+});
+
+// Получаване на статистики за цели
+export const getGoalsStatistics = catchAsync(async (req, res, next) => {
+    const filters = {
+        grade: req.query.grade
+    };
+
+    const stats = await goalsService.getGoalsStatistics(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        stats
+    });
+});
+
+// Масово обновяване на цели (за админи)
+export const bulkUpdateGoals = catchAsync(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            message: 'Валидационна грешка',
+            errors: errors.array()
+        });
+    }
+
+    const { updates } = req.body;
+
+    const result = await goalsService.bulkUpdateGoals(
+        updates,
+        req.user.id,
+        req.user.role
+    );
+
+    res.status(200).json({
+        success: true,
+        message: `${result.success} цели обновени успешно, ${result.failed} неуспешни`,
+        summary: {
+            successful: result.success,
+            failed: result.failed
+        },
+        details: result
+    });
+});
+
+// Експортиране на цели за отчет
+export const exportGoalsData = catchAsync(async (req, res, next) => {
+    const filters = {
+        grade: req.query.grade,
+        category: req.query.category
+    };
+
+    const data = await goalsService.exportGoalsData(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        count: data.length,
+        filters,
+        data
+    });
+});

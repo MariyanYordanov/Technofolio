@@ -25,6 +25,12 @@ router.post(
 
 router.get('/me', getCurrentStudentProfile);
 router.get('/:userId', getStudentProfileByUserId);
+// Добавете тези routes в studentRoutes.js
+router.delete('/:studentId/goals/:category', deleteGoal);
+router.get('/goals', getAllGoals); // За всички цели
+router.get('/goals/stats', getGoalsStatistics); // За статистики
+router.post('/goals/bulk-update', bulkUpdateGoals); // Масови операции
+router.get('/goals/export', exportGoalsData); // Експорт
 
 router.put(
     '/:profileId',
