@@ -81,4 +81,4 @@ app.use((error, req, res, next) => {
 
 // Стартиране на сървъра
 const PORT = process.env.PORT || 3030;
-app.listen(PORT, () => console.log(`Сървърът работи на порт ${PORT}`));
+app.listen(PORT, () => console.log(`Сървърът работи на http://localhost:${PORT}`));
