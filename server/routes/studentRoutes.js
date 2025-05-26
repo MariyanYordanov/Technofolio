@@ -1,11 +1,59 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { createStudentProfile, getCurrentStudentProfile, getStudentProfileByUserId, updateStudentProfile, deleteStudentProfile } from '../controllers/studentController.js';
-import { getStudentPortfolio, updatePortfolio, addRecommendation, removeRecommendation } from '../controllers/portfolioController.js';
-import { getStudentGoals, updateGoal, bulkUpdateGoals, exportGoalsData, getGoalsStatistics, getAllGoals, deleteGoal } from '../controllers/goalsController.js';
-import { getStudentInterests, updateInterests, getAllInterests, getInterestsStatistics, exportInterestsData, getPopularInterestsAndHobbies } from '../controllers/interestsController.js';
-import { getStudentAchievements, addAchievement, removeAchievement, getAllAchievements, getAchievementsStatistics, exportAchievementsData } from '../controllers/achievementsController.js';
-import { getStudentSanctions, updateAbsences, updateSchooloRemarks, addActiveSanction, removeActiveSanction } from '../controllers/sanctionsController.js';
+import {
+    createStudentProfile,
+    getCurrentStudentProfile,
+    getStudentProfileByUserId,
+    updateStudentProfile,
+    deleteStudentProfile,
+    getAllStudents,
+    getStudentsStatistics,
+    searchStudents
+} from '../controllers/studentController.js';
+import {
+    getStudentPortfolio,
+    updatePortfolio,
+    addRecommendation,
+    removeRecommendation,
+    getAllPortfolios,
+    getPortfoliosStatistics
+} from '../controllers/portfolioController.js';
+import {
+    getStudentGoals,
+    updateGoal,
+    deleteGoal,
+    getAllGoals,
+    getGoalsStatistics,
+    bulkUpdateGoals,
+    exportGoalsData
+} from '../controllers/goalsController.js';
+import {
+    getStudentInterests,
+    updateInterests,
+    getAllInterests,
+    getInterestsStatistics,
+    exportInterestsData,
+    getPopularInterestsAndHobbies
+} from '../controllers/interestsController.js';
+import {
+    getStudentAchievements,
+    addAchievement,
+    removeAchievement,
+    getAllAchievements,
+    getAchievementsStatistics,
+    exportAchievementsData
+} from '../controllers/achievementsController.js';
+import {
+    getStudentSanctions,
+    updateAbsences,
+    updateSchooloRemarks,
+    addActiveSanction,
+    removeActiveSanction,
+    getSanctionsStats,
+    exportSanctionsData,
+    bulkUpdateAbsences,
+    getStudentsWithHighAbsences
+} from '../controllers/sanctionsController.js';
 import authMiddleware from '../middleware/auth.js';
 import { restrictTo } from '../middleware/auth.js';
 
@@ -14,7 +62,13 @@ const router = Router();
 // Защита на всички маршрути
 router.use(authMiddleware);
 
-// ===== СТУДЕНТСКИ ПРОФИЛ =====
+// ===== СТУДЕНТСКИ ПРОФИЛИ - АДМИНИСТРАТИВНИ ОПЕРАЦИИ =====
+// За учители и админи - преглед на всички студенти
+router.get('/all', restrictTo('teacher', 'admin'), getAllStudents);
+router.get('/stats', restrictTo('teacher', 'admin'), getStudentsStatistics);
+router.get('/search', restrictTo('teacher', 'admin'), searchStudents);
+
+// ===== СТУДЕНТСКИ ПРОФИЛ - ИНДИВИДУАЛНИ ОПЕРАЦИИ =====
 router.post(
     '/',
     [
@@ -40,6 +94,11 @@ router.put(
 router.delete('/:profileId', deleteStudentProfile);
 
 // ===== ПОРТФОЛИО =====
+// Административни операции за портфолия
+router.get('/portfolios', restrictTo('teacher', 'admin'), getAllPortfolios);
+router.get('/portfolios/stats', restrictTo('teacher', 'admin'), getPortfoliosStatistics);
+
+// Индивидуални портфолия
 router.get('/:studentId/portfolio', getStudentPortfolio);
 
 router.put(
@@ -64,21 +123,7 @@ router.post(
 router.delete('/:studentId/portfolio/recommendations/:recommendationId', removeRecommendation);
 
 // ===== ЦЕЛИ =====
-// Индивидуални цели на ученик
-router.get('/:studentId/goals', getStudentGoals);
-
-router.put(
-    '/:studentId/goals/:category',
-    [
-        body('description').notEmpty().withMessage('Описанието е задължително'),
-        body('activities').notEmpty().withMessage('Дейностите са задължителни')
-    ],
-    updateGoal
-);
-
-router.delete('/:studentId/goals/:category', deleteGoal);
-
-// Административни операции за цели (само за учители и админи)
+// Административни операции за цели
 router.get('/goals', restrictTo('teacher', 'admin'), getAllGoals);
 router.get('/goals/stats', restrictTo('teacher', 'admin'), getGoalsStatistics);
 router.get('/goals/export', restrictTo('teacher', 'admin'), exportGoalsData);
@@ -95,7 +140,27 @@ router.post(
     bulkUpdateGoals
 );
 
+// Индивидуални цели на ученик
+router.get('/:studentId/goals', getStudentGoals);
+
+router.put(
+    '/:studentId/goals/:category',
+    [
+        body('description').notEmpty().withMessage('Описанието е задължително'),
+        body('activities').notEmpty().withMessage('Дейностите са задължителни')
+    ],
+    updateGoal
+);
+
+router.delete('/:studentId/goals/:category', deleteGoal);
+
 // ===== ИНТЕРЕСИ И ХОБИТА =====
+// Административни операции за интереси
+router.get('/interests', restrictTo('teacher', 'admin'), getAllInterests);
+router.get('/interests/stats', restrictTo('teacher', 'admin'), getInterestsStatistics);
+router.get('/interests/export', restrictTo('teacher', 'admin'), exportInterestsData);
+router.get('/interests/popular', restrictTo('teacher', 'admin'), getPopularInterestsAndHobbies);
+
 // Индивидуални интереси на ученик
 router.get('/:studentId/interests', getStudentInterests);
 
@@ -108,13 +173,12 @@ router.put(
     updateInterests
 );
 
-// Административни операции за интереси (само за учители и админи)
-router.get('/interests', restrictTo('teacher', 'admin'), getAllInterests);
-router.get('/interests/stats', restrictTo('teacher', 'admin'), getInterestsStatistics);
-router.get('/interests/export', restrictTo('teacher', 'admin'), exportInterestsData);
-router.get('/interests/popular', restrictTo('teacher', 'admin'), getPopularInterestsAndHobbies);
-
 // ===== ПОСТИЖЕНИЯ =====
+// Административни операции за постижения
+router.get('/achievements', restrictTo('teacher', 'admin'), getAllAchievements);
+router.get('/achievements/stats', restrictTo('teacher', 'admin'), getAchievementsStatistics);
+router.get('/achievements/export', restrictTo('teacher', 'admin'), exportAchievementsData);
+
 // Индивидуални постижения на ученик
 router.get('/:studentId/achievements', getStudentAchievements);
 
@@ -133,12 +197,21 @@ router.post(
 
 router.delete('/:studentId/achievements/:achievementId', removeAchievement);
 
-// Административни операции за постижения (само за учители и админи)
-router.get('/achievements', restrictTo('teacher', 'admin'), getAllAchievements);
-router.get('/achievements/stats', restrictTo('teacher', 'admin'), getAchievementsStatistics);
-router.get('/achievements/export', restrictTo('teacher', 'admin'), exportAchievementsData);
-
 // ===== САНКЦИИ И ЗАБЕЛЕЖКИ =====
+// Административни операции за санкции
+router.get('/sanctions/stats', restrictTo('teacher', 'admin'), getSanctionsStats);
+router.get('/sanctions/export', restrictTo('teacher', 'admin'), exportSanctionsData);
+router.get('/sanctions/high-absences', restrictTo('teacher', 'admin'), getStudentsWithHighAbsences);
+router.post(
+    '/sanctions/bulk-update-absences',
+    restrictTo('teacher', 'admin'),
+    [
+        body('updates').isArray().withMessage('Updates трябва да бъде масив')
+    ],
+    bulkUpdateAbsences
+);
+
+// Индивидуални санкции на ученик
 router.get('/:studentId/sanctions', getStudentSanctions);
 
 router.put(
