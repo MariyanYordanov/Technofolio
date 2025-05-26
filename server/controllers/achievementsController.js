@@ -1,103 +1,33 @@
-// server/controllers/goalsController.js (refactored)
-import { validationResult } from 'express-validator';
-import { catchAsync } from '../utils/catchAsync.js';
-import * as goalsService from '../services/goalsService.js';
-
-// Получаване на целите на ученика
-export const getStudentGoals = catchAsync(async (req, res, next) => {
-    const studentId = req.params.studentId;
-
-    const result = await goalsService.getStudentGoals(
-        studentId,
-        req.user.id,
-        req.user.role
-    );
-
-    res.status(200).json({
-        success: true,
-        studentName: result.studentName,
-        studentGrade: result.studentGrade,
-        totalGoals: result.totalGoals,
-        completedCategories: result.completedCategories,
-        goals: result.goals
-    });
-});
-
-// Създаване или обновяване на цел
-export const updateGoal = catchAsync(async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({
-            message: 'Валидационна грешка',
-            errors: errors.array()
-        });
-    }
-
-    const studentId = req.params.studentId;
-    const category = req.params.category;
-
-    const result = await goalsService.updateGoal(
-        studentId,
-        category,
-        req.body,
-        req.user.id,
-        req.user.role
-    );
-
-    res.status(200).json({
-        success: true,
-        message: `Целта за категория "${result.goal.title}" е обновена успешно`,
-        goal: result.goal,
-        goals: result.updatedGoals
-    });
-});
-
-// Изтриване на цел
-export const deleteGoal = catchAsync(async (req, res, next) => {
-    const studentId = req.params.studentId;
-    const category = req.params.category;
-
-    const result = await goalsService.deleteGoal(
-        studentId,
-        category,
-        req.user.id,
-        req.user.role
-    );
-
-    res.status(200).json({
-        success: true,
-        message: result.message,
-        deletedCategory: result.category,
-        deletedCategoryTitle: result.categoryTitle
-    });
-});
-
-// Получаване на всички цели (за учители и админи)
-export const getAllGoals = catchAsync(async (req, res, next) => {
+// Получаване на всички постижения (за учители и админи)
+export const getAllAchievements = catchAsync(async (req, res, next) => {
     const filters = {
         page: parseInt(req.query.page) || 1,
         limit: parseInt(req.query.limit) || 10,
         grade: req.query.grade,
         category: req.query.category,
-        search: req.query.search
+        search: req.query.search,
+        startDate: req.query.startDate,
+        endDate: req.query.endDate
     };
 
-    const result = await goalsService.getAllGoals(filters, req.user.role);
+    const result = await achievementsService.getAllAchievements(filters, req.user.role);
 
     res.status(200).json({
         success: true,
         ...result.pagination,
-        goals: result.goals
+        achievements: result.achievements
     });
 });
 
-// Получаване на статистики за цели
-export const getGoalsStatistics = catchAsync(async (req, res, next) => {
+// Получаване на статистики за постижения
+export const getAchievementsStatistics = catchAsync(async (req, res, next) => {
     const filters = {
-        grade: req.query.grade
+        grade: req.query.grade,
+        startDate: req.query.startDate,
+        endDate: req.query.endDate
     };
 
-    const stats = await goalsService.getGoalsStatistics(filters, req.user.role);
+    const stats = await achievementsService.getAchievementsStatistics(filters, req.user.role);
 
     res.status(200).json({
         success: true,
@@ -105,48 +35,107 @@ export const getGoalsStatistics = catchAsync(async (req, res, next) => {
     });
 });
 
-// Масово обновяване на цели (за админи)
-export const bulkUpdateGoals = catchAsync(async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({
-            message: 'Валидационна грешка',
-            errors: errors.array()
-        });
-    }
-
-    const { updates } = req.body;
-
-    const result = await goalsService.bulkUpdateGoals(
-        updates,
-        req.user.id,
-        req.user.role
-    );
-
-    res.status(200).json({
-        success: true,
-        message: `${result.success} цели обновени успешно, ${result.failed} неуспешни`,
-        summary: {
-            successful: result.success,
-            failed: result.failed
-        },
-        details: result
-    });
-});
-
-// Експортиране на цели за отчет
-export const exportGoalsData = catchAsync(async (req, res, next) => {
+// Експортиране на постижения за отчет
+export const exportAchievementsData = catchAsync(async (req, res, next) => {
     const filters = {
         grade: req.query.grade,
-        category: req.query.category
+        category: req.query.category,
+        startDate: req.query.startDate,
+        endDate: req.query.endDate
     };
 
-    const data = await goalsService.exportGoalsData(filters, req.user.role);
+    const data = await achievementsService.exportAchievementsData(filters, req.user.role);
 
     res.status(200).json({
         success: true,
         count: data.length,
         filters,
         data
+    });
+});
+
+
+
+// ========== ДОБАВКИ КЪМ portfolioController.js ==========
+
+// Добави тези методи в края на portfolioController.js:
+
+// Получаване на всички портфолия (за учители и админи)
+export const getAllPortfolios = catchAsync(async (req, res, next) => {
+    const filters = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+        grade: req.query.grade,
+        search: req.query.search,
+        hasMentor: req.query.hasMentor
+    };
+
+    const result = await portfolioService.getAllPortfolios(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        ...result.pagination,
+        portfolios: result.portfolios
+    });
+});
+
+// Получаване на статистики за портфолия
+export const getPortfoliosStatistics = catchAsync(async (req, res, next) => {
+    const stats = await portfolioService.getPortfoliosStatistics(req.user.role);
+
+    res.status(200).json({
+        success: true,
+        stats
+    });
+});
+
+// ========== ДОБАВКИ КЪМ studentController.js ==========
+
+// Добави тези методи в края на studentController.js:
+
+// Получаване на всички ученици (за учители и админи)
+export const getAllStudents = catchAsync(async (req, res, next) => {
+    const filters = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+        grade: req.query.grade,
+        specialization: req.query.specialization,
+        search: req.query.search
+    };
+
+    const result = await studentService.getAllStudents(filters, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        ...result.pagination,
+        students: result.students
+    });
+});
+
+// Получаване на статистики за ученици
+export const getStudentsStatistics = catchAsync(async (req, res, next) => {
+    const stats = await studentService.getStudentsStatistics(req.user.role);
+
+    res.status(200).json({
+        success: true,
+        stats
+    });
+});
+
+// Търсене на ученици
+export const searchStudents = catchAsync(async (req, res, next) => {
+    const searchCriteria = {
+        query: req.query.q,
+        grade: req.query.grade,
+        minAverageGrade: req.query.minGrade ? parseFloat(req.query.minGrade) : undefined,
+        maxAverageGrade: req.query.maxGrade ? parseFloat(req.query.maxGrade) : undefined
+    };
+
+    const students = await studentService.searchStudents(searchCriteria, req.user.role);
+
+    res.status(200).json({
+        success: true,
+        count: students.length,
+        students
     });
 });

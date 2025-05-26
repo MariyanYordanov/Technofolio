@@ -106,3 +106,4 @@ export const getPopularInterestsAndHobbies = catchAsync(async (req, res, next) =
         popular: result
     });
 });
+

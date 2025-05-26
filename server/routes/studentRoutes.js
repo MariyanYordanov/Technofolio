@@ -1,58 +1,54 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { 
-    createStudentProfile, 
-    getCurrentStudentProfile, 
-    getStudentProfileByUserId, 
-    updateStudentProfile, 
+import {
+    createStudentProfile,
+    getCurrentStudentProfile,
+    getStudentProfileByUserId,
+    updateStudentProfile,
     deleteStudentProfile,
     getAllStudents,
     getStudentsStatistics,
     searchStudents
 } from '../controllers/studentController.js';
-import { 
-    getStudentPortfolio, 
-    updatePortfolio, 
-    addRecommendation, 
+import {
+    getStudentPortfolio,
+    updatePortfolio,
+    addRecommendation,
     removeRecommendation,
     getAllPortfolios,
     getPortfoliosStatistics
 } from '../controllers/portfolioController.js';
-import { 
-    getStudentGoals, 
-    updateGoal, 
+import {
+    getStudentGoals,
+    updateGoal,
     deleteGoal,
     getAllGoals,
     getGoalsStatistics,
     bulkUpdateGoals,
     exportGoalsData
 } from '../controllers/goalsController.js';
-import { 
-    getStudentInterests, 
+import {
+    getStudentInterests,
     updateInterests,
     getAllInterests,
     getInterestsStatistics,
     exportInterestsData,
     getPopularInterestsAndHobbies
 } from '../controllers/interestsController.js';
-import { 
-    getStudentAchievements, 
-    addAchievement, 
+import {
+    getStudentAchievements,
+    addAchievement,
     removeAchievement,
     getAllAchievements,
     getAchievementsStatistics,
     exportAchievementsData
 } from '../controllers/achievementsController.js';
-import { 
-    getStudentSanctions, 
-    updateAbsences, 
-    updateSchooloRemarks, 
-    addActiveSanction, 
-    removeActiveSanction,
-    getSanctionsStats,
-    exportSanctionsData,
-    bulkUpdateAbsences,
-    getStudentsWithHighAbsences
+import {
+    getStudentSanctions,
+    updateAbsences,
+    updateSchooloRemarks,
+    addActiveSanction,
+    removeActiveSanction
 } from '../controllers/sanctionsController.js';
 import authMiddleware from '../middleware/auth.js';
 import { restrictTo } from '../middleware/auth.js';
@@ -198,19 +194,6 @@ router.post(
 router.delete('/:studentId/achievements/:achievementId', removeAchievement);
 
 // ===== САНКЦИИ И ЗАБЕЛЕЖКИ =====
-// Административни операции за санкции
-router.get('/sanctions/stats', restrictTo('teacher', 'admin'), getSanctionsStats);
-router.get('/sanctions/export', restrictTo('teacher', 'admin'), exportSanctionsData);
-router.get('/sanctions/high-absences', restrictTo('teacher', 'admin'), getStudentsWithHighAbsences);
-router.post(
-    '/sanctions/bulk-update-absences',
-    restrictTo('teacher', 'admin'),
-    [
-        body('updates').isArray().withMessage('Updates трябва да бъде масив')
-    ],
-    bulkUpdateAbsences
-);
-
 // Индивидуални санкции на ученик
 router.get('/:studentId/sanctions', getStudentSanctions);
 
