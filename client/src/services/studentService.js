@@ -7,8 +7,6 @@ const endpoints = {
     users: '/api/users'
 };
 
-// ===== СТУДЕНТСКИ ПРОФИЛ =====
-
 // Извличане на текущия профил на ученика
 export const getCurrentStudentProfile = async () => {
     try {
@@ -63,9 +61,6 @@ export const deleteStudentProfile = async (profileId) => {
         throw error;
     }
 };
-
-// ===== ПОРТФОЛИО =====
-
 // Извличане на портфолио на ученик
 export const getStudentPortfolio = async (studentId) => {
     try {
@@ -109,9 +104,6 @@ export const removeRecommendation = async (studentId, recommendationId) => {
         throw error;
     }
 };
-
-// ===== ЦЕЛИ =====
-
 // Извличане на цели на ученик
 export const getStudentGoals = async (studentId) => {
     try {
@@ -145,8 +137,6 @@ export const deleteGoal = async (studentId, category) => {
     }
 };
 
-// ===== ИНТЕРЕСИ И ХОБИТА =====
-
 // Извличане на интереси на ученик
 export const getStudentInterests = async (studentId) => {
     try {
@@ -168,8 +158,6 @@ export const updateInterests = async (studentId, interestsData) => {
         throw error;
     }
 };
-
-// ===== ПОСТИЖЕНИЯ =====
 
 // Извличане на постижения на ученик
 export const getStudentAchievements = async (studentId) => {
@@ -203,9 +191,6 @@ export const removeAchievement = async (studentId, achievementId) => {
         throw error;
     }
 };
-
-// ===== САНКЦИИ И ЗАБЕЛЕЖКИ =====
-
 // Извличане на санкции и забележки на ученик
 export const getStudentSanctions = async (studentId) => {
     try {
@@ -216,8 +201,6 @@ export const getStudentSanctions = async (studentId) => {
         throw error;
     }
 };
-
-// ===== АДМИНИСТРАТИВНИ ФУНКЦИИ (за учители и админи) =====
 
 // Получаване на всички студенти
 export const getAllStudents = async (filters = {}) => {
@@ -270,9 +253,6 @@ export const searchStudents = async (searchCriteria) => {
         throw error;
     }
 };
-
-// ===== АДМИНИСТРАТИВНИ ФУНКЦИИ ЗА ПОРТФОЛИЯ =====
-
 // Получаване на всички портфолия
 export const getAllPortfolios = async (filters = {}) => {
     try {
@@ -306,9 +286,6 @@ export const getPortfoliosStatistics = async () => {
         throw error;
     }
 };
-
-// ===== АДМИНИСТРАТИВНИ ФУНКЦИИ ЗА ЦЕЛИ =====
-
 // Получаване на всички цели
 export const getAllGoals = async (filters = {}) => {
     try {
@@ -368,8 +345,6 @@ export const exportGoalsData = async (filters = {}) => {
         throw error;
     }
 };
-
-// ===== АДМИНИСТРАТИВНИ ФУНКЦИИ ЗА ИНТЕРЕСИ =====
 
 // Получаване на всички интереси
 export const getAllInterests = async (filters = {}) => {
