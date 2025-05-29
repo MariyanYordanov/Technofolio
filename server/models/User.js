@@ -1,27 +1,9 @@
-// server/models/User.js
+// server/models/User.js - Updated unified model
 import mongoose from 'mongoose';
 import bcryptjs from 'bcryptjs';
 
-const studentInfoSchema = new mongoose.Schema({
-    grade: {
-        type: Number,
-        required: true,
-        min: 8,
-        max: 12
-    },
-    specialization: {
-        type: String,
-        required: true
-    },
-    averageGrade: {
-        type: Number,
-        min: 2,
-        max: 6,
-        default: 2
-    }
-});
-
 const userSchema = new mongoose.Schema({
+    // ===== ОСНОВНИ ДАННИ =====
     email: {
         type: String,
         required: true,
@@ -44,11 +26,54 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+
+    // ===== РОЛЯ И ТИП ПОТРЕБИТЕЛ =====
     role: {
         type: String,
         enum: ['student', 'teacher', 'admin'],
-        default: 'student'
+        required: true
     },
+
+    // ===== ДАННИ ЗА УЧЕНИЦИ =====
+    studentInfo: {
+        grade: {
+            type: String,
+            enum: ['8', '9', '10', '11', '12'],
+            required: function () { return this.role === 'student'; }
+        },
+        specialization: {
+            type: String,
+            required: function () { return this.role === 'student'; }
+        },
+        averageGrade: {
+            type: Number,
+            min: 2,
+            max: 6,
+            default: function () { return this.role === 'student' ? 2 : undefined; }
+        }
+    },
+
+    // ===== ДАННИ ЗА УЧИТЕЛИ =====
+    teacherInfo: {
+        subjects: [{
+            type: String
+        }],
+        qualification: {
+            type: String
+        },
+        yearsOfExperience: {
+            type: Number,
+            min: 0
+        }
+    },
+
+    // ===== ОБЩИ ПОЛЕТА =====
+    imageUrl: {
+        type: String,
+        default: '/default-avatar.png'
+    },
+
+    // ===== СИГУРНОСТ И АВТЕНТИКАЦИЯ =====
     emailConfirmed: {
         type: Boolean,
         default: false
@@ -73,7 +98,8 @@ const userSchema = new mongoose.Schema({
     },
     twoFactorSecret: String,
     refreshToken: String,
-    studentInfo: studentInfoSchema,
+
+    // ===== TIMESTAMPS =====
     createdAt: {
         type: Date,
         default: Date.now
@@ -86,21 +112,37 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Индекси за оптимизация
+// ===== ИНДЕКСИ =====
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
+userSchema.index({ 'studentInfo.grade': 1 });
+userSchema.index({ 'studentInfo.specialization': 1 });
 
-// Виртуално поле за пълно име
+// ===== ВИРТУАЛНИ ПОЛЕТА =====
 userSchema.virtual('fullName').get(function () {
     return `${this.firstName} ${this.lastName}`;
 });
 
-// Метод за проверка на паролата
+// Виртуално поле за проверка дали е ученик
+userSchema.virtual('isStudent').get(function () {
+    return this.role === 'student';
+});
+
+// Виртуално поле за проверка дали е учител
+userSchema.virtual('isTeacher').get(function () {
+    return this.role === 'teacher';
+});
+
+// Виртуално поле за проверка дали е админ
+userSchema.virtual('isAdmin').get(function () {
+    return this.role === 'admin';
+});
+
+// ===== МЕТОДИ =====
 userSchema.methods.checkPassword = async function (candidatePassword) {
     return await bcryptjs.compare(candidatePassword, this.password);
 };
 
-// Проверка дали паролата е променена след издаването на JWT
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     if (this.passwordChangedAt) {
         const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
@@ -109,9 +151,10 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     return false;
 };
 
+// ===== MIDDLEWARE =====
 // Pre-save hook за хеширане на паролата
 userSchema.pre('save', async function (next) {
-    // Изпълни се само ако паролата е променена
+    // Изпълнява се само ако паролата е променена
     if (!this.isModified('password')) return next();
 
     // Хеширане на паролата
@@ -120,12 +163,53 @@ userSchema.pre('save', async function (next) {
 
     // Ако изрично записваме passwordChangedAt
     if (this.isModified('password') && !this.isNew) {
-        this.passwordChangedAt = Date.now() - 1000; // малко закъснение за да сме сигурни че JWT е издаден след промяната
+        // малко закъснение за да сме сигурни че JWT е издаден след промяната
+        this.passwordChangedAt = Date.now() - 1000; 
     }
 
     next();
 });
 
+// Pre-save hook за валидиране на специфични данни според ролята
+userSchema.pre('save', function (next) {
+    // Изчистване на ненужни данни според ролята
+    if (this.role !== 'student') {
+        this.studentInfo = undefined;
+    }
+
+    if (this.role !== 'teacher') {
+        this.teacherInfo = undefined;
+    }
+
+    next();
+});
+
+// ===== СТАТИЧНИ МЕТОДИ =====
+// Метод за намиране на ученици по клас
+userSchema.statics.findStudentsByGrade = function (grade) {
+    return this.find({
+        role: 'student',
+        'studentInfo.grade': grade
+    });
+};
+
+// Метод за намиране на ученици по специалност
+userSchema.statics.findStudentsBySpecialization = function (specialization) {
+    return this.find({
+        role: 'student',
+        'studentInfo.specialization': specialization
+    });
+};
+
+// Метод за намиране на учители по предмет
+userSchema.statics.findTeachersBySubject = function (subject) {
+    return this.find({
+        role: 'teacher',
+        'teacherInfo.subjects': subject
+    });
+};
+
+// ===== СЕРИАЛИЗАЦИЯ =====
 // Премахваме чувствителни данни при преобразуване към JSON
 userSchema.methods.toJSON = function () {
     const userObject = this.toObject();
@@ -134,6 +218,16 @@ userSchema.methods.toJSON = function () {
     delete userObject.refreshToken;
     delete userObject.passwordResetToken;
     delete userObject.passwordResetExpires;
+
+    // Премахваме празни обекти
+    if (this.role !== 'student' && userObject.studentInfo) {
+        delete userObject.studentInfo;
+    }
+
+    if (this.role !== 'teacher' && userObject.teacherInfo) {
+        delete userObject.teacherInfo;
+    }
+
     return userObject;
 };
 

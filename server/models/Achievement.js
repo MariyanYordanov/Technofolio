@@ -1,9 +1,10 @@
+// server/models/Achievement.js - Updated
 import { Schema, model } from 'mongoose';
 
 const AchievementSchema = new Schema({
-    student: {
+    user: {  // Променено от 'student' на 'user'
         type: Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: 'User',
         required: true
     },
     category: {
@@ -33,5 +34,8 @@ const AchievementSchema = new Schema({
         default: Date.now
     }
 });
+
+// Индекс за по-бързо търсене
+AchievementSchema.index({ user: 1, date: -1 });
 
 export default model('Achievement', AchievementSchema);

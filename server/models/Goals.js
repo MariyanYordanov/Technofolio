@@ -1,9 +1,10 @@
+// server/models/Goals.js - Updated
 import { Schema, model } from 'mongoose';
 
 const GoalSchema = new Schema({
-    student: {
+    user: {  // Променено от 'student' на 'user'
         type: Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: 'User',
         required: true
     },
     category: {
@@ -20,7 +21,7 @@ const GoalSchema = new Schema({
         required: true
     },
     activities: {
-        type: [String],  // Променено от String на масив от String
+        type: [String],
         default: []
     },
     createdAt: {
@@ -33,7 +34,7 @@ const GoalSchema = new Schema({
     }
 });
 
-// Добавен уникален индекс за student+category
-GoalSchema.index({ student: 1, category: 1 }, { unique: true });
+// Обновен уникален индекс
+GoalSchema.index({ user: 1, category: 1 }, { unique: true });
 
-export default model('Goals', GoalSchema);  // Променено от 'Goal' на 'Goals'
+export default model('Goals', GoalSchema);

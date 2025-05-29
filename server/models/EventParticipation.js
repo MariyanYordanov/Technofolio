@@ -1,3 +1,4 @@
+// server/models/EventParticipation.js - Updated
 import { Schema, model } from 'mongoose';
 
 const EventParticipationSchema = new Schema({
@@ -6,9 +7,9 @@ const EventParticipationSchema = new Schema({
         ref: 'Event',
         required: true
     },
-    student: {
+    user: {  // Променено от 'student' на 'user'
         type: Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: 'User',
         required: true
     },
     status: {
@@ -33,22 +34,15 @@ const EventParticipationSchema = new Schema({
         type: Date
     }
 }, {
-    timestamps: true // Автоматично добавя createdAt и updatedAt
+    timestamps: true
 });
 
-// Индекс за уникалност на комбинацията събитие+студент
-// Това предотвратява дублирани регистрации на студент за едно и също събитие
-EventParticipationSchema.index({ event: 1, student: 1 }, { unique: true });
+// Индекс за уникалност на комбинацията събитие+потребител
+EventParticipationSchema.index({ event: 1, user: 1 }, { unique: true });
 
 // Виртуално поле за проверка дали участието е активно
 EventParticipationSchema.virtual('isActive').get(function () {
     return this.status === 'registered' || this.status === 'confirmed';
-});
-
-// Pre-save middleware за актуализиране на updatedAt при всяка промяна
-EventParticipationSchema.pre('save', function (next) {
-    this.updatedAt = Date.now();
-    next();
 });
 
 export default model('EventParticipation', EventParticipationSchema);

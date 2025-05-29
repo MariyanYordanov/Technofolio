@@ -1,9 +1,10 @@
+// server/models/Portfolio.js - Updated
 import { Schema, model } from 'mongoose';
 
 const PortfolioSchema = new Schema({
-    student: {
+    user: {  // Променено от 'student' на 'user'
         type: Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: 'User',
         required: true
     },
     experience: {
@@ -44,5 +45,8 @@ const PortfolioSchema = new Schema({
         default: Date.now
     }
 });
+
+// Индекс за уникалност
+PortfolioSchema.index({ user: 1 }, { unique: true });
 
 export default model('Portfolio', PortfolioSchema);

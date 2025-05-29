@@ -1,9 +1,10 @@
+// server/models/Interest.js - Updated
 import { Schema, model } from 'mongoose';
 
 const InterestSchema = new Schema({
-    student: {
+    user: {  // Променено от 'student' на 'user'
         type: Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: 'User',
         required: true
     },
     interests: [
@@ -28,5 +29,8 @@ const InterestSchema = new Schema({
         default: Date.now
     }
 });
+
+// Индекс за уникалност
+InterestSchema.index({ user: 1 }, { unique: true });
 
 export default model('Interest', InterestSchema);

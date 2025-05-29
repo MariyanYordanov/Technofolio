@@ -1,9 +1,10 @@
+// server/models/Sanction.js - Updated
 import { Schema, model } from 'mongoose';
 
 const SanctionSchema = new Schema({
-    student: {
+    user: {  // Променено от 'student' на 'user'
         type: Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: 'User',
         required: true
     },
     absences: {
@@ -52,5 +53,8 @@ const SanctionSchema = new Schema({
         default: Date.now
     }
 });
+
+// Индекс за уникалност
+SanctionSchema.index({ user: 1 }, { unique: true });
 
 export default model('Sanction', SanctionSchema);
