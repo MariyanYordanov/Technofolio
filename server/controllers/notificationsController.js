@@ -2,7 +2,6 @@
 import { validationResult } from 'express-validator';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
-import Student from '../models/Student.js';
 import { AppError } from '../utils/AppError.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import * as notificationService from '../services/notificationService.js';
@@ -152,8 +151,11 @@ export const createBulkNotification = catchAsync(async (req, res, next) => {
         recipients = users.map(user => user._id);
     } else if (grade) {
         // Филтър по клас (само за ученици)
-        const students = await Student.find({ grade }).select('user');
-        recipients = students.map(student => student.user);
+        const students = await User.find({
+            role: 'student',
+            'studentInfo.grade': grade
+        }).select('_id');
+        recipients = students.map(student => student._id);
     } else {
         // Всички потребители
         const users = await User.find().select('_id');
