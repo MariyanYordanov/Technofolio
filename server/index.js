@@ -34,7 +34,7 @@ const limiter = rateLimit({
 });
 
 // Middleware за сигурност
-app.use(helmet()); // Сигурностни HTTP хедъри
+app.use(helmet()); // Сигурност на HTTP хедъри
 app.use(mongoSanitize()); // Предотвратяване на NoSQL инжекции
 app.use(xss()); // Защита срещу XSS атаки
 app.use(limiter); // Rate limiting
