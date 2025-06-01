@@ -1,3 +1,6 @@
+
+// ===================================================================
+// server/models/CreditCategory.js - Остава непроменен
 import { Schema, model } from 'mongoose';
 
 const CreditCategorySchema = new Schema({
@@ -8,15 +11,18 @@ const CreditCategorySchema = new Schema({
     },
     name: {
         type: String,
-        required: true
+        required: true,
+        maxlength: 100
     },
     description: {
-        type: String
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
+        type: String,
+        maxlength: 500
     }
+}, {
+    timestamps: true
 });
+
+// Уникален индекс за име в рамките на стълб
+CreditCategorySchema.index({ pillar: 1, name: 1 }, { unique: true });
 
 export default model('CreditCategory', CreditCategorySchema);

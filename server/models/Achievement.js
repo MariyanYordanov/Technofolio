@@ -1,8 +1,8 @@
-// server/models/Achievement.js - Updated
+// server/models/Achievement.js - Updated to reference User
 import { Schema, model } from 'mongoose';
 
 const AchievementSchema = new Schema({
-    user: {  // Променено от 'student' на 'user'
+    user: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
@@ -14,28 +14,36 @@ const AchievementSchema = new Schema({
     },
     title: {
         type: String,
-        required: true
+        required: true,
+        maxlength: 200
     },
     description: {
-        type: String
+        type: String,
+        maxlength: 1000
     },
     date: {
         type: Date,
         required: true
     },
     place: {
-        type: String
+        type: String,
+        maxlength: 100
     },
     issuer: {
-        type: String
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
+        type: String,
+        maxlength: 200
     }
+}, {
+    timestamps: true
 });
 
-// Индекс за по-бързо търсене
+// Индекси за по-бързо търсене
 AchievementSchema.index({ user: 1, date: -1 });
+AchievementSchema.index({ category: 1 });
+
+// Виртуално поле за година
+AchievementSchema.virtual('year').get(function () {
+    return this.date.getFullYear();
+});
 
 export default model('Achievement', AchievementSchema);

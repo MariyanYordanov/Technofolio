@@ -1,4 +1,6 @@
-// server/models/Notification.js
+
+// ===================================================================
+// server/models/Notification.js - Остава непроменен
 import { Schema, model } from 'mongoose';
 
 const NotificationSchema = new Schema({
@@ -9,11 +11,13 @@ const NotificationSchema = new Schema({
     },
     title: {
         type: String,
-        required: true
+        required: true,
+        maxlength: 200
     },
     message: {
         type: String,
-        required: true
+        required: true,
+        maxlength: 1000
     },
     type: {
         type: String,
@@ -28,7 +32,7 @@ const NotificationSchema = new Schema({
     relatedTo: {
         model: {
             type: String,
-            enum: ['Event', 'Credit', 'Sanction', 'User'],
+            enum: ['Event', 'Credit', 'Achievement', 'User'],
             required: false
         },
         id: {
@@ -43,17 +47,15 @@ const NotificationSchema = new Schema({
     isEmailSent: {
         type: Boolean,
         default: false
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-        expires: 60 * 60 * 24 * 30 // Автоматично изтичане след 30 дни
     }
+}, {
+    timestamps: true,
+    expireAfterSeconds: 2592000 // 30 дни
 });
 
 // Индекси за подобряване на ефективността на заявките
-NotificationSchema.index({ recipient: 1, isRead: 1 });
-NotificationSchema.index({ createdAt: 1 });
+NotificationSchema.index({ recipient: 1, isRead: 1, createdAt: -1 });
 NotificationSchema.index({ category: 1 });
+NotificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 }); // TTL индекс
 
 export default model('Notification', NotificationSchema);

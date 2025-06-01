@@ -1,4 +1,6 @@
-// server/models/AuditLog.js
+
+// ===================================================================
+// server/models/AuditLog.js - Остава непроменен
 import { Schema, model } from 'mongoose';
 
 const AuditLogSchema = new Schema({
@@ -26,9 +28,12 @@ const AuditLogSchema = new Schema({
 });
 
 // Индекси за по-бързо търсене
-AuditLogSchema.index({ user: 1 });
-AuditLogSchema.index({ action: 1 });
-AuditLogSchema.index({ entity: 1 });
+AuditLogSchema.index({ user: 1, timestamp: -1 });
+AuditLogSchema.index({ action: 1, timestamp: -1 });
+AuditLogSchema.index({ entity: 1, entityId: 1 });
 AuditLogSchema.index({ timestamp: -1 });
+
+// TTL индекс - изтриване на логове по-стари от 90 дни (опционално)
+// AuditLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 7776000 });
 
 export default model('AuditLog', AuditLogSchema);
