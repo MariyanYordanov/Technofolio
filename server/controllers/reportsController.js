@@ -4,8 +4,7 @@ import { catchAsync } from '../utils/catchAsync.js';
 import { generateExcelReport, generatePdfReport, formatDate } from '../utils/reports/reportGenerator.js';
 
 // Модели
-import Sanction from '../models/Sanction.js';
-import Student from '../models/Student.js';
+import User from '../models/User.js';
 import EventParticipation from '../models/EventParticipation.js';
 import Event from '../models/Event.js';
 
@@ -19,12 +18,13 @@ export const generateAbsenceReport = catchAsync(async (req, res, next) => {
     }
 
     // Създаване на query обект за филтриране
-    let query = {};
+    let query = {
+        role: 'student'
+    };
 
     // Филтър по клас
     if (grade) {
-        const studentIds = await Student.find({ grade }).select('_id');
-        query.student = { $in: studentIds.map(s => s._id) };
+        query['studentInfo.grade'] = grade;
     }
 
     // Филтър по дата на последна промяна
@@ -34,28 +34,21 @@ export const generateAbsenceReport = catchAsync(async (req, res, next) => {
         if (endDate) query.updatedAt.$lte = new Date(endDate);
     }
 
-    // Извличане на данни за отсъствия
-    const sanctions = await Sanction.find(query).populate({
-        path: 'student',
-        select: 'grade specialization',
-        populate: {
-            path: 'user',
-            select: 'firstName lastName'
-        }
-    });
+    // Извличане на данни за отсъствия от User модела
+    const students = await User.find(query).sort({ 'studentInfo.grade': 1, lastName: 1 });
 
     // Форматиране на данните за отчета
-    const reportData = sanctions.map(sanction => ({
-        studentName: `${sanction.student.user.firstName} ${sanction.student.user.lastName}`,
-        grade: sanction.student.grade,
-        specialization: sanction.student.specialization,
-        excusedAbsences: sanction.absences.excused,
-        unexcusedAbsences: sanction.absences.unexcused,
-        totalAbsences: sanction.absences.excused + sanction.absences.unexcused,
-        maxAllowed: sanction.absences.maxAllowed,
-        schooloRemarks: sanction.schooloRemarks,
-        activeSanctions: sanction.activeSanctions.length,
-        lastUpdated: formatDate(sanction.updatedAt)
+    const reportData = students.map(student => ({
+        studentName: `${student.firstName} ${student.lastName}`,
+        grade: student.studentInfo?.grade || 'N/A',
+        specialization: student.studentInfo?.specialization || 'N/A',
+        excusedAbsences: student.sanctions?.absences?.excused || 0,
+        unexcusedAbsences: student.sanctions?.absences?.unexcused || 0,
+        totalAbsences: (student.sanctions?.absences?.excused || 0) + (student.sanctions?.absences?.unexcused || 0),
+        maxAllowed: student.sanctions?.absences?.maxAllowed || 150,
+        schooloRemarks: student.sanctions?.schooloRemarks || 0,
+        activeSanctions: student.sanctions?.activeSanctions?.length || 0,
+        lastUpdated: formatDate(student.updatedAt)
     }));
 
     // Дефиниране на заглавията за отчета
@@ -127,12 +120,8 @@ export const generateEventsReport = catchAsync(async (req, res, next) => {
     // Извличане на данни за участия
     const participations = await EventParticipation.find(query)
         .populate({
-            path: 'student',
-            select: 'grade specialization',
-            populate: {
-                path: 'user',
-                select: 'firstName lastName email'
-            }
+            path: 'user',
+            select: 'firstName lastName email studentInfo.grade studentInfo.specialization'
         })
         .populate({
             path: 'event',
@@ -141,10 +130,10 @@ export const generateEventsReport = catchAsync(async (req, res, next) => {
 
     // Форматиране на данните за отчета
     const reportData = participations.map(participation => ({
-        studentName: `${participation.student.user.firstName} ${participation.student.user.lastName}`,
-        email: participation.student.user.email,
-        grade: participation.student.grade,
-        specialization: participation.student.specialization,
+        studentName: `${participation.user.firstName} ${participation.user.lastName}`,
+        email: participation.user.email,
+        grade: participation.user.studentInfo?.grade || 'N/A',
+        specialization: participation.user.studentInfo?.specialization || 'N/A',
         eventTitle: participation.event.title,
         eventDate: formatDate(participation.event.startDate),
         eventLocation: participation.event.location,
@@ -202,7 +191,7 @@ export const generateEventsReport = catchAsync(async (req, res, next) => {
 
 // Функция за генериране на обобщен отчет за ученик
 export const generateStudentReport = catchAsync(async (req, res, next) => {
-    const { studentId, format } = req.params;
+    const { userId, format } = req.params;
 
     // Валидиране на входните данни
     if (format && !['excel', 'pdf'].includes(format)) {
@@ -210,39 +199,34 @@ export const generateStudentReport = catchAsync(async (req, res, next) => {
     }
 
     // Проверка дали ученикът съществува
-    const student = await Student.findById(studentId).populate('user', 'firstName lastName email');
+    const student = await User.findById(userId);
 
     if (!student) {
         return next(new AppError('Ученикът не е намерен', 404));
     }
 
-    // Събиране на данни за ученика от различни колекции
-    const [sanctions, participations] = await Promise.all([
-        Sanction.findOne({ student: studentId }),
-        EventParticipation.find({ student: studentId }).populate('event', 'title startDate location organizer')
-    ]);
+    if (student.role !== 'student') {
+        return next(new AppError('Потребителят не е ученик', 400));
+    }
+
+    // Събиране на данни за ученика
+    const participations = await EventParticipation.find({ user: userId })
+        .populate('event', 'title startDate location organizer');
 
     // Форматиране на данните за отсъствия и санкции
-    const absencesData = sanctions ? {
-        excusedAbsences: sanctions.absences.excused,
-        unexcusedAbsences: sanctions.absences.unexcused,
-        totalAbsences: sanctions.absences.excused + sanctions.absences.unexcused,
-        maxAllowed: sanctions.absences.maxAllowed,
-        schooloRemarks: sanctions.schooloRemarks,
-        activeSanctions: sanctions.activeSanctions.map(s => ({
+    const absencesData = {
+        excusedAbsences: student.sanctions?.absences?.excused || 0,
+        unexcusedAbsences: student.sanctions?.absences?.unexcused || 0,
+        totalAbsences: (student.sanctions?.absences?.excused || 0) + (student.sanctions?.absences?.unexcused || 0),
+        maxAllowed: student.sanctions?.absences?.maxAllowed || 150,
+        schooloRemarks: student.sanctions?.schooloRemarks || 0,
+        activeSanctions: student.sanctions?.activeSanctions?.map(s => ({
             type: s.type,
             reason: s.reason,
             startDate: formatDate(s.startDate),
             endDate: s.endDate ? formatDate(s.endDate) : 'Безсрочна',
             issuedBy: s.issuedBy
-        }))
-    } : {
-        excusedAbsences: 0,
-        unexcusedAbsences: 0,
-        totalAbsences: 0,
-        maxAllowed: 150,
-        schooloRemarks: 0,
-        activeSanctions: []
+        })) || []
     };
 
     // Форматиране на данните за участия в събития
@@ -288,21 +272,21 @@ export const generateStudentReport = catchAsync(async (req, res, next) => {
     ];
 
     // Създаване на заглавие за отчета
-    const title = `Отчет за ученик: ${student.user.firstName} ${student.user.lastName}`;
-    const subtitle = `Клас: ${student.grade}, Специалност: ${student.specialization}, Дата: ${formatDate(new Date())}`;
+    const title = `Отчет за ученик: ${student.firstName} ${student.lastName}`;
+    const subtitle = `Клас: ${student.studentInfo?.grade || 'N/A'}, Специалност: ${student.studentInfo?.specialization || 'N/A'}, Дата: ${formatDate(new Date())}`;
 
     // Генериране на отчет според избрания формат
     let buffer, filename, contentType;
 
     if (format === 'pdf') {
-        // TODO Създаване на PDF документ с няколко секции
+        // TODO: Създаване на PDF документ с няколко секции
         // За момента имаме само една секция с отсъствия
-
         buffer = await generatePdfReport([absencesData], absencesHeaders, title, subtitle);
-        filename = `student_report_${student.user.lastName}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        filename = `student_report_${student.lastName}_${new Date().toISOString().slice(0, 10)}.pdf`;
         contentType = 'application/pdf';
     } else {
         // За Excel използваме по-сложна логика с няколко работни листа
+        const Excel = (await import('exceljs')).default;
         const workbook = new Excel.Workbook();
 
         // Работен лист за основна информация
@@ -313,11 +297,11 @@ export const generateStudentReport = catchAsync(async (req, res, next) => {
         ];
         infoSheet.getRow(1).font = { bold: true };
 
-        infoSheet.addRow({ field: 'Име', value: `${student.user.firstName} ${student.user.lastName}` });
-        infoSheet.addRow({ field: 'Имейл', value: student.user.email });
-        infoSheet.addRow({ field: 'Клас', value: student.grade });
-        infoSheet.addRow({ field: 'Специалност', value: student.specialization });
-        infoSheet.addRow({ field: 'Среден успех', value: student.averageGrade || 'Не е въведен' });
+        infoSheet.addRow({ field: 'Име', value: `${student.firstName} ${student.lastName}` });
+        infoSheet.addRow({ field: 'Имейл', value: student.email });
+        infoSheet.addRow({ field: 'Клас', value: student.studentInfo?.grade || 'N/A' });
+        infoSheet.addRow({ field: 'Специалност', value: student.studentInfo?.specialization || 'N/A' });
+        infoSheet.addRow({ field: 'Среден успех', value: student.studentInfo?.averageGrade || 'Не е въведен' });
 
         // Работен лист за отсъствия
         const absencesSheet = workbook.addWorksheet('Отсъствия');
@@ -355,7 +339,7 @@ export const generateStudentReport = catchAsync(async (req, res, next) => {
 
         // Създаване на буфер
         buffer = await workbook.xlsx.writeBuffer();
-        filename = `student_report_${student.user.lastName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        filename = `student_report_${student.lastName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
         contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     }
 

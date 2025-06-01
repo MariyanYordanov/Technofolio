@@ -22,7 +22,7 @@ router.get('/absences', generateAbsenceReport);
 // Маршрут за отчет за събития
 router.get('/events', generateEventsReport);
 
-// Маршрут за обобщен отчет за ученик
-router.get('/student/:studentId/:format', generateStudentReport);
+// Маршрут за обобщен отчет за ученик 
+router.get('/user/:userId/:format', generateStudentReport);
 
 export default router;

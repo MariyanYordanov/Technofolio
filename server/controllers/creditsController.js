@@ -5,8 +5,8 @@ import * as creditsService from '../services/creditsService.js';
 
 // Получаване на кредитите на ученик
 export const getStudentCredits = catchAsync(async (req, res, next) => {
-    const studentId = req.params.studentId;
-    const result = await creditsService.getStudentCredits(studentId, req.user.id, req.user.role);
+    const userId = req.params.userId; // Променено от studentId на userId
+    const result = await creditsService.getStudentCredits(userId, req.user.id, req.user.role);
 
     res.status(200).json({
         success: true,
@@ -84,7 +84,7 @@ export const getAllCredits = catchAsync(async (req, res, next) => {
         status: req.query.status,
         pillar: req.query.pillar,
         search: req.query.search,
-        studentId: req.query.studentId
+        userId: req.query.userId // Променено от studentId на userId
     };
 
     const result = await creditsService.getAllCredits(filters, req.user.role);

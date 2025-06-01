@@ -125,8 +125,8 @@ export const confirmParticipation = catchAsync(async (req, res, next) => {
 
 // Получаване на регистрациите на ученик
 export const getStudentParticipations = catchAsync(async (req, res, next) => {
-    const studentId = req.params.studentId;
-    const participations = await eventsService.getStudentParticipations(studentId, req.user.id, req.user.role);
+    const userId = req.params.userId; // Променено от studentId на userId
+    const participations = await eventsService.getStudentParticipations(userId, req.user.id, req.user.role);
 
     res.status(200).json({
         success: true,
