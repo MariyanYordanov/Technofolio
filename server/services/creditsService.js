@@ -1,30 +1,41 @@
-// server/services/creditsService.js
+// server/services/creditsService.js - Updated
 import Credit from '../models/Credit.js';
 import CreditCategory from '../models/CreditCategory.js';
-import Student from '../models/Student.js';
 import User from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
+import { compareIds } from '../utils/helpers.js';
 import * as notificationService from './notificationService.js';
 
-// Получаване на кредитите на ученик
-export const getStudentCredits = async (studentId, currentUserId, currentUserRole) => {
-    // Проверка дали ученикът съществува
-    const student = await Student.findById(studentId);
-    if (!student) {
-        throw new AppError('Ученикът не е намерен', 404);
+// Проверка дали потребителят е ученик
+const ensureUserIsStudent = (user) => {
+    if (!user || user.role !== 'student') {
+        throw new AppError('Потребителят не е ученик', 400);
+    }
+};
+
+// Получаване на кредитите на потребител
+export const getStudentCredits = async (userId, currentUserId, currentUserRole) => {
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new AppError('Потребителят не е намерен', 404);
     }
 
-    // Проверка дали потребителят има права
-    if (student.user.toString() !== currentUserId && currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
+    ensureUserIsStudent(user);
+
+    // Проверка за права
+    const isOwner = compareIds(user._id, currentUserId);
+    const isTeacherOrAdmin = currentUserRole === 'teacher' || currentUserRole === 'admin';
+
+    if (!isOwner && !isTeacherOrAdmin) {
         throw new AppError('Нямате права да преглеждате тези кредити', 403);
     }
 
-    // Намиране на кредитите
-    const credits = await Credit.find({ student: studentId })
+    const credits = await Credit.find({ user: userId })
         .populate('validatedBy', 'firstName lastName')
         .sort({ createdAt: -1 });
 
-    // Група статистики
+    // Статистики
     const stats = {
         total: credits.length,
         pending: credits.filter(c => c.status === 'pending').length,
@@ -44,7 +55,6 @@ export const getStudentCredits = async (studentId, currentUserId, currentUserRol
 export const getCreditCategories = async () => {
     const categories = await CreditCategory.find().sort({ pillar: 1, name: 1 });
 
-    // Групиране по стълб за по-лесно използване
     const categoriesByPillar = categories.reduce((acc, category) => {
         if (!acc[category.pillar]) {
             acc[category.pillar] = [];
@@ -60,20 +70,17 @@ export const getCreditCategories = async () => {
 export const addCredit = async (creditData, userId) => {
     const { pillar, activity, description } = creditData;
 
-    // Валидиране на стълба
-    if (!['Аз и другите', 'Мислене', 'Професия'].includes(pillar)) {
-        throw new AppError('Невалиден стълб', 400);
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new AppError('Потребителят не е намерен', 404);
     }
 
-    // Проверка дали студентът съществува
-    const student = await Student.findOne({ user: userId }).populate('user', 'firstName lastName');
-    if (!student) {
-        throw new AppError('Ученическият профил не е намерен', 404);
-    }
+    ensureUserIsStudent(user);
 
-    // Проверка за дублирани кредити (същата дейност от същия студент)
+    // Проверка за дублирани кредити
     const existingCredit = await Credit.findOne({
-        student: student._id,
+        user: userId,
         activity: activity.trim(),
         status: { $in: ['pending', 'validated'] }
     });
@@ -82,16 +89,15 @@ export const addCredit = async (creditData, userId) => {
         throw new AppError('Вече имате заявка за кредит с тази дейност', 400);
     }
 
-    // Създаване на нов кредит
     const credit = await Credit.create({
-        student: student._id,
+        user: userId,
         pillar,
         activity: activity.trim(),
         description: description.trim(),
         status: 'pending'
     });
 
-    // Известяване на учители за новата заявка за кредит
+    // Известяване на учители
     const teachers = await User.find({ role: 'teacher' }).select('_id');
 
     if (teachers.length > 0) {
@@ -99,7 +105,7 @@ export const addCredit = async (creditData, userId) => {
 
         await notificationService.createBulkNotifications(teacherIds, {
             title: 'Нова заявка за кредит',
-            message: `Ученикът ${student.user.firstName} ${student.user.lastName} заяви нов кредит за "${activity}".`,
+            message: `${user.firstName} ${user.lastName} заяви нов кредит за "${activity}".`,
             type: 'info',
             category: 'credit',
             relatedTo: {
@@ -113,82 +119,76 @@ export const addCredit = async (creditData, userId) => {
     return credit;
 };
 
-// Валидиране на кредит (само за учители и администратори)
+// Валидиране на кредит
 export const validateCredit = async (creditId, validationData, validatorId, validatorRole) => {
-    const { status, validationNote } = validationData;
-
-    // Проверка дали потребителят има права
     if (validatorRole !== 'teacher' && validatorRole !== 'admin') {
         throw new AppError('Нямате права да валидирате кредити', 403);
     }
 
-    // Валидиране на статуса
+    const { status, validationNote } = validationData;
+
     if (!['validated', 'rejected'].includes(status)) {
         throw new AppError('Невалиден статус за валидиране', 400);
     }
 
-    // Намиране на кредита
-    const credit = await Credit.findById(creditId).populate({
-        path: 'student',
-        populate: {
-            path: 'user',
-            select: 'firstName lastName'
-        }
-    });
+    const credit = await Credit.findById(creditId).populate('user');
 
     if (!credit) {
         throw new AppError('Кредитът не е намерен', 404);
     }
 
-    // Проверка дали кредитът не е вече валидиран
     if (credit.status !== 'pending') {
         throw new AppError('Този кредит вече е бил обработен', 400);
     }
 
-    // Обновяване на статуса
     credit.status = status;
     credit.validatedBy = validatorId;
     credit.validationDate = Date.now();
 
-    // Ако има бележка за валидацията
     if (validationNote) {
         credit.validationNote = validationNote.trim();
     }
 
     await credit.save();
 
-    // Известяване на ученика за промяната в статуса
-    await notificationService.notifyAboutCreditStatusChange(credit, status);
+    // Известяване на ученика
+    await notificationService.createNotification({
+        recipient: credit.user._id,
+        title: status === 'validated' ? 'Кредит одобрен' : 'Кредит отхвърлен',
+        message: status === 'validated'
+            ? `Вашият кредит за "${credit.activity}" е одобрен.`
+            : `Вашият кредит за "${credit.activity}" е отхвърлен.`,
+        type: status === 'validated' ? 'success' : 'warning',
+        category: 'credit',
+        relatedTo: {
+            model: 'Credit',
+            id: credit._id
+        },
+        sendEmail: true
+    });
 
     return credit;
 };
 
 // Изтриване на кредит
 export const deleteCredit = async (creditId, currentUserId, currentUserRole) => {
-    // Намиране на кредита
-    const credit = await Credit.findById(creditId);
+    const credit = await Credit.findById(creditId).populate('user');
 
     if (!credit) {
         throw new AppError('Кредитът не е намерен', 404);
     }
 
-    // Намиране на ученика
-    const student = await Student.findById(credit.student);
-    if (!student) {
-        throw new AppError('Ученикът не е намерен', 404);
-    }
+    // Проверка за права
+    const isOwner = compareIds(credit.user._id, currentUserId);
 
-    // Проверка дали потребителят има права (само собственикът или администратор)
-    if (student.user.toString() !== currentUserId && currentUserRole !== 'admin') {
+    if (!isOwner && currentUserRole !== 'admin') {
         throw new AppError('Нямате права да изтривате този кредит', 403);
     }
 
-    // Проверка дали кредитът е валидиран
     if (credit.status === 'validated' && currentUserRole !== 'admin') {
         throw new AppError('Не можете да изтриете валидиран кредит', 400);
     }
 
-    // Изтриване на кредита
     await Credit.deleteOne({ _id: creditId });
 
     return {
@@ -198,29 +198,27 @@ export const deleteCredit = async (creditId, currentUserId, currentUserRole) => 
     };
 };
 
-// Получаване на всички кредити с филтри и пагинация (за администратори и учители)
+// Получаване на всички кредити
 export const getAllCredits = async (filters, currentUserRole) => {
-    // Проверка дали потребителят има права
     if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
         throw new AppError('Нямате права да преглеждате всички кредити', 403);
     }
 
-    const { page = 1, limit = 10, status, pillar, search, studentId } = filters;
+    const { page = 1, limit = 10, status, pillar, search, userId } = filters;
     const skip = (page - 1) * limit;
 
-    // Построяване на заявката
     let query = {};
 
-    if (status && ['pending', 'validated', 'rejected'].includes(status)) {
+    if (status) {
         query.status = status;
     }
 
-    if (pillar && ['Аз и другите', 'Мислене', 'Професия'].includes(pillar)) {
+    if (pillar) {
         query.pillar = pillar;
     }
 
-    if (studentId) {
-        query.student = studentId;
+    if (userId) {
+        query.user = userId;
     }
 
     if (search) {
@@ -230,25 +228,16 @@ export const getAllCredits = async (filters, currentUserRole) => {
         ];
     }
 
-    // Извършване на заявката с пагинация
     const credits = await Credit.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate({
-            path: 'student',
-            select: 'grade specialization',
-            populate: {
-                path: 'user',
-                select: 'firstName lastName'
-            }
-        })
+        .populate('user', 'firstName lastName email studentInfo.grade')
         .populate('validatedBy', 'firstName lastName');
 
-    // Общ брой на кредитите (за пагинация)
     const total = await Credit.countDocuments(query);
 
-    // Статистики за текущата заявка
+    // Статистики
     const stats = await Credit.aggregate([
         { $match: query },
         {
@@ -276,21 +265,14 @@ export const getAllCredits = async (filters, currentUserRole) => {
     };
 };
 
-// Добавяне на нова категория кредити (за администратор)
+// Добавяне на категория кредити
 export const addCreditCategory = async (categoryData, currentUserRole) => {
-    // Проверка дали потребителят има права
     if (currentUserRole !== 'admin') {
         throw new AppError('Нямате права да добавяте категории кредити', 403);
     }
 
     const { pillar, name, description } = categoryData;
 
-    // Валидиране на стълба
-    if (!['Аз и другите', 'Мислене', 'Професия'].includes(pillar)) {
-        throw new AppError('Невалиден стълб', 400);
-    }
-
-    // Проверка дали категорията вече съществува
     const existingCategory = await CreditCategory.findOne({
         name: name.trim(),
         pillar
@@ -300,7 +282,6 @@ export const addCreditCategory = async (categoryData, currentUserRole) => {
         throw new AppError('Категория кредити с това име вече съществува в този стълб', 400);
     }
 
-    // Създаване на нова категория
     const category = await CreditCategory.create({
         pillar,
         name: name.trim(),
@@ -310,9 +291,8 @@ export const addCreditCategory = async (categoryData, currentUserRole) => {
     return category;
 };
 
-// Обновяване на категория кредити (за администратор)
+// Обновяване на категория кредити
 export const updateCreditCategory = async (categoryId, updateData, currentUserRole) => {
-    // Проверка дали потребителят има права
     if (currentUserRole !== 'admin') {
         throw new AppError('Нямате права да обновявате категории кредити', 403);
     }
@@ -324,31 +304,25 @@ export const updateCreditCategory = async (categoryId, updateData, currentUserRo
         throw new AppError('Категорията не е намерена', 404);
     }
 
-    // Обновяване на полетата
     if (name) category.name = name.trim();
     if (description !== undefined) category.description = description.trim();
-    if (pillar && ['Аз и другите', 'Мислене', 'Професия'].includes(pillar)) {
-        category.pillar = pillar;
-    }
+    if (pillar) category.pillar = pillar;
 
     await category.save();
     return category;
 };
 
-// Изтриване на категория кредити (за администратор)
+// Изтриване на категория кредити
 export const deleteCreditCategory = async (categoryId, currentUserRole) => {
-    // Проверка дали потребителят има права
     if (currentUserRole !== 'admin') {
         throw new AppError('Нямате права да изтривате категории кредити', 403);
     }
 
-    // Проверка дали категорията се използва
     const creditsWithCategory = await Credit.findOne({ category: categoryId });
     if (creditsWithCategory) {
         throw new AppError('Тази категория не може да бъде изтрита, защото се използва в кредити', 400);
     }
 
-    // Изтриване на категорията
     const result = await CreditCategory.deleteOne({ _id: categoryId });
 
     if (result.deletedCount === 0) {
@@ -362,9 +336,7 @@ export const deleteCreditCategory = async (categoryId, currentUserRole) => {
 export const getCreditsStatistics = async (filters = {}) => {
     const { startDate, endDate, pillar, studentGrade } = filters;
 
-    // Построяване на заявката за филтриране
     let creditQuery = {};
-    let studentQuery = {};
 
     if (startDate || endDate) {
         creditQuery.createdAt = {};
@@ -372,37 +344,13 @@ export const getCreditsStatistics = async (filters = {}) => {
         if (endDate) creditQuery.createdAt.$lte = new Date(endDate);
     }
 
-    if (pillar && ['Аз и другите', 'Мислене', 'Професия'].includes(pillar)) {
+    if (pillar) {
         creditQuery.pillar = pillar;
     }
 
-    if (studentGrade) {
-        studentQuery.grade = studentGrade;
-    }
-
-    // Агрегация за статистики
-    const pipeline = [
-        { $match: creditQuery }
-    ];
-
-    // Ако има филтър по клас, добавяме lookup за студентите
-    if (studentGrade) {
-        pipeline.push(
-            {
-                $lookup: {
-                    from: 'students',
-                    localField: 'student',
-                    foreignField: '_id',
-                    as: 'studentData'
-                }
-            },
-            { $unwind: '$studentData' },
-            { $match: { 'studentData.grade': studentGrade } }
-        );
-    }
-
-    // Групиране за статистики
-    pipeline.push(
+    // Основни статистики
+    const baseStats = await Credit.aggregate([
+        { $match: creditQuery },
         {
             $group: {
                 _id: null,
@@ -421,26 +369,17 @@ export const getCreditsStatistics = async (filters = {}) => {
                 }
             }
         }
-    );
+    ]);
 
-    const [stats] = await Credit.aggregate(pipeline);
+    const stats = baseStats[0] || {
+        total: 0,
+        pending: 0,
+        validated: 0,
+        rejected: 0,
+        byPillar: []
+    };
 
-    if (!stats) {
-        return {
-            total: 0,
-            pending: 0,
-            validated: 0,
-            rejected: 0,
-            byPillar: {
-                'Аз и другите': 0,
-                'Мислене': 0,
-                'Професия': 0
-            },
-            validationRate: 0
-        };
-    }
-
-    // Обработка на статистиките по стълб
+    // Статистики по стълбове
     const pillarStats = stats.byPillar.reduce((acc, pillar) => {
         acc[pillar] = (acc[pillar] || 0) + 1;
         return acc;
@@ -462,7 +401,6 @@ export const getCreditsStatistics = async (filters = {}) => {
 
 // Масово валидиране на кредити
 export const bulkValidateCredits = async (creditIds, validationData, validatorId, validatorRole) => {
-    // Проверка дали потребителят има права
     if (validatorRole !== 'teacher' && validatorRole !== 'admin') {
         throw new AppError('Нямате права да валидирате кредити', 403);
     }
@@ -477,23 +415,15 @@ export const bulkValidateCredits = async (creditIds, validationData, validatorId
         throw new AppError('Не са предоставени валидни ID-та на кредити', 400);
     }
 
-    // Намиране на кредитите
     const credits = await Credit.find({
         _id: { $in: creditIds },
         status: 'pending'
-    }).populate({
-        path: 'student',
-        populate: {
-            path: 'user',
-            select: 'firstName lastName'
-        }
-    });
+    }).populate('user');
 
     if (credits.length === 0) {
         throw new AppError('Няма намерени кредити за валидиране', 404);
     }
 
-    // Масово обновяване
     const updateData = {
         status,
         validatedBy: validatorId,
@@ -509,9 +439,18 @@ export const bulkValidateCredits = async (creditIds, validationData, validatorId
         { $set: updateData }
     );
 
-    // Изпращане на известия за всички обработени кредити
+    // Изпращане на известия
     for (const credit of credits) {
-        await notificationService.notifyAboutCreditStatusChange(credit, status);
+        await notificationService.createNotification({
+            recipient: credit.user._id,
+            title: status === 'validated' ? 'Кредит одобрен' : 'Кредит отхвърлен',
+            message: status === 'validated'
+                ? `Вашият кредит за "${credit.activity}" е одобрен.`
+                : `Вашият кредит за "${credit.activity}" е отхвърлен.`,
+            type: status === 'validated' ? 'success' : 'warning',
+            category: 'credit',
+            sendEmail: false
+        });
     }
 
     return {

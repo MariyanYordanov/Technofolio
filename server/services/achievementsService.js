@@ -1,110 +1,88 @@
 // server/services/achievementsService.js
 import Achievement from '../models/Achievement.js';
-import Student from '../models/Student.js';
+import User from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
+import { compareIds } from '../utils/helpers.js';
 
-// Валидни категории постижения
-const VALID_CATEGORIES = ['competition', 'olympiad', 'tournament', 'certificate', 'award', 'other'];
+// Проверка дали потребителят е ученик
+const ensureUserIsStudent = (user) => {
+    if (!user || user.role !== 'student') {
+        throw new AppError('Потребителят не е ученик', 400);
+    }
+};
 
-// Получаване на постиженията на ученик
-export const getStudentAchievements = async (studentId, currentUserId, currentUserRole) => {
-    // Проверка дали ученикът съществува
-    const student = await Student.findById(studentId).populate('user', 'firstName lastName');
-    if (!student) {
-        throw new AppError('Ученикът не е намерен', 404);
+// Проверка за права за достъп
+const checkAccessRights = (user, currentUserId, currentUserRole) => {
+    const isOwner = compareIds(user._id, currentUserId);
+    const isTeacherOrAdmin = currentUserRole === 'teacher' || currentUserRole === 'admin';
+
+    if (!isOwner && !isTeacherOrAdmin) {
+        throw new AppError('Нямате права за достъп до тази информация', 403);
     }
 
-    // Проверка на права (собственик, учител или админ)
-    if (student.user._id.toString() !== currentUserId &&
-        currentUserRole !== 'teacher' &&
-        currentUserRole !== 'admin') {
-        throw new AppError('Нямате права да преглеждате тези постижения', 403);
+    return { isOwner, isTeacherOrAdmin };
+};
+
+// Получаване на постиженията на потребител
+export const getUserAchievements = async (userId, currentUserId, currentUserRole) => {
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new AppError('Потребителят не е намерен', 404);
     }
 
-    // Намиране на постиженията
-    const achievements = await Achievement.find({ student: studentId })
+    ensureUserIsStudent(user);
+    checkAccessRights(user, currentUserId, currentUserRole);
+
+    const achievements = await Achievement.find({ user: userId })
         .sort({ date: -1 });
 
-    return {
-        achievements,
-        studentName: `${student.user.firstName} ${student.user.lastName}`,
-        studentGrade: student.grade || 'Неопределен'
-    };
+    return achievements;
 };
 
 // Добавяне на ново постижение
-export const addAchievement = async (studentId, achievementData, currentUserId, currentUserRole) => {
-    const { category, title, description, date, place, issuer } = achievementData;
+export const addAchievement = async (achievementData, currentUserId, currentUserRole) => {
+    const { userId, category, title, description, date, place, issuer } = achievementData;
 
-    // Валидиране на категорията
-    if (!VALID_CATEGORIES.includes(category)) {
-        throw new AppError(`Невалидна категория. Допустими са: ${VALID_CATEGORIES.join(', ')}`, 400);
+    // Определяне на userId - ако не е подаден, използваме текущия потребител
+    const targetUserId = userId || currentUserId;
+
+    const user = await User.findById(targetUserId);
+
+    if (!user) {
+        throw new AppError('Потребителят не е намерен', 404);
     }
 
-    // Валидиране на задължителните полета
-    if (!title || typeof title !== 'string' || title.trim().length === 0) {
-        throw new AppError('Заглавието е задължително', 400);
+    ensureUserIsStudent(user);
+
+    // Проверка за права - само собственикът или админ може да добавя
+    const isOwner = compareIds(user._id, currentUserId);
+    if (!isOwner && currentUserRole !== 'admin') {
+        throw new AppError('Нямате права да добавяте постижения за този потребител', 403);
     }
 
-    if (!date || !Date.parse(date)) {
-        throw new AppError('Невалидна дата', 400);
-    }
-
-    // Валидиране на дължините на полетата
-    if (title.trim().length > 200) {
-        throw new AppError('Заглавието не може да бъде по-дълго от 200 символа', 400);
-    }
-
-    if (description && typeof description === 'string' && description.trim().length > 1000) {
-        throw new AppError('Описанието не може да бъде по-дълго от 1000 символа', 400);
-    }
-
-    if (place && typeof place === 'string' && place.trim().length > 100) {
-        throw new AppError('Мястото не може да бъде по-дълго от 100 символа', 400);
-    }
-
-    if (issuer && typeof issuer === 'string' && issuer.trim().length > 200) {
-        throw new AppError('Издателят не може да бъде по-дълъг от 200 символа', 400);
-    }
-
-    // Проверка дали датата не е в бъдещето
-    const achievementDate = new Date(date);
-    const today = new Date();
-    today.setHours(23, 59, 59, 999); // Края на днешния ден
-
-    if (achievementDate > today) {
-        throw new AppError('Датата на постижението не може да бъде в бъдещето', 400);
-    }
-
-    // Проверка дали ученикът съществува
-    const student = await Student.findById(studentId).populate('user', 'firstName lastName');
-    if (!student) {
-        throw new AppError('Ученикът не е намерен', 404);
-    }
-
-    // Проверка дали потребителят има права (само собственикът или администратор)
-    if (student.user._id.toString() !== currentUserId && currentUserRole !== 'admin') {
-        throw new AppError('Нямате права да добавяте постижения за този ученик', 403);
-    }
-
-    // Проверка за дублиращи се постижения (ако заглавието и датата са еднакви)
+    // Проверка за дублиращи се постижения
     const existingAchievement = await Achievement.findOne({
-        student: studentId,
+        user: targetUserId,
         title: title.trim(),
-        date: achievementDate
+        date: new Date(date)
     });
 
     if (existingAchievement) {
         throw new AppError('Постижение с това заглавие и дата вече съществува', 400);
     }
 
-    // Създаване на ново постижение
+    // Проверка дали датата не е в бъдещето
+    if (new Date(date) > new Date()) {
+        throw new AppError('Датата на постижението не може да бъде в бъдещето', 400);
+    }
+
     const achievement = await Achievement.create({
-        student: studentId,
+        user: targetUserId,
         category,
         title: title.trim(),
         description: description ? description.trim() : '',
-        date: achievementDate,
+        date: new Date(date),
         place: place ? place.trim() : '',
         issuer: issuer ? issuer.trim() : ''
     });
@@ -112,135 +90,105 @@ export const addAchievement = async (studentId, achievementData, currentUserId, 
     return achievement;
 };
 
-// Изтриване на постижение
-export const removeAchievement = async (studentId, achievementId, currentUserId, currentUserRole) => {
-    // Валидиране на achievementId
-    if (!achievementId || typeof achievementId !== 'string') {
-        throw new AppError('Невалиден ID на постижението', 400);
-    }
+// Обновяване на постижение
+export const updateAchievement = async (achievementId, updateData, currentUserId, currentUserRole) => {
+    const achievement = await Achievement.findById(achievementId).populate('user');
 
-    // Проверка дали студентът съществува
-    const student = await Student.findById(studentId).populate('user', 'firstName lastName');
-    if (!student) {
-        throw new AppError('Ученикът не е намерен', 404);
-    }
-
-    // Намиране на постижението
-    const achievement = await Achievement.findById(achievementId);
     if (!achievement) {
         throw new AppError('Постижението не е намерено', 404);
     }
 
-    // Проверка дали постижението принадлежи на правилния студент
-    if (achievement.student.toString() !== studentId) {
-        throw new AppError('Постижението не принадлежи на този ученик', 400);
+    // Проверка за права
+    const isOwner = compareIds(achievement.user._id, currentUserId);
+    if (!isOwner && currentUserRole !== 'admin') {
+        throw new AppError('Нямате права да редактирате това постижение', 403);
     }
 
-    // Проверка дали потребителят има права (само собственикът или администратор)
-    if (student.user._id.toString() !== currentUserId && currentUserRole !== 'admin') {
-        throw new AppError('Нямате права да изтривате постижения за този ученик', 403);
+    const { category, title, description, date, place, issuer } = updateData;
+
+    if (category) achievement.category = category;
+    if (title) achievement.title = title.trim();
+    if (description !== undefined) achievement.description = description.trim();
+    if (date) {
+        if (new Date(date) > new Date()) {
+            throw new AppError('Датата на постижението не може да бъде в бъдещето', 400);
+        }
+        achievement.date = new Date(date);
+    }
+    if (place !== undefined) achievement.place = place.trim();
+    if (issuer !== undefined) achievement.issuer = issuer.trim();
+
+    await achievement.save();
+
+    return achievement;
+};
+
+// Изтриване на постижение
+export const deleteAchievement = async (achievementId, currentUserId, currentUserRole) => {
+    const achievement = await Achievement.findById(achievementId).populate('user');
+
+    if (!achievement) {
+        throw new AppError('Постижението не е намерено', 404);
     }
 
-    // Запазване на информация за постижението преди изтриването
-    const achievementInfo = {
-        title: achievement.title,
-        category: achievement.category,
-        date: achievement.date
-    };
+    // Проверка за права
+    const isOwner = compareIds(achievement.user._id, currentUserId);
+    if (!isOwner && currentUserRole !== 'admin') {
+        throw new AppError('Нямате права да изтривате това постижение', 403);
+    }
 
-    // Изтриване на постижението
     await Achievement.deleteOne({ _id: achievementId });
 
     return {
         message: 'Постижението е изтрито успешно',
-        deletedAchievement: achievementInfo
+        deletedAchievement: {
+            title: achievement.title,
+            category: achievement.category,
+            date: achievement.date
+        }
     };
 };
 
-// Получаване на всички постижения (за учители и админи)
+// Получаване на всички постижения (за админи и учители)
 export const getAllAchievements = async (filters, currentUserRole) => {
-    // Проверка на права
     if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
         throw new AppError('Нямате права да преглеждате всички постижения', 403);
     }
 
-    const { page = 1, limit = 10, grade, category, search, startDate, endDate } = filters;
+    const { page = 1, limit = 10, category, userId, startDate, endDate, search } = filters;
     const skip = (page - 1) * limit;
 
-    // Построяване на pipeline за агрегация
-    let pipeline = [
-        {
-            $lookup: {
-                from: 'students',
-                localField: 'student',
-                foreignField: '_id',
-                as: 'studentData'
-            }
-        },
-        { $unwind: '$studentData' },
-        {
-            $lookup: {
-                from: 'users',
-                localField: 'studentData.user',
-                foreignField: '_id',
-                as: 'userData'
-            }
-        },
-        { $unwind: '$userData' }
-    ];
+    let query = {};
 
-    // Филтри
-    let matchConditions = {};
-
-    if (grade && ['8', '9', '10', '11', '12'].includes(grade)) {
-        matchConditions['studentData.grade'] = grade;
+    if (category) {
+        query.category = category;
     }
 
-    if (category && VALID_CATEGORIES.includes(category)) {
-        matchConditions.category = category;
+    if (userId) {
+        query.user = userId;
+    }
+
+    if (startDate || endDate) {
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate);
+        if (endDate) query.date.$lte = new Date(endDate);
     }
 
     if (search) {
-        matchConditions.$or = [
-            { 'userData.firstName': { $regex: search, $options: 'i' } },
-            { 'userData.lastName': { $regex: search, $options: 'i' } },
+        query.$or = [
             { title: { $regex: search, $options: 'i' } },
             { description: { $regex: search, $options: 'i' } },
             { issuer: { $regex: search, $options: 'i' } }
         ];
     }
 
-    if (startDate || endDate) {
-        matchConditions.date = {};
-        if (startDate) matchConditions.date.$gte = new Date(startDate);
-        if (endDate) matchConditions.date.$lte = new Date(endDate);
-    }
+    const achievements = await Achievement.find(query)
+        .populate('user', 'firstName lastName email studentInfo.grade')
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit);
 
-    if (Object.keys(matchConditions).length > 0) {
-        pipeline.push({ $match: matchConditions });
-    }
-
-    // Добавяне на допълнителни полета
-    pipeline.push({
-        $addFields: {
-            studentName: { $concat: ['$userData.firstName', ' ', '$userData.lastName'] }
-        }
-    });
-
-    // Сортиране и пагинация
-    pipeline.push(
-        { $sort: { date: -1, 'userData.lastName': 1 } },
-        { $skip: skip },
-        { $limit: limit }
-    );
-
-    const achievements = await Achievement.aggregate(pipeline);
-
-    // Общ брой за пагинация
-    const totalPipeline = pipeline.slice(0, -2); // Без skip и limit
-    totalPipeline.push({ $count: 'total' });
-    const totalResult = await Achievement.aggregate(totalPipeline);
-    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+    const total = await Achievement.countDocuments(query);
 
     return {
         achievements,
@@ -254,178 +202,98 @@ export const getAllAchievements = async (filters, currentUserRole) => {
 };
 
 // Получаване на статистики за постижения
-export const getAchievementsStatistics = async (filters, currentUserRole) => {
-    // Проверка на права
+export const getAchievementsStats = async (filters, currentUserRole) => {
     if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
         throw new AppError('Нямате права да преглеждате статистики', 403);
     }
 
-    const { grade, startDate, endDate } = filters;
+    const { startDate, endDate, grade } = filters;
 
-    // Построяване на pipeline
-    let pipeline = [
-        {
-            $lookup: {
-                from: 'students',
-                localField: 'student',
-                foreignField: '_id',
-                as: 'studentData'
-            }
-        },
-        { $unwind: '$studentData' }
-    ];
-
-    // Филтри
-    let matchConditions = {};
-
-    if (grade && ['8', '9', '10', '11', '12'].includes(grade)) {
-        matchConditions['studentData.grade'] = grade;
-    }
+    let matchQuery = {};
 
     if (startDate || endDate) {
-        matchConditions.date = {};
-        if (startDate) matchConditions.date.$gte = new Date(startDate);
-        if (endDate) matchConditions.date.$lte = new Date(endDate);
+        matchQuery.date = {};
+        if (startDate) matchQuery.date.$gte = new Date(startDate);
+        if (endDate) matchQuery.date.$lte = new Date(endDate);
     }
 
-    if (Object.keys(matchConditions).length > 0) {
-        pipeline.push({ $match: matchConditions });
-    }
-
-    // Статистики по категории
-    const categoryStats = await Achievement.aggregate([
-        ...pipeline,
+    // Основни статистики
+    const baseStats = await Achievement.aggregate([
+        { $match: matchQuery },
         {
             $group: {
-                _id: '$category',
-                count: { $sum: 1 }
+                _id: null,
+                total: { $sum: 1 },
+                byCategory: { $push: '$category' }
             }
-        },
-        { $sort: { count: -1 } }
+        }
     ]);
+
+    const stats = baseStats[0] || { total: 0, byCategory: [] };
+
+    // Статистики по категории
+    const categoryStats = stats.byCategory.reduce((acc, category) => {
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+    }, {});
 
     // Статистики по ученици
     const studentStats = await Achievement.aggregate([
-        ...pipeline,
+        { $match: matchQuery },
         {
             $group: {
-                _id: '$student',
-                achievementsCount: { $sum: 1 },
-                categories: { $addToSet: '$category' }
+                _id: '$user',
+                count: { $sum: 1 }
             }
         },
         {
             $group: {
                 _id: null,
-                totalStudentsWithAchievements: { $sum: 1 },
-                avgAchievementsPerStudent: { $avg: '$achievementsCount' }
+                studentsWithAchievements: { $sum: 1 },
+                avgAchievementsPerStudent: { $avg: '$count' }
             }
         }
     ]);
 
-    // Общи статистики
-    const totalAchievements = await Achievement.countDocuments();
-    const totalStudents = await Student.countDocuments(
-        grade ? { grade } : {}
-    );
-
-    // Форматиране на резултатите
-    const stats = {
-        overview: {
-            totalAchievements,
-            totalStudents,
-            studentsWithAchievements: studentStats.length > 0 ? studentStats[0].totalStudentsWithAchievements : 0,
-            averageAchievementsPerStudent: studentStats.length > 0 ?
-                Math.round(studentStats[0].avgAchievementsPerStudent * 100) / 100 : 0,
-            participationRate: totalStudents > 0 ?
-                Math.round(((studentStats.length > 0 ? studentStats[0].totalStudentsWithAchievements : 0) / totalStudents) * 100) : 0
-        },
-        byCategory: VALID_CATEGORIES.map(category => {
-            const categoryData = categoryStats.find(stat => stat._id === category);
-            return {
-                category,
-                count: categoryData ? categoryData.count : 0
-            };
-        })
+    const studentStatsData = studentStats[0] || {
+        studentsWithAchievements: 0,
+        avgAchievementsPerStudent: 0
     };
 
-    return stats;
-};
-
-// Експортиране на постижения за отчет
-export const exportAchievementsData = async (filters, currentUserRole) => {
-    // Проверка на права
-    if (currentUserRole !== 'admin' && currentUserRole !== 'teacher') {
-        throw new AppError('Нямате права за този експорт', 403);
-    }
-
-    const { grade, category, startDate, endDate } = filters;
-
-    // Pipeline за експорт
-    let pipeline = [
+    // Топ ученици по брой постижения
+    const topStudents = await Achievement.aggregate([
+        { $match: matchQuery },
         {
-            $lookup: {
-                from: 'students',
-                localField: 'student',
-                foreignField: '_id',
-                as: 'studentData'
+            $group: {
+                _id: '$user',
+                count: { $sum: 1 }
             }
         },
-        { $unwind: '$studentData' },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
         {
             $lookup: {
                 from: 'users',
-                localField: 'studentData.user',
+                localField: '_id',
                 foreignField: '_id',
-                as: 'userData'
+                as: 'userInfo'
             }
         },
-        { $unwind: '$userData' }
-    ];
-
-    // Филтри
-    let matchConditions = {};
-    if (grade) matchConditions['studentData.grade'] = grade;
-    if (category) matchConditions.category = category;
-    if (startDate || endDate) {
-        matchConditions.date = {};
-        if (startDate) matchConditions.date.$gte = new Date(startDate);
-        if (endDate) matchConditions.date.$lte = new Date(endDate);
-    }
-
-    if (Object.keys(matchConditions).length > 0) {
-        pipeline.push({ $match: matchConditions });
-    }
-
-    // Форматиране за експорт
-    pipeline.push({
-        $project: {
-            studentName: { $concat: ['$userData.firstName', ' ', '$userData.lastName'] },
-            grade: '$studentData.grade',
-            specialization: '$studentData.specialization',
-            category: 1,
-            title: 1,
-            description: 1,
-            date: {
-                $dateToString: {
-                    format: '%d.%m.%Y',
-                    date: '$date'
-                }
-            },
-            place: 1,
-            issuer: 1,
-            createdAt: {
-                $dateToString: {
-                    format: '%d.%m.%Y',
-                    date: '$createdAt'
-                }
+        { $unwind: '$userInfo' },
+        {
+            $project: {
+                count: 1,
+                studentName: { $concat: ['$userInfo.firstName', ' ', '$userInfo.lastName'] },
+                grade: '$userInfo.studentInfo.grade'
             }
         }
-    });
+    ]);
 
-    pipeline.push({ $sort: { grade: 1, studentName: 1, date: -1 } });
-
-    const exportData = await Achievement.aggregate(pipeline);
-
-    return exportData;
+    return {
+        total: stats.total,
+        byCategory: categoryStats,
+        studentsWithAchievements: studentStatsData.studentsWithAchievements,
+        avgAchievementsPerStudent: Math.round(studentStatsData.avgAchievementsPerStudent * 100) / 100,
+        topStudents
+    };
 };

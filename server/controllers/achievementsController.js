@@ -1,24 +1,22 @@
-// server/controllers/achievementsController.js (refactored)
+// server/controllers/achievementsController.js
 import { validationResult } from 'express-validator';
 import { catchAsync } from '../utils/catchAsync.js';
 import * as achievementsService from '../services/achievementsService.js';
 
-// Получаване на постиженията на ученик
-export const getStudentAchievements = catchAsync(async (req, res, next) => {
-    const studentId = req.params.studentId;
+// Получаване на постиженията на потребител
+export const getUserAchievements = catchAsync(async (req, res, next) => {
+    const userId = req.params.userId;
 
-    const result = await achievementsService.getStudentAchievements(
-        studentId,
-        req.user.id,
+    const achievements = await achievementsService.getUserAchievements(
+        userId,
+        req.user._id,
         req.user.role
     );
 
     res.status(200).json({
         success: true,
-        count: result.achievements.length,
-        studentName: result.studentName,
-        studentGrade: result.studentGrade,
-        achievements: result.achievements
+        count: achievements.length,
+        achievements
     });
 });
 
@@ -32,12 +30,9 @@ export const addAchievement = catchAsync(async (req, res, next) => {
         });
     }
 
-    const studentId = req.params.studentId;
-
     const achievement = await achievementsService.addAchievement(
-        studentId,
         req.body,
-        req.user.id,
+        req.user._id,
         req.user.role
     );
 
@@ -48,15 +43,39 @@ export const addAchievement = catchAsync(async (req, res, next) => {
     });
 });
 
-// Изтриване на постижение
-export const removeAchievement = catchAsync(async (req, res, next) => {
-    const studentId = req.params.studentId;
-    const achievementId = req.params.achievementId;
+// Обновяване на постижение
+export const updateAchievement = catchAsync(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            message: 'Валидационна грешка',
+            errors: errors.array()
+        });
+    }
 
-    const result = await achievementsService.removeAchievement(
-        studentId,
+    const achievementId = req.params.id;
+
+    const achievement = await achievementsService.updateAchievement(
         achievementId,
-        req.user.id,
+        req.body,
+        req.user._id,
+        req.user.role
+    );
+
+    res.status(200).json({
+        success: true,
+        message: 'Постижението е обновено успешно',
+        achievement
+    });
+});
+
+// Изтриване на постижение
+export const deleteAchievement = catchAsync(async (req, res, next) => {
+    const achievementId = req.params.id;
+
+    const result = await achievementsService.deleteAchievement(
+        achievementId,
+        req.user._id,
         req.user.role
     );
 
@@ -72,11 +91,11 @@ export const getAllAchievements = catchAsync(async (req, res, next) => {
     const filters = {
         page: parseInt(req.query.page) || 1,
         limit: parseInt(req.query.limit) || 10,
-        grade: req.query.grade,
         category: req.query.category,
-        search: req.query.search,
+        userId: req.query.userId,
         startDate: req.query.startDate,
-        endDate: req.query.endDate
+        endDate: req.query.endDate,
+        search: req.query.search
     };
 
     const result = await achievementsService.getAllAchievements(filters, req.user.role);
@@ -89,36 +108,17 @@ export const getAllAchievements = catchAsync(async (req, res, next) => {
 });
 
 // Получаване на статистики за постижения
-export const getAchievementsStatistics = catchAsync(async (req, res, next) => {
+export const getAchievementsStats = catchAsync(async (req, res, next) => {
     const filters = {
-        grade: req.query.grade,
         startDate: req.query.startDate,
-        endDate: req.query.endDate
+        endDate: req.query.endDate,
+        grade: req.query.grade
     };
 
-    const stats = await achievementsService.getAchievementsStatistics(filters, req.user.role);
+    const stats = await achievementsService.getAchievementsStats(filters, req.user.role);
 
     res.status(200).json({
         success: true,
         stats
-    });
-});
-
-// Експортиране на постижения за отчет
-export const exportAchievementsData = catchAsync(async (req, res, next) => {
-    const filters = {
-        grade: req.query.grade,
-        category: req.query.category,
-        startDate: req.query.startDate,
-        endDate: req.query.endDate
-    };
-
-    const data = await achievementsService.exportAchievementsData(filters, req.user.role);
-
-    res.status(200).json({
-        success: true,
-        count: data.length,
-        filters,
-        data
     });
 });
