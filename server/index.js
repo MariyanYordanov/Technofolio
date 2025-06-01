@@ -1,4 +1,4 @@
-// index.js
+// server/index.js - Updated without student and sanctions routes
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -12,10 +12,10 @@ import rateLimit from 'express-rate-limit';
 
 // Импортиране на маршрути
 import authRoutes from './routes/authRoutes.js';
-import studentRoutes from './routes/studentRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import eventsRoutes from './routes/eventsRoutes.js';
 import creditsRoutes from './routes/creditsRoutes.js';
-import userRoutes from './routes/userRoutes.js';
+import achievementsRoutes from './routes/achievementsRoutes.js';
 import reportsRoutes from './routes/reportsRoutes.js';
 import notificationsRoutes from './routes/notificationsRoutes.js';
 
@@ -54,10 +54,10 @@ app.use(cors({
 
 // Маршрути за API
 app.use('/api/auth', authRoutes);
-app.use('/api/students', studentRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/credits', creditsRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/achievements', achievementsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 
