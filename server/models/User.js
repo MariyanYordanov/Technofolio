@@ -193,7 +193,7 @@ const userSchema = new mongoose.Schema({
     // ===== ОБЩИ ПОЛЕТА =====
     imageUrl: {
         type: String,
-        default: '/default-avatar.png'
+        default: 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
     },
 
     // ===== СИГУРНОСТ И АВТЕНТИКАЦИЯ =====

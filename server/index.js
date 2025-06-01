@@ -52,6 +52,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
+// Статични файлове
+app.use('/assets', express.static('assets'));
+
 // Маршрути за API
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
