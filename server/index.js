@@ -1,4 +1,4 @@
-// server/index.js - Updated without student and sanctions routes
+// server/index.js - Fixed async MongoDB connection
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -22,9 +22,6 @@ import notificationsRoutes from './routes/notificationsRoutes.js';
 // Инициализиране на app
 const app = express();
 
-// Свързване с базата данни
-connectDB();
-
 // Глобален rate limiter за защита срещу DoS атаки
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 минути
@@ -34,7 +31,7 @@ const limiter = rateLimit({
 });
 
 // Middleware за сигурност
-app.use(helmet()); // Сигурност на HTTP хедъри
+app.use(helmet()); // Сигурностни HTTP хедъри
 app.use(mongoSanitize()); // Предотвратяване на NoSQL инжекции
 app.use(xss()); // Защита срещу XSS атаки
 app.use(limiter); // Rate limiting
@@ -82,6 +79,22 @@ app.use((error, req, res, next) => {
     res.status(status).json({ message });
 });
 
-// Стартиране на сървъра
-const PORT = process.env.PORT || 3030;
-app.listen(PORT, () => console.log(`Сървърът работи на http://localhost:${PORT}`));
+// Функция за стартиране на сървъра
+const startServer = async () => {
+    try {
+        // Първо се свързваме с базата данни
+        await connectDB();
+
+        // След това стартираме сървъра
+        const PORT = process.env.PORT || 3030;
+        app.listen(PORT, () => {
+            console.log(`✅ Сървърът работи на http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('❌ Грешка при стартиране на сървъра:', error);
+        process.exit(1);
+    }
+};
+
+// Стартиране
+startServer();

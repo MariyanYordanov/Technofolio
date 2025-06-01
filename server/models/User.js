@@ -38,18 +38,15 @@ const userSchema = new mongoose.Schema({
     studentInfo: {
         grade: {
             type: String,
-            enum: ['8', '9', '10', '11', '12'],
-            required: function () { return this.role === 'student'; }
+            enum: ['8', '9', '10', '11', '12']
         },
         specialization: {
-            type: String,
-            required: function () { return this.role === 'student'; }
+            type: String
         },
         averageGrade: {
             type: Number,
             min: 2,
-            max: 6,
-            default: function () { return this.role === 'student' ? 2 : undefined; }
+            max: 6
         }
     },
 

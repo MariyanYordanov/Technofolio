@@ -665,10 +665,28 @@ export const changeUserRole = async (id, newRole, currentUser) => {
         throw new AppError('Не можете да променяте ролята на администратор', 403);
     }
 
-    user.role = newRole;
-    await user.save();
+    // Забрана за определени промени
+    const currentRole = user.role;
+    
+    // Ученик не може да става учител/админ (губи данните си)
+    if (currentRole === 'student' && newRole !== 'student') {
+        throw new AppError('Ученик не може да променя ролята си. Създайте нов акаунт за учител/админ роля.', 400);
+    }
+    
+    // Учител/админ не може да става ученик
+    if ((currentRole === 'teacher' || currentRole === 'admin') && newRole === 'student') {
+        throw new AppError('Учител или администратор не може да стане ученик', 400);
+    }
 
-    return { user };
+    // Позволени са само teacher <-> admin
+    if ((currentRole === 'teacher' && newRole === 'admin') || 
+        (currentRole === 'admin' && newRole === 'teacher')) {
+        user.role = newRole;
+        await user.save();
+        return { user };
+    }
+
+    throw new AppError('Тази промяна на роля не е позволена', 400);
 };
 
 export const resetUserPassword = async (id, password, currentUser) => {

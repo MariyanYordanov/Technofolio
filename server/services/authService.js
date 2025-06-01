@@ -101,7 +101,7 @@ export const registerUser = async (userData) => {
     } catch (error) {
         console.error('Грешка при изпращане на имейл за потвърждение:', error);
     }
-
+    
     // Създаване на token response
     const tokenResponse = createTokenResponse(user);
     await user.save({ validateBeforeSave: false });

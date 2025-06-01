@@ -2,6 +2,9 @@
 import { AppError } from '../utils/AppError.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { generateExcelReport, generatePdfReport, formatDate } from '../utils/reports/reportGenerator.js';
+import { generateMultiSectionPdfReport } from '../utils/reports/enhancedPdfGenerator.js';
+import Credit from '../models/Credit.js';
+import Achievement from '../models/Achievement.js';
 
 // Модели
 import User from '../models/User.js';
@@ -83,7 +86,9 @@ export const generateAbsenceReport = catchAsync(async (req, res, next) => {
 
     // Изпращане на файла
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.setHeader('Content-Disposition',
+        `attachment; filename="${encodeURIComponent(filename)}"; filename*=UTF-8''${encodeURIComponent(filename)}`
+    );
     res.send(buffer);
 });
 
@@ -185,7 +190,9 @@ export const generateEventsReport = catchAsync(async (req, res, next) => {
 
     // Изпращане на файла
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.setHeader('Content-Disposition',
+        `attachment; filename="${encodeURIComponent(filename)}"; filename*=UTF-8''${encodeURIComponent(filename)}`
+    );
     res.send(buffer);
 });
 
@@ -279,10 +286,49 @@ export const generateStudentReport = catchAsync(async (req, res, next) => {
     let buffer, filename, contentType;
 
     if (format === 'pdf') {
-        // TODO: Създаване на PDF документ с няколко секции
-        // За момента имаме само една секция с отсъствия
-        buffer = await generatePdfReport([absencesData], absencesHeaders, title, subtitle);
-        filename = `student_report_${student.lastName}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        // Извличане на допълнителни данни за PDF
+        const credits = await Credit.find({ user: userId })
+            .populate('validatedBy', 'firstName lastName');
+
+        const achievements = await Achievement.find({ user: userId })
+            .sort({ date: -1 });
+
+        // Форматиране на данните за кредити
+        const creditsData = credits.map(c => ({
+            pillar: c.pillar,
+            activity: c.activity,
+            description: c.description,
+            status: c.status,
+            validatedBy: c.validatedBy ? `${c.validatedBy.firstName} ${c.validatedBy.lastName}` : null,
+            validationDate: c.validationDate ? formatDate(c.validationDate) : null
+        }));
+
+        // Форматиране на данните за постижения
+        const achievementsData = achievements.map(a => ({
+            category: a.category,
+            title: a.title,
+            description: a.description,
+            date: a.date,
+            place: a.place,
+            issuer: a.issuer
+        }));
+
+        // Подготовка на данните
+        const studentData = {
+            student,
+            absencesData,
+            eventsData,
+            creditsData,
+            achievementsData
+        };
+
+        // Генериране на PDF с всички секции
+        buffer = await generateMultiSectionPdfReport(
+            studentData,
+            ['absences', 'events', 'credits', 'achievements'] // Можеш да контролираш кои секции да включиш
+        );
+
+        filename = `отчет_${student.firstName}_${student.lastName}_${new Date().toISOString().slice(0, 10)}.pdf`;
         contentType = 'application/pdf';
     } else {
         // За Excel използваме по-сложна логика с няколко работни листа
@@ -339,12 +385,14 @@ export const generateStudentReport = catchAsync(async (req, res, next) => {
 
         // Създаване на буфер
         buffer = await workbook.xlsx.writeBuffer();
-        filename = `student_report_${student.lastName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        filename = `student_report_${student.firstName}_${student.lastName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
         contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     }
 
     // Изпращане на файла
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.setHeader('Content-Disposition',
+        `attachment; filename="${encodeURIComponent(filename)}"; filename*=UTF-8''${encodeURIComponent(filename)}`
+    );
     res.send(buffer);
 });
