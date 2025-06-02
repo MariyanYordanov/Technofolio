@@ -1,141 +1,73 @@
-/* client/public/styles/layout/_header.css */
-.site-header {
-    background-color: var(--bg-color);
-    box-shadow: var(--shadow-sm);
-    height: var(--header-height);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 var(--spacing-lg);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
+/* Добавете към client/styles/layout/_header.css */
 
-.logo h1 {
-    font-size: 24px;
-    color: var(--primary-color);
-}
-
-.nav-links {
-    display: flex;
-    list-style: none;
-    gap: var(--spacing-lg);
-}
-
-.nav-links li a {
-    color: var(--text-color);
-    font-weight: 500;
-    transition: color var(--transition-fast);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-}
-
-.nav-links li a:hover {
-    color: var(--primary-color);
-    background-color: var(--bg-light);
-}
-
+/* NavLink active стилове */
 .nav-links li a.active {
     color: var(--primary-color);
     font-weight: 600;
+    background-color: var(--bg-light);
 }
 
-.user-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
+/* Dropdown меню */
+.nav-dropdown {
+    position: relative;
 }
 
-.username {
-    font-weight: 600;
-    margin-right: var(--spacing-md);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+.nav-dropdown>span {
+    color: var(--text-color);
+    font-weight: 500;
+    cursor: pointer;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    display: block;
 }
 
-.role-badge {
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--bg-color);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--border-radius-md);
+    min-width: 180px;
+    display: none;
+    z-index: var(--z-index-dropdown);
+}
+
+.nav-dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu li {
+    list-style: none;
+}
+
+.dropdown-menu li a {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-color);
+    transition: all var(--transition-fast);
+}
+
+.dropdown-menu li a:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-color);
+}
+
+.dropdown-menu li a.active {
     background-color: var(--primary-light);
     color: white;
-    font-size: var(--font-size-xs);
-    padding: 2px var(--spacing-xs);
-    border-radius: var(--border-radius-sm);
-    font-weight: normal;
 }
 
-.auth-buttons {
-    display: flex;
-    gap: var(--spacing-sm);
-}
-
-.login-btn {
-    background-color: var(--bg-dark);
-    color: var(--text-color);
-}
-
-.login-btn:hover {
-    background-color: var(--primary-light);
-    color: white;
-}
-
-.register-btn {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.register-btn:hover {
-    background-color: var(--primary-dark);
-}
-
-.logout-btn {
-    background-color: var(--bg-dark);
-    color: var(--text-color);
-}
-
-.logout-btn:hover {
+/* Auth buttons */
+.auth-buttons .register-btn {
     background-color: var(--secondary-color);
     color: white;
 }
 
-/* Responsive стилове */
-@media (max-width: 1023px) {
-    .site-header {
-        flex-wrap: wrap;
-        height: auto;
-        padding: var(--spacing-md);
-    }
-
-    .nav-links {
-        order: 3;
-        width: 100%;
-        margin-top: var(--spacing-md);
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
+.auth-buttons .register-btn:hover {
+    background-color: #e05a5a;
 }
 
-@media (max-width: 767px) {
-    .site-header {
-        padding: var(--spacing-sm);
-    }
-
-    .logo h1 {
-        font-size: 20px;
-    }
-
-    .nav-links {
-        gap: var(--spacing-sm);
-        font-size: var(--font-size-sm);
-    }
-
-    .user-actions {
-        flex-direction: column;
-        align-items: flex-end;
-    }
-
-    .username {
-        font-size: var(--font-size-sm);
-        margin-right: 0;
-    }
+.auth-buttons .register-btn.active {
+    background-color: var(--primary-color);
+    color: white;
 }

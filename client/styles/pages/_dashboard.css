@@ -1,0 +1,205 @@
+/* client/styles/pages/_dashboard.css */
+
+/* Общи стилове за всички dashboards */
+.student-dashboard,
+.teacher-dashboard,
+.admin-dashboard {
+    padding: var(--spacing-xl);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.dashboard-header h1 {
+    margin-bottom: var(--spacing-sm);
+}
+
+.dashboard-subtitle {
+    color: var(--text-light);
+    font-size: var(--font-size-lg);
+}
+
+/* Quick stats */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.stat-card {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-value {
+    font-size: var(--font-size-heading-1);
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+}
+
+/* Quick actions */
+.quick-actions {
+    margin-bottom: var(--spacing-xl);
+}
+
+.quick-actions h2 {
+    margin-bottom: var(--spacing-lg);
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.action-card {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    background-color: var(--primary-light);
+    color: white;
+}
+
+.action-icon {
+    font-size: 2rem;
+}
+
+.action-title {
+    font-weight: 600;
+}
+
+/* Dashboard content */
+.dashboard-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.dashboard-section {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
+.see-all {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.see-all:hover {
+    text-decoration: underline;
+}
+
+/* Mini cards */
+.mini-event-card,
+.mini-achievement-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.mini-event-card:last-child,
+.mini-achievement-card:last-child {
+    margin-bottom: 0;
+}
+
+.event-date {
+    background-color: var(--primary-light);
+    color: white;
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    text-align: center;
+    min-width: 50px;
+    font-weight: 600;
+}
+
+.event-info h4,
+.achievement-info h4 {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-md);
+}
+
+.event-info p,
+.achievement-info p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+}
+
+.achievement-icon {
+    font-size: 1.5rem;
+}
+
+/* No data message */
+.no-data {
+    text-align: center;
+    color: var(--text-light);
+    padding: var(--spacing-lg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-content {
+        grid-template-columns: 1fr;
+    }
+}

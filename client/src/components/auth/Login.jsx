@@ -1,4 +1,4 @@
-// src/components/auth/Login.jsx
+// client/src/components/auth/Login.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth.js';
@@ -10,6 +10,7 @@ export default function Login() {
   const { error } = useNotifications();
   const [formError, setFormError] = useState('');
   const [isEmailLogin, setIsEmailLogin] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { values, onChange, onSubmit } = useForm(async (formValues) => {
     try {
@@ -72,26 +73,36 @@ export default function Login() {
           </div>
 
           {!isEmailLogin && (
-            <div className="form-group">
+            <div className="form-group password-group">
               <label htmlFor="password">Парола:</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={values.password}
-                onChange={onChange}
-                required
-                autoComplete="current-password"
-                placeholder="********"
-                disabled={isLoading}
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={values.password}
+                  onChange={onChange}
+                  required
+                  autoComplete="current-password"
+                  placeholder="********"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex="-1"
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
             </div>
           )}
 
           <div className="form-actions">
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn btn-primary btn-full-width"
               disabled={isLoading}
             >
               {isLoading ? 'Обработка...' : isEmailLogin ? 'Изпрати линк за вход' : 'Вход'}

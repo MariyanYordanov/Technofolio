@@ -1,5 +1,6 @@
+// client/src/components/common/Header.jsx
 import { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import Path from '../../paths.js';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -10,6 +11,7 @@ export default function Header() {
         username,
         isTeacher,
         isAdmin,
+        isStudent,
         firstName,
         lastName
     } = useContext(AuthContext);
@@ -17,19 +19,28 @@ export default function Header() {
     const renderStudentMenu = () => (
         <ul className="nav-links">
             <li>
-                <Link to={Path.StudentProfile}>Профил</Link>
+                <NavLink to={Path.StudentDashboard}>Табло</NavLink>
             </li>
             <li>
-                <Link to={Path.Portfolio}>Портфолио</Link>
+                <NavLink to={Path.StudentProfile}>Профил</NavLink>
             </li>
             <li>
-                <Link to={Path.Goals}>Цели</Link>
+                <NavLink to={Path.Portfolio}>Портфолио</NavLink>
             </li>
             <li>
-                <Link to={Path.Credits}>Кредити</Link>
+                <NavLink to={Path.Credits}>Кредити</NavLink>
             </li>
             <li>
-                <Link to={Path.Events}>Събития</Link>
+                <NavLink to={Path.Events}>Събития</NavLink>
+            </li>
+            <li className="nav-dropdown">
+                <span>Още</span>
+                <ul className="dropdown-menu">
+                    <li><NavLink to={Path.Goals}>Цели</NavLink></li>
+                    <li><NavLink to={Path.Achievements}>Постижения</NavLink></li>
+                    <li><NavLink to={Path.Interests}>Интереси</NavLink></li>
+                    <li><NavLink to={Path.Sanctions}>Санкции</NavLink></li>
+                </ul>
             </li>
         </ul>
     );
@@ -37,19 +48,19 @@ export default function Header() {
     const renderTeacherMenu = () => (
         <ul className="nav-links">
             <li>
-                <Link to={Path.TeacherDashboard}>Табло</Link>
+                <NavLink to={Path.TeacherDashboard}>Табло</NavLink>
             </li>
             <li>
-                <Link to={Path.TeacherStudents}>Ученици</Link>
+                <NavLink to={Path.TeacherStudents}>Ученици</NavLink>
             </li>
             <li>
-                <Link to={Path.TeacherCredits}>Кредити</Link>
+                <NavLink to={Path.TeacherCredits}>Кредити</NavLink>
             </li>
             <li>
-                <Link to={Path.TeacherEvents}>Събития</Link>
+                <NavLink to={Path.TeacherEvents}>Събития</NavLink>
             </li>
             <li>
-                <Link to={Path.TeacherReports}>Отчети</Link>
+                <NavLink to={Path.TeacherReports}>Отчети</NavLink>
             </li>
         </ul>
     );
@@ -57,41 +68,49 @@ export default function Header() {
     const renderAdminMenu = () => (
         <ul className="nav-links">
             <li>
-                <Link to="/admin/dashboard">Табло</Link>
+                <NavLink to={Path.AdminDashboard}>Табло</NavLink>
             </li>
             <li>
-                <Link to="/admin/users">Потребители</Link>
+                <NavLink to={Path.AdminUsers}>Потребители</NavLink>
             </li>
             <li>
-                <Link to="/admin/credit-categories">Категории</Link>
+                <NavLink to={Path.AdminCreditCategories}>Категории</NavLink>
             </li>
-            <li>
-                <Link to="/admin/settings">Настройки</Link>
-            </li>
-            <li>
-                <Link to="/admin/reports">Отчети</Link>
+            <li className="nav-dropdown">
+                <span>Система</span>
+                <ul className="dropdown-menu">
+                    <li><NavLink to={Path.AdminSettings}>Настройки</NavLink></li>
+                    <li><NavLink to={Path.AdminReports}>Отчети</NavLink></li>
+                    <li><NavLink to={Path.AdminLogs}>Логове</NavLink></li>
+                    <li><NavLink to={Path.AdminBackup}>Архив</NavLink></li>
+                </ul>
             </li>
         </ul>
     );
 
+    // Определяне на home path според ролята
+    const getHomePath = () => {
+        if (isAdmin) return Path.AdminDashboard;
+        if (isTeacher) return Path.TeacherDashboard;
+        if (isStudent) return Path.StudentDashboard;
+        return Path.Home;
+    };
+
     return (
         <header className="site-header">
             <div className="logo">
-                <Link to={isTeacher || isAdmin ? Path.TeacherDashboard : Path.Home}>
+                <Link to={getHomePath()}>
                     <h1>Технофолио</h1>
                 </Link>
             </div>
 
             <nav className="main-nav">
-                {
-                    isAuthenticated && (
-                        isAdmin ? renderAdminMenu() :
-                            isTeacher ? renderTeacherMenu() :
-                                renderStudentMenu()
-                    )
-                }
+                {isAuthenticated && (
+                    isAdmin ? renderAdminMenu() :
+                        isTeacher ? renderTeacherMenu() :
+                            renderStudentMenu()
+                )}
             </nav>
-            
 
             <div className="user-actions">
                 <ThemeToggle />
@@ -100,22 +119,21 @@ export default function Header() {
                     <div className="user-menu">
                         <span className="username">
                             {firstName || lastName ? `${firstName} ${lastName}` : username}
-                            {(isTeacher || isAdmin) && <span className="role-badge">{isAdmin ? 'Администратор' : 'Учител'}</span>}
+                            {(isTeacher || isAdmin) && (
+                                <span className="role-badge">
+                                    {isAdmin ? 'Администратор' : 'Учител'}
+                                </span>
+                            )}
                         </span>
                         <Link to={Path.Logout} className="btn logout-btn">Изход</Link>
                     </div>
                 ) : (
                     <div className="auth-buttons">
-                        <Link to={Path.Login} className="btn login-btn">Вход</Link>
-                        <Link to={Path.Register} className="btn register-btn">Регистрация</Link>
+                        <NavLink to={Path.Login} className="btn login-btn">Вход</NavLink>
+                        <NavLink to={Path.Register} className="btn register-btn">Регистрация</NavLink>
                     </div>
                 )}
             </div>
         </header>
     );
 }
-
-// В Header.jsx добавете
-
-
-// И в nav секцията

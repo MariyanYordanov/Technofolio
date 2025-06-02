@@ -1,8 +1,17 @@
+// client/src/paths.js
 const Path = {
+    // Публични пътища
     Home: '/',
     Login: '/login',
     Register: '/register',
+    EmailLogin: '/login/email',
+    ConfirmRegistration: '/register/confirm',
+
+    // Общи за логнати
     Logout: '/logout',
+
+    // Студентски пътища
+    StudentDashboard: '/dashboard',
     StudentProfile: '/profile',
     Portfolio: '/portfolio',
     Goals: '/goals',
@@ -11,36 +20,26 @@ const Path = {
     Achievements: '/achievements',
     Sanctions: '/sanctions',
     Events: '/events',
-    EmailLogin: '/login/email',
-    ConfirmRegistration: '/register/confirm',
+
     // Учителски пътища
     TeacherDashboard: '/teacher/dashboard',
     TeacherStudents: '/teacher/students',
-    TeacherStudentDetails: '/teacher/students/:studentId/profile',
+    TeacherStudentDetails: '/teacher/students/:studentId',
     TeacherStudentCredits: '/teacher/students/:studentId/credits',
     TeacherStudentSanctions: '/teacher/students/:studentId/sanctions',
     TeacherEvents: '/teacher/events',
     TeacherCredits: '/teacher/credits',
     TeacherReports: '/teacher/reports',
-    // Административни пътища
+
+    // Админ пътища
     AdminDashboard: '/admin/dashboard',
-    AdminCreditCategories: '/admin/credit-categories',
     AdminUsers: '/admin/users',
+    AdminUserDetails: '/admin/users/:userId',
+    AdminCreditCategories: '/admin/credit-categories',
     AdminSettings: '/admin/settings',
     AdminReports: '/admin/reports',
-    // Общи пътища
-    TestApi: '/test',
-    NotFound: '*',
-    // Защитени пътища
-    AuthGuard: '/auth-guard',
-    Authenticated: '/authenticated',
-    EmailLoginRedirect: '/login/email-redirect',
-    ConfirmEmail: '/confirm-email',
-    ResetPassword: '/reset-password',
-    ChangePassword: '/change-password',
-    UserProfile: '/user/profile',
-    UserSettings: '/user/settings',
-    UserNotifications: '/user/notifications',
+    AdminLogs: '/admin/logs',
+    AdminBackup: '/admin/backup'
 };
 
 export default Path;
