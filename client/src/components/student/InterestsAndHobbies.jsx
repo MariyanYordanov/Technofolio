@@ -1,11 +1,9 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as studentService from '../../services/studentService.js';
 import useForm from '../../hooks/useForm.js';
 
 export default function InterestsAndHobbies() {
-    const navigate = useNavigate();
     const { userId, isAuthenticated } = useContext(AuthContext);
     const [interests, setInterests] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -23,41 +21,37 @@ export default function InterestsAndHobbies() {
     const fetchInterests = useCallback(async () => {
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            if (!studentProfile) {
-                navigate('/profile');
-                return;
-            }
-
-            const interestsData = await studentService.getStudentInterests(studentProfile._id);
+            // Директно използваме userId
+            const interestsData = await studentService.getStudentInterests(userId);
             setInterests(interestsData || { interests: [], hobbies: [] });
+
             setLoading(false);
         } catch (err) {
-            console.log(err);
+            console.error('Error fetching interests:', err);
             setError('Грешка при зареждане на интересите.');
             setLoading(false);
         }
-    }, [userId, navigate]);
+    }, [userId]);
 
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && userId) {
             fetchInterests();
         }
-    }, [isAuthenticated, fetchInterests]);
+    }, [isAuthenticated, userId, fetchInterests]);
 
     const { values, onSubmit, changeValues } = useForm(async (formValues) => {
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            const updatedInterests = await studentService.updateInterests(studentProfile._id, formValues);
+            // Директно използваме userId
+            const updatedInterests = await studentService.updateInterests(userId, formValues);
             setInterests(updatedInterests);
 
             setIsEditing(false);
             setLoading(false);
         } catch (err) {
-            console.log(err);
+            console.error('Error updating interests:', err);
             setError('Грешка при обновяване на интересите.');
             setLoading(false);
         }

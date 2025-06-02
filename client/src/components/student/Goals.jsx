@@ -1,11 +1,9 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as studentService from '../../services/studentService.js';
 import useForm from '../../hooks/useForm.js';
 
 export default function Goals() {
-    const navigate = useNavigate();
     const { userId, isAuthenticated } = useContext(AuthContext);
     const [goals, setGoals] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -16,82 +14,50 @@ export default function Goals() {
     const fetchGoals = useCallback(async () => {
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            if (!studentProfile) {
-                navigate('/profile');
-                return;
-            }
+            // Извличаме реалните цели от API
+            const goalsData = await studentService.getStudentGoals(userId);
 
-            // Симулираме зареждане на цели за момента
-            const goalsData = {
-                personalDevelopment: {
-                    title: "Личностно развитие",
-                    description: "Развиване на лидерски умения",
-                    activities: "Участие в училищния парламент, организиране на училищни събития"
-                },
-                academicDevelopment: {
-                    title: "Академично развитие",
-                    description: "Повишаване на средния успех до 5.50",
-                    activities: "Редовно учене, участие в олимпиади по математика и физика"
-                },
-                profession: {
-                    title: "Професия",
-                    description: "Изграждане на основни умения в програмирането",
-                    activities: "Разработка на личен проект, участие в SoftUni курсове"
-                },
-                extracurricular: {
-                    title: "Извънкласна дейност",
-                    description: "Развиване на спортни умения",
-                    activities: "Редовни тренировки по футбол, участие в училищния отбор"
-                },
-                community: {
-                    title: "Общност",
-                    description: "Активно участие в училищния живот",
-                    activities: "Доброволчество, помощ на съученици"
-                },
-                internship: {
-                    title: "Стаж",
-                    description: "Придобиване на реален опит в IT компания",
-                    activities: "Кандидатстване за летни стажове, подготовка на CV"
-                }
-            };
+            // Преобразуваме масива в обект по категории
+            const goalsObject = {};
+            goalsData.forEach(goal => {
+                goalsObject[goal.category] = goal;
+            });
 
-            setGoals(goalsData);
+            setGoals(goalsObject);
             setLoading(false);
         } catch (err) {
-            console.log(err);
+            console.error('Error fetching goals:', err);
             setError('Грешка при зареждане на целите.');
             setLoading(false);
         }
-    }, [userId, navigate]);
+    }, [userId]);
 
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && userId) {
             fetchGoals();
         }
-    }, [isAuthenticated, fetchGoals]);
+    }, [isAuthenticated, userId, fetchGoals]);
 
     const { values, onChange, onSubmit, changeValues } = useForm(async (formValues) => {
         try {
             setLoading(true);
-            // API повикване за обновяване на цел
-            // За момента симулираме успешен отговор
 
-            setGoals(prevGoals => ({
-                ...prevGoals,
-                [editingGoalId]: {
-                    ...prevGoals[editingGoalId],
-                    description: formValues.description,
-                    activities: formValues.activities
-                }
-            }));
+            // API повикване за обновяване на цел
+            await studentService.updateGoal(userId, editingGoalId, {
+                title: goals[editingGoalId].title,
+                description: formValues.description,
+                activities: formValues.activities.split(',').map(a => a.trim()).filter(a => a)
+            });
+
+            // Презареждаме целите
+            await fetchGoals();
 
             setIsEditing(false);
             setEditingGoalId(null);
             setLoading(false);
         } catch (err) {
-            console.log(err);
+            console.error('Error updating goal:', err);
             setError('Грешка при обновяване на целта.');
             setLoading(false);
         }
@@ -103,9 +69,10 @@ export default function Goals() {
     const handleEdit = (goalId) => {
         setIsEditing(true);
         setEditingGoalId(goalId);
+        const goal = goals[goalId];
         changeValues({
-            description: goals[goalId].description,
-            activities: goals[goalId].activities
+            description: goal.description || '',
+            activities: Array.isArray(goal.activities) ? goal.activities.join(', ') : ''
         });
     };
 
@@ -122,12 +89,34 @@ export default function Goals() {
         return <div className="error">{error}</div>;
     }
 
-    if (!goals) {
+    if (!goals || Object.keys(goals).length === 0) {
         return (
             <div className="goals-empty">
                 <h1>Моите цели</h1>
                 <p>Все още нямате зададени цели.</p>
-                <button className="btn btn-primary" onClick={() => setIsEditing(true)}>Добави цели</button>
+                <button className="btn btn-primary" onClick={() => {
+                    // Създаваме празни цели за всички категории
+                    const categories = ['personalDevelopment', 'academicDevelopment', 'profession', 'extracurricular', 'community', 'internship'];
+                    const categoryTitles = {
+                        personalDevelopment: 'Личностно развитие',
+                        academicDevelopment: 'Академично развитие',
+                        profession: 'Професия',
+                        extracurricular: 'Извънкласна дейност',
+                        community: 'Общност',
+                        internship: 'Стаж'
+                    };
+
+                    const emptyGoals = {};
+                    categories.forEach(cat => {
+                        emptyGoals[cat] = {
+                            category: cat,
+                            title: categoryTitles[cat],
+                            description: '',
+                            activities: []
+                        };
+                    });
+                    setGoals(emptyGoals);
+                }}>Създай цели</button>
             </div>
         );
     }
@@ -190,7 +179,7 @@ export default function Goals() {
                             </div>
                             <div className="goal-activities">
                                 <h3>Ключови дейности:</h3>
-                                <p>{goal.activities}</p>
+                                <p>{Array.isArray(goal.activities) ? goal.activities.join(', ') : goal.activities}</p>
                             </div>
                         </div>
                     </div>
