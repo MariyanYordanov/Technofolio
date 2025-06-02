@@ -63,6 +63,7 @@ export async function get(endpoint) {
                 ...defaultHeaders,
                 ...getAuthHeaders(),
             },
+            credentials: 'include', // ДОБАВЕНО за cookies
         });
         return handleResponse(res);
     } catch (error) {
@@ -81,6 +82,7 @@ export async function post(endpoint, data) {
                 ...defaultHeaders,
                 ...getAuthHeaders(),
             },
+            credentials: 'include', // ДОБАВЕНО за cookies
             body: JSON.stringify(data),
         });
         return handleResponse(res);
@@ -100,6 +102,7 @@ export async function put(endpoint, data) {
                 ...defaultHeaders,
                 ...getAuthHeaders(),
             },
+            credentials: 'include', // ДОБАВЕНО за cookies
             body: JSON.stringify(data),
         });
         return handleResponse(res);
@@ -119,6 +122,7 @@ export async function patch(endpoint, data) {
                 ...defaultHeaders,
                 ...getAuthHeaders(),
             },
+            credentials: 'include', // ДОБАВЕНО за cookies
             body: JSON.stringify(data),
         });
         return handleResponse(res);
@@ -138,6 +142,7 @@ export async function del(endpoint) {
                 ...defaultHeaders,
                 ...getAuthHeaders(),
             },
+            credentials: 'include', // ДОБАВЕНО за cookies
         });
         return handleResponse(res);
     } catch (error) {

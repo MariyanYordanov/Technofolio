@@ -19,6 +19,7 @@ import Register from './components/auth/Register.jsx';
 import Logout from './components/auth/Logout.jsx';
 import StudentProfile from './components/student/StudentProfile.jsx';
 import { initTheme } from './utils/themeUtils.js';
+import ConfirmRegistration from './components/auth/ConfirmRegistration.jsx';
 
 // Зареждане на ученически компоненти
 const Portfolio = lazy(() => import('./components/student/Portfolio.jsx'));
@@ -37,8 +38,8 @@ const TeacherCredits = lazy(() => import('./components/teacher/TeacherCreditsMan
 const TeacherEvents = lazy(() => import('./components/teacher/TeacherEvents.jsx'));
 const TeacherSanctions = lazy(() => import('./components/teacher/TeacherSanctions.jsx'));
 const TeacherReports = lazy(() => import('./components/teacher/TeacherReports.jsx'));
+const ApiTester = lazy(() => import('./components/test/ApiTester.jsx'));
 
-import ConfirmRegistration from './components/auth/ConfirmRegistration.jsx';
 
 function AppWithNotifications() {
   const notificationService = useNotifications();
@@ -77,7 +78,7 @@ function AppWithAuth() {
               <Route path={Path.Register} element={<Register />} />
               <Route path={Path.EmailLogin} element={<EmailLogin />} />
               <Route path={Path.ConfirmRegistration} element={<ConfirmRegistration />} />
-
+              <Route path="/test" element={<ApiTester />} />
               {/* Защитени маршрути */}
               <Route element={<AuthGuard />}>
                 {/* Ученически маршрути */}

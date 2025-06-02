@@ -5,7 +5,7 @@ import * as creditsService from '../services/creditsService.js';
 
 // Получаване на кредитите на ученик
 export const getStudentCredits = catchAsync(async (req, res, next) => {
-    const userId = req.params.userId; // Променено от studentId на userId
+    const userId = req.params.userId;
     const result = await creditsService.getStudentCredits(userId, req.user.id, req.user.role);
 
     res.status(200).json({

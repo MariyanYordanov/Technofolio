@@ -2,16 +2,19 @@
 import * as request from '../utils/requestUtils.js';
 
 const endpoints = {
-    students: '/api/students',
-    auth: '/api/auth',
-    users: '/api/users'
+    users: '/api/users',
+    student: '/api/users',
+    credits: '/api/credits',
+    events: '/api/events',
+    achievements: '/api/achievements',
+    reports: '/api/reports'
 };
 
 // Извличане на текущия профил на ученика
 export const getCurrentStudentProfile = async () => {
     try {
-        const result = await request.get(`${endpoints.students}/me`);
-        return result.student;
+        const result = await request.get(`${endpoints.users}/me`);
+        return result.student || result;
     } catch (error) {
         console.error('Error fetching current student profile:', error);
         throw error;
@@ -21,19 +24,19 @@ export const getCurrentStudentProfile = async () => {
 // Извличане на профил на ученик по userId
 export const getStudentProfile = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.students}/${userId}`);
-        return result.student;
+        const result = await request.get(`${endpoints.users}/${userId}`);
+        return result.student || result;
     } catch (error) {
         console.error('Error fetching student profile:', error);
         throw error;
     }
 };
 
-// Създаване на профил на ученик
-export const createStudentProfile = async (profileData) => {
+// Създаване на профил на ученик (вече е вграден в User модела)
+export const createStudentProfile = async () => {
     try {
-        const result = await request.post(endpoints.students, profileData);
-        return result.student;
+        // Студентския профил се създава автоматично при регистрация
+        throw new Error('Student profile is created automatically during registration');
     } catch (error) {
         console.error('Error creating student profile:', error);
         throw error;
@@ -41,31 +44,26 @@ export const createStudentProfile = async (profileData) => {
 };
 
 // Обновяване на профил на ученик
-export const updateStudentProfile = async (profileId, profileData) => {
+export const updateStudentProfile = async (userId, profileData) => {
     try {
-        const result = await request.put(`${endpoints.students}/${profileId}`, profileData);
-        return result.student;
+        const result = await request.patch(`${endpoints.users}/${userId}/student`, profileData);
+        return result.student || result;
     } catch (error) {
         console.error('Error updating student profile:', error);
         throw error;
     }
 };
 
-// Изтриване на профил на ученик
-export const deleteStudentProfile = async (profileId) => {
-    try {
-        const result = await request.del(`${endpoints.students}/${profileId}`);
-        return result;
-    } catch (error) {
-        console.error('Error deleting student profile:', error);
-        throw error;
-    }
+// Изтриване на профил на ученик - не се поддържа
+export const deleteStudentProfile = async () => {
+    throw new Error('Deleting student profiles is not supported');
 };
+
 // Извличане на портфолио на ученик
-export const getStudentPortfolio = async (studentId) => {
+export const getStudentPortfolio = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.students}/${studentId}/portfolio`);
-        return result.portfolio;
+        const result = await request.get(`${endpoints.users}/${userId}/student`);
+        return result.student?.portfolio || null;
     } catch (error) {
         console.error('Error fetching student portfolio:', error);
         throw error;
@@ -73,10 +71,12 @@ export const getStudentPortfolio = async (studentId) => {
 };
 
 // Обновяване/Създаване на портфолио
-export const updatePortfolio = async (studentId, portfolioData) => {
+export const updatePortfolio = async (userId, portfolioData) => {
     try {
-        const result = await request.put(`${endpoints.students}/${studentId}/portfolio`, portfolioData);
-        return result.portfolio;
+        const result = await request.patch(`${endpoints.users}/${userId}/student`, {
+            portfolio: portfolioData
+        });
+        return result.student?.portfolio || null;
     } catch (error) {
         console.error('Error updating portfolio:', error);
         throw error;
@@ -84,10 +84,10 @@ export const updatePortfolio = async (studentId, portfolioData) => {
 };
 
 // Добавяне на препоръка към портфолио
-export const addRecommendation = async (studentId, recommendationData) => {
+export const addRecommendation = async (userId, recommendationData) => {
     try {
-        const result = await request.post(`${endpoints.students}/${studentId}/portfolio/recommendations`, recommendationData);
-        return result.portfolio;
+        const result = await request.post(`${endpoints.users}/${userId}/student/recommendations`, recommendationData);
+        return result.student?.portfolio || null;
     } catch (error) {
         console.error('Error adding recommendation:', error);
         throw error;
@@ -95,20 +95,21 @@ export const addRecommendation = async (studentId, recommendationData) => {
 };
 
 // Премахване на препоръка от портфолио
-export const removeRecommendation = async (studentId, recommendationId) => {
+export const removeRecommendation = async (userId, recommendationId) => {
     try {
-        const result = await request.del(`${endpoints.students}/${studentId}/portfolio/recommendations/${recommendationId}`);
-        return result.portfolio;
+        const result = await request.del(`${endpoints.users}/${userId}/student/recommendations/${recommendationId}`);
+        return result.student?.portfolio || null;
     } catch (error) {
         console.error('Error removing recommendation:', error);
         throw error;
     }
 };
+
 // Извличане на цели на ученик
-export const getStudentGoals = async (studentId) => {
+export const getStudentGoals = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.students}/${studentId}/goals`);
-        return result.goals;
+        const result = await request.get(`${endpoints.users}/${userId}/student`);
+        return result.student?.goals || {};
     } catch (error) {
         console.error('Error fetching student goals:', error);
         throw error;
@@ -116,10 +117,10 @@ export const getStudentGoals = async (studentId) => {
 };
 
 // Обновяване/Създаване на цел за определена категория
-export const updateGoal = async (studentId, category, goalData) => {
+export const updateGoal = async (userId, category, goalData) => {
     try {
-        const result = await request.put(`${endpoints.students}/${studentId}/goals/${category}`, goalData);
-        return result;
+        const result = await request.patch(`${endpoints.users}/${userId}/student/goals/${category}`, goalData);
+        return result.student?.goals || {};
     } catch (error) {
         console.error('Error updating goal:', error);
         throw error;
@@ -127,10 +128,10 @@ export const updateGoal = async (studentId, category, goalData) => {
 };
 
 // Изтриване на цел за определена категория
-export const deleteGoal = async (studentId, category) => {
+export const deleteGoal = async (userId, category) => {
     try {
-        const result = await request.del(`${endpoints.students}/${studentId}/goals/${category}`);
-        return result;
+        const result = await request.del(`${endpoints.users}/${userId}/student/goals/${category}`);
+        return result.student?.goals || {};
     } catch (error) {
         console.error('Error deleting goal:', error);
         throw error;
@@ -138,10 +139,10 @@ export const deleteGoal = async (studentId, category) => {
 };
 
 // Извличане на интереси на ученик
-export const getStudentInterests = async (studentId) => {
+export const getStudentInterests = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.students}/${studentId}/interests`);
-        return result.interests;
+        const result = await request.get(`${endpoints.users}/${userId}/student`);
+        return result.student?.interests || { interests: [], hobbies: [] };
     } catch (error) {
         console.error('Error fetching student interests:', error);
         throw error;
@@ -149,10 +150,12 @@ export const getStudentInterests = async (studentId) => {
 };
 
 // Обновяване/Създаване на интереси
-export const updateInterests = async (studentId, interestsData) => {
+export const updateInterests = async (userId, interestsData) => {
     try {
-        const result = await request.put(`${endpoints.students}/${studentId}/interests`, interestsData);
-        return result.interests;
+        const result = await request.patch(`${endpoints.users}/${userId}/student`, {
+            interests: interestsData
+        });
+        return result.student?.interests || { interests: [], hobbies: [] };
     } catch (error) {
         console.error('Error updating interests:', error);
         throw error;
@@ -160,10 +163,10 @@ export const updateInterests = async (studentId, interestsData) => {
 };
 
 // Извличане на постижения на ученик
-export const getStudentAchievements = async (studentId) => {
+export const getStudentAchievements = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.students}/${studentId}/achievements`);
-        return result.achievements;
+        const result = await request.get(`${endpoints.achievements}?studentId=${userId}`);
+        return result.achievements || [];
     } catch (error) {
         console.error('Error fetching student achievements:', error);
         throw error;
@@ -171,10 +174,13 @@ export const getStudentAchievements = async (studentId) => {
 };
 
 // Добавяне на постижение
-export const addAchievement = async (studentId, achievementData) => {
+export const addAchievement = async (userId, achievementData) => {
     try {
-        const result = await request.post(`${endpoints.students}/${studentId}/achievements`, achievementData);
-        return result.achievement;
+        const result = await request.post(endpoints.achievements, {
+            ...achievementData,
+            studentId: userId
+        });
+        return result.achievement || result;
     } catch (error) {
         console.error('Error adding achievement:', error);
         throw error;
@@ -182,27 +188,36 @@ export const addAchievement = async (studentId, achievementData) => {
 };
 
 // Премахване на постижение
-export const removeAchievement = async (studentId, achievementId) => {
+export const removeAchievement = async (userId, achievementId) => {
     try {
-        const result = await request.del(`${endpoints.students}/${studentId}/achievements/${achievementId}`);
+        const result = await request.del(`${endpoints.achievements}/${achievementId}`);
         return result;
     } catch (error) {
         console.error('Error removing achievement:', error);
         throw error;
     }
 };
+
 // Извличане на санкции и забележки на ученик
-export const getStudentSanctions = async (studentId) => {
+export const getStudentSanctions = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.students}/${studentId}/sanctions`);
-        return result.sanctions;
+        const result = await request.get(`${endpoints.users}/${userId}/student`);
+        return result.student?.sanctions || {
+            absences: {
+                excused: 0,
+                unexcused: 0,
+                maxAllowed: 150
+            },
+            schooloRemarks: 0,
+            activeSanctions: []
+        };
     } catch (error) {
         console.error('Error fetching student sanctions:', error);
         throw error;
     }
 };
 
-// Получаване на всички студенти
+// Получаване на всички студенти (за учители)
 export const getAllStudents = async (filters = {}) => {
     try {
         const queryParams = new URLSearchParams();
@@ -212,13 +227,14 @@ export const getAllStudents = async (filters = {}) => {
         if (filters.grade) queryParams.append('grade', filters.grade);
         if (filters.specialization) queryParams.append('specialization', filters.specialization);
         if (filters.search) queryParams.append('search', filters.search);
+        queryParams.append('role', 'student');
 
         const url = queryParams.toString() ?
-            `${endpoints.students}/all?${queryParams.toString()}` :
-            `${endpoints.students}/all`;
+            `${endpoints.users}?${queryParams.toString()}` :
+            `${endpoints.users}?role=student`;
 
         const result = await request.get(url);
-        return result;
+        return result.users || [];
     } catch (error) {
         console.error('Error fetching all students:', error);
         throw error;
@@ -228,8 +244,8 @@ export const getAllStudents = async (filters = {}) => {
 // Получаване на статистики за студенти
 export const getStudentsStatistics = async () => {
     try {
-        const result = await request.get(`${endpoints.students}/stats`);
-        return result.stats;
+        const result = await request.get(`${endpoints.reports}/students/statistics`);
+        return result.statistics || {};
     } catch (error) {
         console.error('Error fetching students statistics:', error);
         throw error;
@@ -241,257 +257,25 @@ export const searchStudents = async (searchCriteria) => {
     try {
         const queryParams = new URLSearchParams();
 
-        if (searchCriteria.q) queryParams.append('q', searchCriteria.q);
+        if (searchCriteria.q) queryParams.append('search', searchCriteria.q);
         if (searchCriteria.grade) queryParams.append('grade', searchCriteria.grade);
         if (searchCriteria.minGrade) queryParams.append('minGrade', searchCriteria.minGrade);
         if (searchCriteria.maxGrade) queryParams.append('maxGrade', searchCriteria.maxGrade);
+        queryParams.append('role', 'student');
 
-        const result = await request.get(`${endpoints.students}/search?${queryParams.toString()}`);
-        return result.students;
+        const result = await request.get(`${endpoints.users}?${queryParams.toString()}`);
+        return result.users || [];
     } catch (error) {
         console.error('Error searching students:', error);
         throw error;
     }
 };
-// Получаване на всички портфолия
-export const getAllPortfolios = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-
-        if (filters.page) queryParams.append('page', filters.page);
-        if (filters.limit) queryParams.append('limit', filters.limit);
-        if (filters.grade) queryParams.append('grade', filters.grade);
-        if (filters.search) queryParams.append('search', filters.search);
-        if (filters.hasMentor) queryParams.append('hasMentor', filters.hasMentor);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/portfolios?${queryParams.toString()}` :
-            `${endpoints.students}/portfolios`;
-
-        const result = await request.get(url);
-        return result;
-    } catch (error) {
-        console.error('Error fetching all portfolios:', error);
-        throw error;
-    }
-};
-
-// Получаване на статистики за портфолия
-export const getPortfoliosStatistics = async () => {
-    try {
-        const result = await request.get(`${endpoints.students}/portfolios/stats`);
-        return result.stats;
-    } catch (error) {
-        console.error('Error fetching portfolios statistics:', error);
-        throw error;
-    }
-};
-// Получаване на всички цели
-export const getAllGoals = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-
-        if (filters.page) queryParams.append('page', filters.page);
-        if (filters.limit) queryParams.append('limit', filters.limit);
-        if (filters.grade) queryParams.append('grade', filters.grade);
-        if (filters.category) queryParams.append('category', filters.category);
-        if (filters.search) queryParams.append('search', filters.search);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/goals?${queryParams.toString()}` :
-            `${endpoints.students}/goals`;
-
-        const result = await request.get(url);
-        return result;
-    } catch (error) {
-        console.error('Error fetching all goals:', error);
-        throw error;
-    }
-};
-
-// Получаване на статистики за цели
-export const getGoalsStatistics = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-        if (filters.grade) queryParams.append('grade', filters.grade);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/goals/stats?${queryParams.toString()}` :
-            `${endpoints.students}/goals/stats`;
-
-        const result = await request.get(url);
-        return result.stats;
-    } catch (error) {
-        console.error('Error fetching goals statistics:', error);
-        throw error;
-    }
-};
-
-// Експортиране на цели
-export const exportGoalsData = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-        if (filters.grade) queryParams.append('grade', filters.grade);
-        if (filters.category) queryParams.append('category', filters.category);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/goals/export?${queryParams.toString()}` :
-            `${endpoints.students}/goals/export`;
-
-        const result = await request.get(url);
-        return result.data;
-    } catch (error) {
-        console.error('Error exporting goals data:', error);
-        throw error;
-    }
-};
-
-// Получаване на всички интереси
-export const getAllInterests = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-
-        if (filters.page) queryParams.append('page', filters.page);
-        if (filters.limit) queryParams.append('limit', filters.limit);
-        if (filters.grade) queryParams.append('grade', filters.grade);
-        if (filters.search) queryParams.append('search', filters.search);
-        if (filters.hasInterests) queryParams.append('hasInterests', filters.hasInterests);
-        if (filters.hasHobbies) queryParams.append('hasHobbies', filters.hasHobbies);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/interests?${queryParams.toString()}` :
-            `${endpoints.students}/interests`;
-
-        const result = await request.get(url);
-        return result;
-    } catch (error) {
-        console.error('Error fetching all interests:', error);
-        throw error;
-    }
-};
-
-// Получаване на статистики за интереси
-export const getInterestsStatistics = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-        if (filters.grade) queryParams.append('grade', filters.grade);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/interests/stats?${queryParams.toString()}` :
-            `${endpoints.students}/interests/stats`;
-
-        const result = await request.get(url);
-        return result.stats;
-    } catch (error) {
-        console.error('Error fetching interests statistics:', error);
-        throw error;
-    }
-};
-
-// Експортиране на интереси
-export const exportInterestsData = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-        if (filters.grade) queryParams.append('grade', filters.grade);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/interests/export?${queryParams.toString()}` :
-            `${endpoints.students}/interests/export`;
-
-        const result = await request.get(url);
-        return result.data;
-    } catch (error) {
-        console.error('Error exporting interests data:', error);
-        throw error;
-    }
-};
-
-// Получаване на популярни интереси и хобита
-export const getPopularInterestsAndHobbies = async () => {
-    try {
-        const result = await request.get(`${endpoints.students}/interests/popular`);
-        return result.popular;
-    } catch (error) {
-        console.error('Error fetching popular interests and hobbies:', error);
-        throw error;
-    }
-};
-
-// ===== АДМИНИСТРАТИВНИ ФУНКЦИИ ЗА ПОСТИЖЕНИЯ =====
-
-// Получаване на всички постижения
-export const getAllAchievements = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-
-        if (filters.page) queryParams.append('page', filters.page);
-        if (filters.limit) queryParams.append('limit', filters.limit);
-        if (filters.grade) queryParams.append('grade', filters.grade);
-        if (filters.category) queryParams.append('category', filters.category);
-        if (filters.search) queryParams.append('search', filters.search);
-        if (filters.startDate) queryParams.append('startDate', filters.startDate);
-        if (filters.endDate) queryParams.append('endDate', filters.endDate);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/achievements?${queryParams.toString()}` :
-            `${endpoints.students}/achievements`;
-
-        const result = await request.get(url);
-        return result;
-    } catch (error) {
-        console.error('Error fetching all achievements:', error);
-        throw error;
-    }
-};
-
-// Получаване на статистики за постижения
-export const getAchievementsStatistics = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-        if (filters.grade) queryParams.append('grade', filters.grade);
-        if (filters.startDate) queryParams.append('startDate', filters.startDate);
-        if (filters.endDate) queryParams.append('endDate', filters.endDate);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/achievements/stats?${queryParams.toString()}` :
-            `${endpoints.students}/achievements/stats`;
-
-        const result = await request.get(url);
-        return result.stats;
-    } catch (error) {
-        console.error('Error fetching achievements statistics:', error);
-        throw error;
-    }
-};
-
-// Експортиране на постижения
-export const exportAchievementsData = async (filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-        if (filters.grade) queryParams.append('grade', filters.grade);
-        if (filters.category) queryParams.append('category', filters.category);
-        if (filters.startDate) queryParams.append('startDate', filters.startDate);
-        if (filters.endDate) queryParams.append('endDate', filters.endDate);
-
-        const url = queryParams.toString() ?
-            `${endpoints.students}/achievements/export?${queryParams.toString()}` :
-            `${endpoints.students}/achievements/export`;
-
-        const result = await request.get(url);
-        return result.data;
-    } catch (error) {
-        console.error('Error exporting achievements data:', error);
-        throw error;
-    }
-};
-
-// ===== ДРУГИ ФУНКЦИИ =====
 
 // Извличане на всички ментори (учители)
 export const getAllMentors = async () => {
     try {
         const result = await request.get(`${endpoints.users}?role=teacher`);
-        return result.users;
+        return result.users || [];
     } catch (error) {
         console.error('Error fetching mentors:', error);
         throw error;
@@ -502,7 +286,7 @@ export const getAllMentors = async () => {
 export const getMentorById = async (mentorId) => {
     try {
         const result = await request.get(`${endpoints.users}/${mentorId}`);
-        return result.user;
+        return result.user || result;
     } catch (error) {
         console.error('Error fetching mentor:', error);
         throw error;

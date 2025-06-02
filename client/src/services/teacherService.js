@@ -2,23 +2,19 @@
 import * as request from '../utils/requestUtils.js';
 
 const endpoints = {
-    students: '/api/teacher/students',
-    student: '/api/teacher/students',
+    users: '/api/users',
     credits: '/api/credits',
-    creditsStudent: '/api/credits/students',
-    validateCredit: '/api/credits',
-    portfolios: '/api/portfolios',
+    events: '/api/events',
     achievements: '/api/achievements',
-    sanctions: '/api/sanctions',
-    goals: '/api/goals',
-    attendance: '/api/attendance',
+    reports: '/api/reports',
+    notifications: '/api/notifications'
 };
 
 // Получаване на всички ученици
 export const getAllStudents = async () => {
     try {
-        const result = await request.get(endpoints.students);
-        return result;
+        const result = await request.get(`${endpoints.users}?role=student`);
+        return result.users || [];
     } catch (error) {
         console.error('Error fetching students:', error);
         throw error;
@@ -28,10 +24,21 @@ export const getAllStudents = async () => {
 // Получаване на конкретен ученик по ID
 export const getStudentById = async (studentId) => {
     try {
-        const result = await request.get(`${endpoints.student}/${studentId}`);
-        return result;
+        const result = await request.get(`${endpoints.users}/${studentId}`);
+        return result.user || result;
     } catch (error) {
         console.error(`Error fetching student with ID ${studentId}:`, error);
+        throw error;
+    }
+};
+
+// Получаване на кредитите на конкретен ученик
+export const getStudentCredits = async (studentId) => {
+    try {
+        const result = await request.get(`${endpoints.credits}?studentId=${studentId}`);
+        return result.credits || [];
+    } catch (error) {
+        console.error(`Error fetching credits for student ${studentId}:`, error);
         throw error;
     }
 };
@@ -40,7 +47,7 @@ export const getStudentById = async (studentId) => {
 export const getAllCredits = async () => {
     try {
         const result = await request.get(endpoints.credits);
-        return result;
+        return result.credits || [];
     } catch (error) {
         console.error('Error fetching all credits:', error);
         throw error;
@@ -50,11 +57,8 @@ export const getAllCredits = async () => {
 // Получаване на портфолиото на ученик
 export const getStudentPortfolio = async (studentId) => {
     try {
-        const result = await request.get(`${endpoints.portfolios}?where=studentId="${studentId}"`);
-        if (result && result.length > 0) {
-            return result[0];
-        }
-        return null;
+        const result = await request.get(`${endpoints.users}/${studentId}`);
+        return result.user?.student?.portfolio || null;
     } catch (error) {
         console.error(`Error fetching portfolio for student ${studentId}:`, error);
         throw error;
@@ -64,8 +68,8 @@ export const getStudentPortfolio = async (studentId) => {
 // Получаване на постиженията на ученик
 export const getStudentAchievements = async (studentId) => {
     try {
-        const result = await request.get(`${endpoints.achievements}?where=studentId="${studentId}"`);
-        return result || [];
+        const result = await request.get(`${endpoints.achievements}?studentId=${studentId}`);
+        return result.achievements || [];
     } catch (error) {
         console.error(`Error fetching achievements for student ${studentId}:`, error);
         throw error;
@@ -75,11 +79,8 @@ export const getStudentAchievements = async (studentId) => {
 // Получаване на целите на ученик
 export const getStudentGoals = async (studentId) => {
     try {
-        const result = await request.get(`${endpoints.goals}?where=studentId="${studentId}"`);
-        if (result && result.length > 0) {
-            return result[0];
-        }
-        return null;
+        const result = await request.get(`${endpoints.users}/${studentId}`);
+        return result.user?.student?.goals || {};
     } catch (error) {
         console.error(`Error fetching goals for student ${studentId}:`, error);
         throw error;
@@ -89,11 +90,12 @@ export const getStudentGoals = async (studentId) => {
 // Получаване на санкциите на ученик
 export const getStudentSanctions = async (studentId) => {
     try {
-        const result = await request.get(`${endpoints.sanctions}?where=studentId="${studentId}"`);
-        if (result && result.length > 0) {
-            return result[0];
-        }
-        return null;
+        const result = await request.get(`${endpoints.users}/${studentId}`);
+        return result.user?.student?.sanctions || {
+            absences: { excused: 0, unexcused: 0, maxAllowed: 150 },
+            schooloRemarks: 0,
+            activeSanctions: []
+        };
     } catch (error) {
         console.error(`Error fetching sanctions for student ${studentId}:`, error);
         throw error;
@@ -103,8 +105,11 @@ export const getStudentSanctions = async (studentId) => {
 // Валидиране на кредит
 export const validateCredit = async (creditId, validationData) => {
     try {
-        const result = await request.patch(`${endpoints.validateCredit}/${creditId}/validate`, validationData);
-        return result;
+        const result = await request.patch(`${endpoints.credits}/${creditId}`, {
+            status: validationData.status,
+            validationNotes: validationData.notes
+        });
+        return result.credit || result;
     } catch (error) {
         console.error(`Error validating credit ${creditId}:`, error);
         throw error;
@@ -114,8 +119,10 @@ export const validateCredit = async (creditId, validationData) => {
 // Обновяване на отсъствия на ученик
 export const updateStudentAbsences = async (studentId, absencesData) => {
     try {
-        const result = await request.patch(`${endpoints.sanctions}/${studentId}/absences`, absencesData);
-        return result;
+        const result = await request.patch(`${endpoints.users}/${studentId}/student`, {
+            'sanctions.absences': absencesData
+        });
+        return result.user?.student?.sanctions || {};
     } catch (error) {
         console.error(`Error updating absences for student ${studentId}:`, error);
         throw error;
@@ -125,8 +132,10 @@ export const updateStudentAbsences = async (studentId, absencesData) => {
 // Обновяване на забележки в Школо
 export const updateSchooloRemarks = async (studentId, remarksData) => {
     try {
-        const result = await request.patch(`${endpoints.sanctions}/${studentId}/schoolo-remarks`, remarksData);
-        return result;
+        const result = await request.patch(`${endpoints.users}/${studentId}/student`, {
+            'sanctions.schooloRemarks': remarksData.remarks
+        });
+        return result.user?.student?.sanctions || {};
     } catch (error) {
         console.error(`Error updating schoolo remarks for student ${studentId}:`, error);
         throw error;
@@ -136,8 +145,20 @@ export const updateSchooloRemarks = async (studentId, remarksData) => {
 // Добавяне на активна санкция
 export const addActiveSanction = async (studentId, sanctionData) => {
     try {
-        const result = await request.post(`${endpoints.sanctions}/${studentId}/active`, sanctionData);
-        return result;
+        const user = await request.get(`${endpoints.users}/${studentId}`);
+        const currentSanctions = user.user?.student?.sanctions?.activeSanctions || [];
+
+        const newSanction = {
+            _id: Date.now().toString(), // временно ID
+            ...sanctionData,
+            dateAdded: new Date().toISOString()
+        };
+
+        const result = await request.patch(`${endpoints.users}/${studentId}/student`, {
+            'sanctions.activeSanctions': [...currentSanctions, newSanction]
+        });
+
+        return result.user?.student?.sanctions || {};
     } catch (error) {
         console.error(`Error adding sanction for student ${studentId}:`, error);
         throw error;
@@ -147,8 +168,15 @@ export const addActiveSanction = async (studentId, sanctionData) => {
 // Премахване на активна санкция
 export const removeActiveSanction = async (studentId, sanctionId) => {
     try {
-        const result = await request.del(`${endpoints.sanctions}/${studentId}/active/${sanctionId}`);
-        return result;
+        const user = await request.get(`${endpoints.users}/${studentId}`);
+        const currentSanctions = user.user?.student?.sanctions?.activeSanctions || [];
+        const filteredSanctions = currentSanctions.filter(s => s._id !== sanctionId);
+
+        const result = await request.patch(`${endpoints.users}/${studentId}/student`, {
+            'sanctions.activeSanctions': filteredSanctions
+        });
+
+        return result.user?.student?.sanctions || {};
     } catch (error) {
         console.error(`Error removing sanction for student ${studentId}:`, error);
         throw error;
@@ -156,12 +184,12 @@ export const removeActiveSanction = async (studentId, sanctionId) => {
 };
 
 // Добавяне на препоръка към ученическо портфолио
-export const addRecommendation = async (portfolioId, recommendationData) => {
+export const addRecommendation = async (studentId, recommendationData) => {
     try {
-        const result = await request.post(`${endpoints.portfolios}/${portfolioId}/recommendations`, recommendationData);
-        return result;
+        const result = await request.post(`${endpoints.users}/${studentId}/student/recommendations`, recommendationData);
+        return result.user?.student?.portfolio || {};
     } catch (error) {
-        console.error(`Error adding recommendation to portfolio ${portfolioId}:`, error);
+        console.error(`Error adding recommendation to student ${studentId}:`, error);
         throw error;
     }
 };
@@ -169,8 +197,8 @@ export const addRecommendation = async (portfolioId, recommendationData) => {
 // Обновяване на статус на ученическо постижение
 export const updateAchievementStatus = async (achievementId, statusData) => {
     try {
-        const result = await request.patch(`${endpoints.achievements}/${achievementId}/status`, statusData);
-        return result;
+        const result = await request.patch(`${endpoints.achievements}/${achievementId}`, statusData);
+        return result.achievement || result;
     } catch (error) {
         console.error(`Error updating achievement status ${achievementId}:`, error);
         throw error;
@@ -180,8 +208,8 @@ export const updateAchievementStatus = async (achievementId, statusData) => {
 // Извличане на всички неприключени кредитни заявки
 export const getPendingCredits = async () => {
     try {
-        const result = await request.get(`${endpoints.validateCredit}?where=status="pending"`);
-        return result;
+        const result = await request.get(`${endpoints.credits}?status=pending`);
+        return result.credits || [];
     } catch (error) {
         console.error('Error fetching pending credits:', error);
         throw error;
@@ -191,8 +219,8 @@ export const getPendingCredits = async () => {
 // Извличане на обобщена статистика за учениците
 export const getStudentsStatistics = async () => {
     try {
-        const result = await request.get(`${endpoints.students}/statistics`);
-        return result;
+        const result = await request.get(`${endpoints.reports}/students/statistics`);
+        return result.statistics || {};
     } catch (error) {
         console.error('Error fetching students statistics:', error);
         throw error;
@@ -209,8 +237,8 @@ export const generateCreditsReport = async (params) => {
         if (params.startDate) queryParams.append('startDate', params.startDate);
         if (params.endDate) queryParams.append('endDate', params.endDate);
 
-        const result = await request.get(`${endpoints.credits}/report?${queryParams.toString()}`);
-        return result;
+        const result = await request.get(`${endpoints.reports}/credits?${queryParams.toString()}`);
+        return result.report || {};
     } catch (error) {
         console.error('Error generating credits report:', error);
         throw error;
@@ -226,8 +254,8 @@ export const generateStudentsReport = async (params) => {
         if (params.startDate) queryParams.append('startDate', params.startDate);
         if (params.endDate) queryParams.append('endDate', params.endDate);
 
-        const result = await request.get(`${endpoints.students}/report?${queryParams.toString()}`);
-        return result;
+        const result = await request.get(`${endpoints.reports}/students?${queryParams.toString()}`);
+        return result.report || {};
     } catch (error) {
         console.error('Error generating students report:', error);
         throw error;
@@ -243,8 +271,8 @@ export const generateEventsReport = async (params) => {
         if (params.startDate) queryParams.append('startDate', params.startDate);
         if (params.endDate) queryParams.append('endDate', params.endDate);
 
-        const result = await request.get(`/api/events/report?${queryParams.toString()}`);
-        return result;
+        const result = await request.get(`${endpoints.reports}/events?${queryParams.toString()}`);
+        return result.report || {};
     } catch (error) {
         console.error('Error generating events report:', error);
         throw error;
@@ -260,8 +288,8 @@ export const generateAchievementsReport = async (params) => {
         if (params.startDate) queryParams.append('startDate', params.startDate);
         if (params.endDate) queryParams.append('endDate', params.endDate);
 
-        const result = await request.get(`${endpoints.achievements}/report?${queryParams.toString()}`);
-        return result;
+        const result = await request.get(`${endpoints.reports}/achievements?${queryParams.toString()}`);
+        return result.report || {};
     } catch (error) {
         console.error('Error generating achievements report:', error);
         throw error;
@@ -277,8 +305,8 @@ export const generateSanctionsReport = async (params) => {
         if (params.startDate) queryParams.append('startDate', params.startDate);
         if (params.endDate) queryParams.append('endDate', params.endDate);
 
-        const result = await request.get(`${endpoints.sanctions}/report?${queryParams.toString()}`);
-        return result;
+        const result = await request.get(`${endpoints.reports}/sanctions?${queryParams.toString()}`);
+        return result.report || {};
     } catch (error) {
         console.error('Error generating sanctions report:', error);
         throw error;
@@ -296,13 +324,13 @@ export const exportReport = async (reportType, params, format) => {
         if (params.endDate) queryParams.append('endDate', params.endDate);
         queryParams.append('format', format);
 
-        const endpoint = `/api/reports/${reportType}/export?${queryParams.toString()}`;
-        const response = await fetch(`${request.serverUrl}${endpoint}`, {
+        const endpoint = `${endpoints.reports}/${reportType}/export?${queryParams.toString()}`;
+        const response = await fetch(`http://localhost:3030${endpoint}`, {
             method: 'GET',
             headers: {
-                ...request.defaultHeaders,
-                ...request.getAuthHeaders(),
+                ...getAuthHeaders(),
             },
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -327,21 +355,16 @@ export const exportReport = async (reportType, params, format) => {
     }
 };
 
-// Експортиране на данни за класен ръководител
-export const exportClassData = async (classId) => {
-    try {
-        const result = await request.get(`${endpoints.students}/class/${classId}/export`);
-        return result;
-    } catch (error) {
-        console.error(`Error exporting data for class ${classId}:`, error);
-        throw error;
-    }
-};
+// Helper функция за auth headers
+function getAuthHeaders() {
+    const token = localStorage.getItem('accessToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export default {
     getAllStudents,
     getStudentById,
-    //getStudentCredits,
+    getStudentCredits,
     getStudentPortfolio,
     getStudentAchievements,
     getStudentGoals,
@@ -360,6 +383,5 @@ export default {
     generateEventsReport,
     generateAchievementsReport,
     generateSanctionsReport,
-    exportReport,
-    exportClassData
+    exportReport
 };
