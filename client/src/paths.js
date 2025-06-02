@@ -6,7 +6,6 @@ const Path = {
     Register: '/register',
     EmailLogin: '/login/email',
     ConfirmRegistration: '/register/confirm',
-    TestApi: '/test',
 
     // Общи за логнати
     Logout: '/logout',
