@@ -29,8 +29,9 @@ export default function Achievements() {
                 navigate('/profile');
                 return;
             }
-
-            const achievementsData = await studentService.getStudentAchievements(studentProfile._id);
+            
+            const achievementsData = await studentService.getStudentAchievements(userId);
+            
             setAchievements(achievementsData || []);
             setLoading(false);
         } catch (err) {

@@ -85,10 +85,11 @@ export const CreditProvider = ({ children }) => {
         }
     }, [userId]);
 
-    const loadCredits = useCallback(async (studentId) => {
+    const loadCredits = useCallback(async (userId) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
-            const credits = await creditService.getStudentCredits(studentId);
+            // Използваме userId директно, не studentId
+            const credits = await creditService.getStudentCredits(userId);
             dispatch({ type: 'SET_CREDITS', payload: credits });
             return credits;
         } catch (error) {
@@ -119,7 +120,8 @@ export const CreditProvider = ({ children }) => {
             const initializeData = async () => {
                 const profile = await loadStudentProfile();
                 if (profile) {
-                    await loadCredits(profile._id);
+                    // Използваме userId вместо profile._id
+                    await loadCredits(userId);
                     await loadCreditCategories();
                 }
             };
@@ -130,11 +132,8 @@ export const CreditProvider = ({ children }) => {
 
     const addCredit = useCallback(async (creditData) => {
         try {
-            if (!state.studentProfile) {
-                throw new Error('Не е зареден профил на ученик');
-            }
-
-            const newCredit = await creditService.addCredit(state.studentProfile._id, creditData);
+            // Използваме userId вместо studentProfile._id
+            const newCredit = await creditService.addCredit(userId, creditData);
             dispatch({ type: 'ADD_CREDIT', payload: newCredit });
             success('Кредитът е добавен успешно!');
             return newCredit;
@@ -144,7 +143,7 @@ export const CreditProvider = ({ children }) => {
             showError('Грешка при добавяне на кредит');
             throw error;
         }
-    }, [state.studentProfile, success, showError]);
+    }, [userId, success, showError]);
 
     const updateCredit = useCallback(async (creditId, creditData) => {
         try {
