@@ -2,7 +2,7 @@ import { useContext, useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as teacherService from '../../services/teacherService.js';
-import { useNotifications } from '../../contexts/NotificationContext.jsx';
+import useNotifications from '../../hooks/useNotifications.js';
 import useForm from '../../hooks/useForm.js';
 
 export default function TeacherSanctions() {

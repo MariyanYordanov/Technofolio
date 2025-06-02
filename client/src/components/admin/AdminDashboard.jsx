@@ -3,7 +3,7 @@ import { useContext, useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as adminService from '../../services/adminService.js';
-import { useNotifications } from '../../contexts/NotificationContext.jsx';
+import useNotifications from '../../hooks/useNotifications.js';
 
 export default function AdminDashboard() {
     const { isAuthenticated, isAdmin, firstName, lastName } = useContext(AuthContext);

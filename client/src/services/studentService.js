@@ -25,7 +25,24 @@ export const getCurrentStudentProfile = async () => {
 export const getStudentProfile = async (userId) => {
     try {
         const result = await request.get(`${endpoints.users}/${userId}`);
-        return result.student || result;
+
+        // Ако резултатът е директно user обекта с вградени student данни
+        if (result && result._id) {
+            // Връщаме целия user обект, който включва student информацията
+            return result;
+        }
+
+        // Ако резултатът е обвит в { user: {...} }
+        if (result && result.user) {
+            return result.user;
+        }
+
+        // Ако резултатът има student поле
+        if (result && result.student) {
+            return result.student;
+        }
+
+        throw new Error('Невалиден формат на отговора');
     } catch (error) {
         console.error('Error fetching student profile:', error);
         throw error;

@@ -39,9 +39,9 @@ const TeacherSanctions = lazy(() => import('./components/teacher/TeacherSanction
 const TeacherReports = lazy(() => import('./components/teacher/TeacherReports.jsx'));
 
 // Зареждане на админ компоненти
-const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard.jsx'));
-const AdminCreditCategories = lazy(() => import('./components/admin/AdminCreditCategories.jsx'));
-
+//const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard.jsx'));
+//const AdminCreditCategories = lazy(() => import('./components/admin/AdminCreditCategories.jsx'));
+import AdminDashboard from './components/admin/AdminDashboard.jsx';
 function AppWithNotifications() {
   const notificationService = useNotifications();
 
@@ -68,7 +68,7 @@ function AppWithNotifications() {
 
                 {/* Защитени маршрути */}
                 <Route element={<AuthGuard />}>
-                  {/* Студентски маршрути */}
+                  {/* Учениески маршрути */}
                   <Route path={Path.StudentDashboard} element={<StudentDashboard />} />
                   <Route path={Path.StudentProfile} element={<StudentProfile />} />
                   <Route path={Path.Portfolio} element={<Portfolio />} />
@@ -91,7 +91,7 @@ function AppWithNotifications() {
 
                   {/* Админ маршрути */}
                   <Route path={Path.AdminDashboard} element={<AdminDashboard />} />
-                  <Route path={Path.AdminCreditCategories} element={<AdminCreditCategories />} />
+                  {/* <Route path={Path.AdminCreditCategories} element={<AdminCreditCategories />} /> */}
 
                   {/* Общи */}
                   <Route path={Path.Logout} element={<Logout />} />

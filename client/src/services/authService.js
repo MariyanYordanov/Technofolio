@@ -6,7 +6,6 @@ const endpoints = {
     register: '/api/auth/register',
     logout: '/api/auth/logout',
     getMe: '/api/auth/me',
-    emailLogin: '/api/auth/email-login',
     confirmRegistration: '/api/auth/confirm-registration',
     requestLoginLink: '/api/auth/request-login-link',
     verifyEmailLogin: '/api/auth/verify-email',
@@ -17,12 +16,11 @@ export const getMe = async () => {
     try {
         const result = await request.get(endpoints.getMe);
 
-        // Ако имаме валиден отговор с данни за потребителя, връщаме ги
-        if (result && !result.error) {
+        // Сървърът връща директно user обекта
+        if (result && result._id) {
             return result;
         }
 
-        // Ако нямаме валиден отговор, хвърляме грешка
         throw new Error('Не е намерен активен потребител');
     } catch (error) {
         console.error('Error fetching current user:', error);
@@ -38,9 +36,8 @@ export const login = async (email, password) => {
             password
         });
 
+        // Сървърът връща { accessToken, _id, email, firstName, lastName, role, ... }
         if (result && result.accessToken) {
-            // Запазваме accessToken в localStorage за последващи заявки
-            localStorage.setItem('accessToken', result.accessToken);
             return result;
         }
 
@@ -72,11 +69,12 @@ export const confirmRegistration = async (token) => {
     try {
         const result = await request.get(`${endpoints.confirmRegistration}?token=${token}`);
 
+        // Сървърът връща { accessToken, _id, email, ... }
         if (result && result.accessToken) {
-            localStorage.setItem('accessToken', result.accessToken);
+            return result;
         }
 
-        return result;
+        throw new Error('Невалиден токен за потвърждение');
     } catch (error) {
         console.error('Confirmation error:', error);
         throw error;
@@ -99,11 +97,12 @@ export const verifyEmailLogin = async (token) => {
     try {
         const result = await request.get(`${endpoints.verifyEmailLogin}?token=${token}`);
 
+        // Сървърът връща { accessToken, _id, email, ... }
         if (result && result.accessToken) {
-            localStorage.setItem('accessToken', result.accessToken);
+            return result;
         }
 
-        return result;
+        throw new Error('Невалиден токен за вход');
     } catch (error) {
         console.error('Email verification error:', error);
         throw error;
@@ -114,15 +113,10 @@ export const verifyEmailLogin = async (token) => {
 export const logout = async () => {
     try {
         const result = await request.post(endpoints.logout);
-
-        // Винаги изчистваме токена от localStorage, независимо от резултата
-        localStorage.removeItem('accessToken');
-
         return result;
     } catch (error) {
         console.error('Logout error:', error);
-        // Изчистваме токена дори при грешка
-        localStorage.removeItem('accessToken');
+        // Дори при грешка, изчистваме локалния токен
         throw error;
     }
 };

@@ -3,8 +3,8 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
-import * as teacherService from '../../services/teacherService.js';
-import { useNotifications } from '../../contexts/NotificationContext.jsx';
+import * as teacherService from '../../services/teacherService.js'; 
+import useNotifications from '../../hooks/useNotifications.js';
 
 export default function TeacherReports() {
     const { isAuthenticated, isTeacher } = useContext(AuthContext);

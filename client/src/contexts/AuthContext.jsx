@@ -17,22 +17,25 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
 
     const { success = () => { }, error: showError = () => { } } = notificationService;
 
+    // Проверка дали сме на публичен път
+    const isAuthPath = useCallback(() => {
+        const pathname = location.pathname;
+        const publicPaths = [
+            Path.Home,
+            Path.Login,
+            Path.Register,
+            Path.EmailLogin,
+            Path.ConfirmRegistration
+        ];
+        return publicPaths.some(path => pathname === path || pathname.startsWith(path));
+    }, [location.pathname]);
+
+    // Проверка на автентикация при зареждане
     useEffect(() => {
         if (authInitialized) return;
 
-        const isAuthPath = () => {
-            const pathname = location.pathname;
-            return [
-                Path.Login,
-                Path.Register,
-                Path.EmailLogin,
-                Path.ConfirmRegistration,
-                Path.TestApi,
-                "/"
-            ].some(path => pathname.startsWith(path));
-        };
-
         const verifyAuth = async () => {
+            // Ако сме на публичен път, не проверяваме автентикацията
             if (isAuthPath()) {
                 setIsLoading(false);
                 setAuthInitialized(true);
@@ -41,8 +44,18 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
 
             try {
                 setIsLoading(true);
+                const token = localStorage.getItem("accessToken");
+
+                if (!token) {
+                    setAuth(null);
+                    setIsLoading(false);
+                    setAuthInitialized(true);
+                    return;
+                }
+
                 const result = await authService.getMe();
-                setAuth(result.user || result);
+                // Сървърът връща директно user обекта
+                setAuth(result);
             } catch (err) {
                 console.log("User not authenticated:", err);
                 localStorage.removeItem("accessToken");
@@ -54,32 +67,42 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         };
 
         verifyAuth();
-    }, [authInitialized, location.pathname]);
+    }, [authInitialized, isAuthPath]);
 
     const loginSubmitHandler = async (values) => {
         try {
             setIsLoading(true);
+
             if (values.password) {
+                // Стандартен вход с имейл и парола
                 const result = await authService.login(values.email, values.password);
-                setAuth(result.user || result);
-                success("Успешен вход в системата!");
 
-                // Пренасочване според ролята
-                const user = result.user || result;
-                if (user.role === 'admin') {
-                    navigate(Path.AdminDashboard);
-                } else if (user.role === 'teacher') {
-                    navigate(Path.TeacherDashboard);
+                // Сървърът връща { accessToken, ...userFields }
+                const { accessToken, ...userData } = result;
+
+                if (accessToken) {
+                    localStorage.setItem("accessToken", accessToken);
+                    setAuth(userData);
+                    success("Успешен вход в системата!");
+
+                    // Пренасочване според ролята
+                    if (userData.role === 'admin') {
+                        navigate(Path.AdminDashboard);
+                    } else if (userData.role === 'teacher') {
+                        navigate(Path.TeacherDashboard);
+                    } else {
+                        navigate(Path.StudentDashboard);
+                    }
                 } else {
-                    navigate(Path.StudentDashboard);
+                    throw new Error("Не е получен токен за достъп");
                 }
-                return;
+            } else {
+                // Вход с имейл линк
+                await authService.requestLoginLink(values.email);
+                success("Линк за вход е изпратен на вашия имейл!");
             }
-
-            await authService.requestLoginLink(values.email);
-            success("Линк за вход е изпратен на вашия имейл!");
         } catch (err) {
-            console.log(err);
+            console.error("Login error:", err);
             showError(err.message || "Неуспешен опит за вход.");
         } finally {
             setIsLoading(false);
@@ -90,20 +113,26 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         try {
             setIsLoading(true);
             const result = await authService.verifyEmailLogin(token);
-            setAuth(result.user || result);
-            success("Успешен вход в системата!");
 
-            // Пренасочване според ролята
-            const user = result.user || result;
-            if (user.role === 'admin') {
-                navigate(Path.AdminDashboard);
-            } else if (user.role === 'teacher') {
-                navigate(Path.TeacherDashboard);
-            } else {
-                navigate(Path.StudentDashboard);
+            // Сървърът връща { accessToken, ...userFields }
+            const { accessToken, ...userData } = result;
+
+            if (accessToken) {
+                localStorage.setItem("accessToken", accessToken);
+                setAuth(userData);
+                success("Успешен вход в системата!");
+
+                // Пренасочване според ролята
+                if (userData.role === 'admin') {
+                    navigate(Path.AdminDashboard);
+                } else if (userData.role === 'teacher') {
+                    navigate(Path.TeacherDashboard);
+                } else {
+                    navigate(Path.StudentDashboard);
+                }
             }
         } catch (err) {
-            console.log(err);
+            console.error("Email login error:", err);
             showError(err.message || "Невалиден или изтекъл линк.");
             navigate(Path.Login);
         } finally {
@@ -115,6 +144,7 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         try {
             setIsLoading(true);
             const { email, password, firstName, lastName, grade, specialization, role } = values;
+
             const registrationData = {
                 email,
                 password,
@@ -125,10 +155,10 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
             };
 
             await authService.register(email, password, registrationData);
-            success("Регистрацията е успешна!");
+            success("Регистрацията е успешна! Моля, влезте в системата.");
             navigate(Path.Login);
         } catch (err) {
-            console.log(err);
+            console.error("Registration error:", err);
             showError(err.message || "Неуспешна регистрация.");
         } finally {
             setIsLoading(false);
@@ -139,20 +169,26 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         try {
             setIsLoading(true);
             const result = await authService.confirmRegistration(token);
-            setAuth(result.user || result);
-            success("Регистрацията е потвърдена успешно!");
 
-            // Пренасочване според ролята
-            const user = result.user || result;
-            if (user.role === 'admin') {
-                navigate(Path.AdminDashboard);
-            } else if (user.role === 'teacher') {
-                navigate(Path.TeacherDashboard);
-            } else {
-                navigate(Path.StudentDashboard);
+            // Сървърът връща { accessToken, ...userFields }
+            const { accessToken, ...userData } = result;
+
+            if (accessToken) {
+                localStorage.setItem("accessToken", accessToken);
+                setAuth(userData);
+                success("Регистрацията е потвърдена успешно!");
+
+                // Пренасочване според ролята
+                if (userData.role === 'admin') {
+                    navigate(Path.AdminDashboard);
+                } else if (userData.role === 'teacher') {
+                    navigate(Path.TeacherDashboard);
+                } else {
+                    navigate(Path.StudentDashboard);
+                }
             }
         } catch (err) {
-            console.log(err);
+            console.error("Confirmation error:", err);
             showError(err.message || "Невалиден или изтекъл линк.");
             navigate(Path.Register);
         } finally {
@@ -164,44 +200,28 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         try {
             setIsLoading(true);
             await authService.logout();
-            localStorage.removeItem("accessToken");
-            setAuth(null);
-            success("Успешно излизане от системата!");
-            navigate(Path.Login);
         } catch (err) {
-            console.log(err);
+            console.error("Logout error:", err);
+        } finally {
             localStorage.removeItem("accessToken");
             setAuth(null);
-            showError("Грешка при излизане.");
-            navigate(Path.Login);
-        } finally {
             setIsLoading(false);
+            success("Успешно излизане от системата!");
+            navigate(Path.Home);
         }
-    }, [navigate, success, showError]);
+    }, [navigate, success]);
 
-    const redirectAfterLogin = useCallback(() => {
-        if (auth?.role === "teacher") {
-            navigate(Path.TeacherDashboard);
-        } else if (auth?.role === "admin") {
-            navigate(Path.AdminDashboard);
-        } else {
-            navigate(Path.StudentDashboard);
-        }
-    }, [auth?.role, navigate]);
-
-    const contextValue = {
+    const values = {
         loginSubmitHandler,
         registerSubmitHandler,
         handleEmailLogin,
         confirmRegistration,
         logoutHandler,
-        redirectAfterLogin,
         username: auth?.username || auth?.email,
         email: auth?.email,
         userId: auth?._id,
         firstName: auth?.firstName,
         lastName: auth?.lastName,
-        studentInfo: auth?.studentInfo,
         role: auth?.role,
         isAuthenticated: !!auth,
         isStudent: auth?.role === "student",
@@ -211,7 +231,7 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
     };
 
     return (
-        <AuthContext.Provider value={contextValue}>
+        <AuthContext.Provider value={values}>
             {children}
         </AuthContext.Provider>
     );

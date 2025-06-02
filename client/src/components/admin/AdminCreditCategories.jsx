@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as adminService from '../../services/adminService.js';
 import * as creditService from '../../services/creditService.js';
-import { useNotifications } from '../../contexts/NotificationContext.jsx';
+import useNotifications from '../../hooks/useNotifications.js';
 import useForm from '../../hooks/useForm.js';
 
 export default function AdminCreditCategories() {

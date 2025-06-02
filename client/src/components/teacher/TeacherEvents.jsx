@@ -2,9 +2,8 @@
 import { useContext, useEffect, useState } from 'react';
 import AuthContext from '../../contexts/AuthContext';
 import * as eventService from '../../services/eventService.js';
-import useForm from '../../hooks/useForm.js';
-import { useNotifications } from '../../contexts/NotificationContext.jsx';
-
+import useForm from '../../hooks/useForm.js'; 
+import useNotifications from '../../hooks/useNotifications.js';
 export default function TeacherEvents() {
     const { isAuthenticated, isTeacher } = useContext(AuthContext);
     const { success, error: showError } = useNotifications();

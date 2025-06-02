@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as teacherService from '../../services/teacherService.js';
 import * as creditService from '../../services/creditService.js';
-import { useNotifications } from '../../contexts/NotificationContext.jsx';
+import useNotifications from '../../hooks/useNotifications.js';
 
 export default function TeacherCreditsManagement() {
     const { isAuthenticated, isTeacher } = useContext(AuthContext);
