@@ -1,11 +1,9 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as studentService from '../../services/studentService.js';
 import useForm from '../../hooks/useForm.js';
 
 export default function Achievements() {
-    const navigate = useNavigate();
     const { userId, isAuthenticated } = useContext(AuthContext);
     const [achievements, setAchievements] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,15 +21,10 @@ export default function Achievements() {
     const fetchAchievements = useCallback(async () => {
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            if (!studentProfile) {
-                navigate('/profile');
-                return;
-            }
-            
+            // Директно използваме userId за извличане на постиженията
             const achievementsData = await studentService.getStudentAchievements(userId);
-            
+
             setAchievements(achievementsData || []);
             setLoading(false);
         } catch (err) {
@@ -39,20 +32,20 @@ export default function Achievements() {
             setError('Грешка при зареждане на постиженията.');
             setLoading(false);
         }
-    }, [userId, navigate]);
+    }, [userId]);
 
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && userId) {
             fetchAchievements();
         }
-    }, [isAuthenticated, fetchAchievements]);
+    }, [isAuthenticated, userId, fetchAchievements]);
 
     const { values, onChange, onSubmit, changeValues } = useForm(async (formValues) => {
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            const newAchievement = await studentService.addAchievement(studentProfile._id, formValues);
+            // Използваме userId директно
+            const newAchievement = await studentService.addAchievement(userId, formValues);
             setAchievements(prevAchievements => [...prevAchievements, newAchievement]);
 
             setIsAddingAchievement(false);
@@ -86,9 +79,9 @@ export default function Achievements() {
 
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            await studentService.removeAchievement(studentProfile._id, achievementId);
+            // Използваме userId директно
+            await studentService.removeAchievement(userId, achievementId);
             setAchievements(prevAchievements =>
                 prevAchievements.filter(achievement => achievement._id !== achievementId)
             );
