@@ -78,14 +78,20 @@ export const deleteCredit = catchAsync(async (req, res, next) => {
 
 // Получаване на всички кредити (за администратор и учители)
 export const getAllCredits = catchAsync(async (req, res, next) => {
+    // В getAllCredits функцията
     const filters = {
         page: parseInt(req.query.page) || 1,
         limit: parseInt(req.query.limit) || 10,
         status: req.query.status,
         pillar: req.query.pillar,
         search: req.query.search,
-        userId: req.query.userId // Променено от studentId на userId
+        userId: req.query.userId || req.query.studentId // поддръжка и на двата параметъра
     };
+
+    // Ако е студент, показваме само неговите кредити
+    if (req.user.role === 'student' && !filters.userId) {
+        filters.userId = req.user.id;
+    }
 
     const result = await creditsService.getAllCredits(filters, req.user.role);
 

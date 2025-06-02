@@ -3,7 +3,7 @@ import { useState } from 'react';
 import * as authService from '../../services/authService.js';
 import * as studentService from '../../services/studentService.js';
 import * as teacherService from '../../services/teacherService.js';
-import * as creditService from '../../services/creditService.js';
+import * as creditService from '../../services/creditService.js'; 
 import * as eventService from '../../services/eventService.js';
 
 const TEST_ACCOUNTS = {

@@ -1,0 +1,259 @@
+/* client/styles/pages/_admin.css */
+
+/* Административно табло */
+.admin-dashboard {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.admin-dashboard .dashboard-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.admin-dashboard .welcome-message {
+    color: var(--text-light);
+    font-size: var(--font-size-lg);
+    margin-top: var(--spacing-sm);
+}
+
+/* Административни действия */
+.admin-actions {
+    margin-bottom: var(--spacing-xl);
+}
+
+.admin-actions h2 {
+    margin-bottom: var(--spacing-lg);
+    color: var(--primary-color);
+}
+
+.admin-actions .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.admin-actions .action-card {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.admin-actions .action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.admin-actions .action-card h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+.admin-actions .action-card p {
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-light);
+}
+
+/* Кредитни категории */
+.admin-credit-categories {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+}
+
+.admin-credit-categories .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Форма за категории */
+.category-form-container {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+}
+
+.category-form-container h2 {
+    margin-bottom: var(--spacing-lg);
+    color: var(--primary-color);
+}
+
+.category-form {
+    max-width: 600px;
+}
+
+/* Контроли за категории */
+.categories-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-md);
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+}
+
+.filter-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.filter-section label {
+    font-weight: 600;
+}
+
+.add-category-btn {
+    white-space: nowrap;
+}
+
+/* Списък с категории */
+.categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.pillar-section {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+}
+
+.pillar-title {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--primary-light);
+}
+
+.no-categories {
+    text-align: center;
+    color: var(--text-light);
+    padding: var(--spacing-lg);
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+/* Карта на категория */
+.category-card {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.category-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-sm);
+}
+
+.category-header h4 {
+    margin: 0;
+    color: var(--text-color);
+    flex: 1;
+}
+
+.category-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.category-actions .btn {
+    padding: var(--spacing-xs);
+    font-size: var(--font-size-md);
+    background: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.category-actions .edit-btn:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary-color);
+}
+
+.category-actions .delete-btn:hover {
+    background-color: var(--error-color);
+    border-color: var(--error-color);
+    filter: brightness(0) invert(1);
+}
+
+.category-description {
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.category-meta {
+    font-size: var(--font-size-xs);
+    color: var(--text-light);
+}
+
+/* Последни активности */
+.recent-activities {
+    background-color: var(--bg-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+}
+
+.recent-activities h2 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+.activities-list {
+    padding: var(--spacing-md);
+}
+
+/* Responsive дизайн */
+@media (max-width: 768px) {
+
+    .admin-actions .actions-grid,
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .categories-controls {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .filter-section {
+        width: 100%;
+    }
+
+    .add-category-btn {
+        width: 100%;
+    }
+
+    .category-header {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .category-actions {
+        align-self: flex-end;
+    }
+}

@@ -1,4 +1,4 @@
-// server/routes/creditsRoutes.js
+// server/routes/creditsRoutes.js - КОРИГИРАН
 import { Router } from 'express';
 import { body } from 'express-validator';
 import {
@@ -22,13 +22,13 @@ const router = Router();
 // Защита на всички маршрути
 router.use(authMiddleware);
 
-// Кредитни категории
+// Публични endpoints (за всички логнати)
 router.get('/categories', getCreditCategories);
 
-// Кредити на потребител - променено от students/:studentId на users/:userId
-router.get('/users/:userId', getStudentCredits);
+// Основен endpoint за кредити - с филтриране по userId
+router.get('/', getAllCredits);
 
-// Добавяне на кредит
+// Добавяне на кредит (само за студенти)
 router.post(
     '/',
     [
@@ -39,7 +39,7 @@ router.post(
     addCredit
 );
 
-// Валидиране на кредит
+// Действия с конкретен кредит
 router.patch(
     '/:creditId/validate',
     restrictTo('teacher', 'admin'),
@@ -49,10 +49,9 @@ router.patch(
     validateCredit
 );
 
-// Изтриване на кредит
 router.delete('/:creditId', deleteCredit);
 
-// Административни маршрути (за учители и админи)
+// Административни endpoints
 router.get('/all', restrictTo('teacher', 'admin'), getAllCredits);
 router.get('/stats', restrictTo('teacher', 'admin'), getCreditsStatistics);
 
@@ -68,7 +67,7 @@ router.post(
     bulkValidateCredits
 );
 
-// Категории - управление (само за админи)
+// Управление на категории (само за админи)
 router.post(
     '/categories',
     restrictTo('admin'),

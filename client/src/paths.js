@@ -22,6 +22,25 @@ const Path = {
     TeacherEvents: '/teacher/events',
     TeacherCredits: '/teacher/credits',
     TeacherReports: '/teacher/reports',
+    // Административни пътища
+    AdminDashboard: '/admin/dashboard',
+    AdminCreditCategories: '/admin/credit-categories',
+    AdminUsers: '/admin/users',
+    AdminSettings: '/admin/settings',
+    AdminReports: '/admin/reports',
+    // Общи пътища
+    TestApi: '/test',
+    NotFound: '*',
+    // Защитени пътища
+    AuthGuard: '/auth-guard',
+    Authenticated: '/authenticated',
+    EmailLoginRedirect: '/login/email-redirect',
+    ConfirmEmail: '/confirm-email',
+    ResetPassword: '/reset-password',
+    ChangePassword: '/change-password',
+    UserProfile: '/user/profile',
+    UserSettings: '/user/settings',
+    UserNotifications: '/user/notifications',
 };
 
 export default Path;

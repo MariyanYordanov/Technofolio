@@ -54,6 +54,26 @@ export default function Header() {
         </ul>
     );
 
+    const renderAdminMenu = () => (
+        <ul className="nav-links">
+            <li>
+                <Link to="/admin/dashboard">Табло</Link>
+            </li>
+            <li>
+                <Link to="/admin/users">Потребители</Link>
+            </li>
+            <li>
+                <Link to="/admin/credit-categories">Категории</Link>
+            </li>
+            <li>
+                <Link to="/admin/settings">Настройки</Link>
+            </li>
+            <li>
+                <Link to="/admin/reports">Отчети</Link>
+            </li>
+        </ul>
+    );
+
     return (
         <header className="site-header">
             <div className="logo">
@@ -63,10 +83,15 @@ export default function Header() {
             </div>
 
             <nav className="main-nav">
-                {isAuthenticated && (
-                    isTeacher || isAdmin ? renderTeacherMenu() : renderStudentMenu()
-                )}
+                {
+                    isAuthenticated && (
+                        isAdmin ? renderAdminMenu() :
+                            isTeacher ? renderTeacherMenu() :
+                                renderStudentMenu()
+                    )
+                }
             </nav>
+            
 
             <div className="user-actions">
                 <ThemeToggle />
@@ -89,3 +114,8 @@ export default function Header() {
         </header>
     );
 }
+
+// В Header.jsx добавете
+
+
+// И в nav секцията

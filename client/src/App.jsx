@@ -21,6 +21,10 @@ import StudentProfile from './components/student/StudentProfile.jsx';
 import { initTheme } from './utils/themeUtils.js';
 import ConfirmRegistration from './components/auth/ConfirmRegistration.jsx';
 
+
+// В Routes секцията (след учителските маршрути)
+{/* Админ маршрути */ }
+
 // Зареждане на ученически компоненти
 const Portfolio = lazy(() => import('./components/student/Portfolio.jsx'));
 const Goals = lazy(() => import('./components/student/Goals.jsx'));
@@ -40,6 +44,9 @@ const TeacherSanctions = lazy(() => import('./components/teacher/TeacherSanction
 const TeacherReports = lazy(() => import('./components/teacher/TeacherReports.jsx'));
 const ApiTester = lazy(() => import('./components/test/ApiTester.jsx'));
 
+// Зареждане на админ компоненти
+const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard.jsx'));
+const AdminCreditCategories = lazy(() => import('./components/admin/AdminCreditCategories.jsx'));
 
 function AppWithNotifications() {
   const notificationService = useNotifications();
@@ -100,7 +107,8 @@ function AppWithAuth() {
                 <Route path={Path.TeacherEvents} element={<TeacherEvents />} />
                 <Route path={Path.TeacherCredits} element={<TeacherCredits />} />
                 <Route path={Path.TeacherReports} element={<TeacherReports />} />
-
+                <Route path={Path.AdminDashboard} element={<AdminDashboard />} />
+                <Route path={Path.AdminCreditCategories} element={<AdminCreditCategories />} />
                 {/* Общи */}
                 <Route path={Path.Logout} element={<Logout />} />
               </Route>
