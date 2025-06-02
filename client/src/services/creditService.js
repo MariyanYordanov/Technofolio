@@ -6,9 +6,10 @@ const endpoints = {
 };
 
 // Извличане на кредити на ученик
-export const getStudentCredits = async (studentId) => {
+export const getStudentCredits = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.credits}?userId=${studentId}`);
+        // Използваме userId вместо studentId
+        const result = await request.get(`${endpoints.credits}?userId=${userId}`);
         return result.credits || [];
     } catch (error) {
         console.error('Error fetching student credits:', error);
@@ -39,13 +40,12 @@ export const getCreditCategories = async () => {
 };
 
 // Добавяне на кредит
-export const addCredit = async (studentId, creditData) => {
+export const addCredit = async (userId, creditData) => {
     try {
+        // Не изпращаме studentId, сървърът ще използва req.user.id
         const result = await request.post(endpoints.credits, {
             ...creditData,
-            studentId,
-            date: new Date().toISOString(),
-            status: 'pending',
+            // Премахваме date и status - сървърът ги добавя автоматично
         });
         return result.credit || result;
     } catch (error) {
@@ -54,7 +54,7 @@ export const addCredit = async (studentId, creditData) => {
     }
 };
 
-// Обновяване на кредит
+// Обновяване на кредит  
 export const updateCredit = async (creditId, creditData) => {
     try {
         const result = await request.patch(`${endpoints.credits}/${creditId}`, creditData);

@@ -14,8 +14,8 @@ const endpoints = {
 // Получаване на статистики за потребители
 export const getUsersStatistics = async () => {
     try {
-        const result = await request.get(`${endpoints.users}/statistics`);
-        return result.statistics || {
+        const result = await request.get(`${endpoints.users}/stats`);
+        return result.stats || {
             total: 0,
             students: 0,
             teachers: 0,
@@ -55,7 +55,7 @@ export const getAllUsers = async (filters = {}) => {
 // Обновяване на потребителска роля
 export const updateUserRole = async (userId, newRole) => {
     try {
-        const result = await request.patch(`${endpoints.users}/${userId}/role`, { role: newRole });
+        const result = await request.patch(`${endpoints.users}/${userId}/change-role`, { role: newRole });
         return result.user || result;
     } catch (error) {
         console.error('Error updating user role:', error);
@@ -64,9 +64,9 @@ export const updateUserRole = async (userId, newRole) => {
 };
 
 // Активиране/деактивиране на потребител
-export const toggleUserStatus = async (userId, isActive) => {
+export const toggleUserStatus = async (userId) => {
     try {
-        const result = await request.patch(`${endpoints.users}/${userId}/status`, { isActive });
+        const result = await request.patch(`${endpoints.users}/${userId}/toggle-account`);
         return result.user || result;
     } catch (error) {
         console.error('Error toggling user status:', error);
@@ -86,6 +86,17 @@ export const deleteUser = async (userId) => {
 };
 
 // ===== КРЕДИТНИ КАТЕГОРИИ =====
+
+// Получаване на всички категории
+export const getCreditCategories = async () => {
+    try {
+        const result = await request.get(`${endpoints.credits}/categories`);
+        return result.categoriesByPillar || {};
+    } catch (error) {
+        console.error('Error fetching credit categories:', error);
+        throw error;
+    }
+};
 
 // Добавяне на категория
 export const addCreditCategory = async (categoryData) => {
@@ -130,7 +141,10 @@ export const getCreditsStatistics = async () => {
             total: 0,
             pending: 0,
             validated: 0,
-            rejected: 0
+            rejected: 0,
+            byPillar: {},
+            byGrade: {},
+            recentActivity: []
         };
     } catch (error) {
         console.error('Error fetching credits statistics:', error);
@@ -141,12 +155,14 @@ export const getCreditsStatistics = async () => {
 // Получаване на статистики за събития
 export const getEventsStatistics = async () => {
     try {
-        const result = await request.get(`${endpoints.events}/statistics`);
-        return result.statistics || {
+        const result = await request.get(`${endpoints.events}/stats/overview`);
+        return result.stats || {
             total: 0,
             upcoming: 0,
             past: 0,
-            totalParticipants: 0
+            totalParticipants: 0,
+            avgParticipantsPerEvent: 0,
+            popularEvents: []
         };
     } catch (error) {
         console.error('Error fetching events statistics:', error);
