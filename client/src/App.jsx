@@ -85,7 +85,7 @@ function AppWithAuth() {
               <Route path={Path.Register} element={<Register />} />
               <Route path={Path.EmailLogin} element={<EmailLogin />} />
               <Route path={Path.ConfirmRegistration} element={<ConfirmRegistration />} />
-              <Route path="/test" element={<ApiTester />} />
+              <Route path={Path.TestApi} element={<ApiTester />} />
               {/* Защитени маршрути */}
               <Route element={<AuthGuard />}>
                 {/* Ученически маршрути */}
