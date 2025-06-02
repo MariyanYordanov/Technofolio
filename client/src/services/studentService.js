@@ -3,7 +3,6 @@ import * as request from '../utils/requestUtils.js';
 
 const endpoints = {
     users: '/api/users',
-    student: '/api/users',
     credits: '/api/credits',
     events: '/api/events',
     achievements: '/api/achievements',
@@ -14,7 +13,7 @@ const endpoints = {
 export const getCurrentStudentProfile = async () => {
     try {
         const result = await request.get(`${endpoints.users}/me`);
-        return result.student || result;
+        return result.user || result;
     } catch (error) {
         console.error('Error fetching current student profile:', error);
         throw error;
@@ -26,20 +25,14 @@ export const getStudentProfile = async (userId) => {
     try {
         const result = await request.get(`${endpoints.users}/${userId}`);
 
-        // Ако резултатът е директно user обекта с вградени student данни
-        if (result && result._id) {
-            // Връщаме целия user обект, който включва student информацията
-            return result;
-        }
-
-        // Ако резултатът е обвит в { user: {...} }
+        // Сървърът връща { success: true, user: {...} }
         if (result && result.user) {
             return result.user;
         }
 
-        // Ако резултатът има student поле
-        if (result && result.student) {
-            return result.student;
+        // Или директно user обекта
+        if (result && result._id) {
+            return result;
         }
 
         throw new Error('Невалиден формат на отговора');
@@ -49,38 +42,22 @@ export const getStudentProfile = async (userId) => {
     }
 };
 
-// Създаване на профил на ученик (вече е вграден в User модела)
-export const createStudentProfile = async () => {
-    try {
-        // Студентския профил се създава автоматично при регистрация
-        throw new Error('Student profile is created automatically during registration');
-    } catch (error) {
-        console.error('Error creating student profile:', error);
-        throw error;
-    }
-};
-
-// Обновяване на профил на ученик
+// Обновяване на профил на ученик - използваме специалния endpoint
 export const updateStudentProfile = async (userId, profileData) => {
     try {
-        const result = await request.patch(`${endpoints.users}/${userId}/student`, profileData);
-        return result.student || result;
+        const result = await request.patch(`${endpoints.users}/${userId}/student-info`, profileData);
+        return result.user || result;
     } catch (error) {
         console.error('Error updating student profile:', error);
         throw error;
     }
 };
 
-// Изтриване на профил на ученик - не се поддържа
-export const deleteStudentProfile = async () => {
-    throw new Error('Deleting student profiles is not supported');
-};
-
 // Извличане на портфолио на ученик
 export const getStudentPortfolio = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.users}/${userId}/student`);
-        return result.student?.portfolio || null;
+        const result = await request.get(`${endpoints.users}/${userId}/portfolio`);
+        return result.portfolio || null;
     } catch (error) {
         console.error('Error fetching student portfolio:', error);
         throw error;
@@ -90,10 +67,8 @@ export const getStudentPortfolio = async (userId) => {
 // Обновяване/Създаване на портфолио
 export const updatePortfolio = async (userId, portfolioData) => {
     try {
-        const result = await request.patch(`${endpoints.users}/${userId}/student`, {
-            portfolio: portfolioData
-        });
-        return result.student?.portfolio || null;
+        const result = await request.put(`${endpoints.users}/${userId}/portfolio`, portfolioData);
+        return result.portfolio || null;
     } catch (error) {
         console.error('Error updating portfolio:', error);
         throw error;
@@ -103,8 +78,8 @@ export const updatePortfolio = async (userId, portfolioData) => {
 // Добавяне на препоръка към портфолио
 export const addRecommendation = async (userId, recommendationData) => {
     try {
-        const result = await request.post(`${endpoints.users}/${userId}/student/recommendations`, recommendationData);
-        return result.student?.portfolio || null;
+        const result = await request.post(`${endpoints.users}/${userId}/portfolio/recommendations`, recommendationData);
+        return result.recommendation || null;
     } catch (error) {
         console.error('Error adding recommendation:', error);
         throw error;
@@ -114,8 +89,8 @@ export const addRecommendation = async (userId, recommendationData) => {
 // Премахване на препоръка от портфолио
 export const removeRecommendation = async (userId, recommendationId) => {
     try {
-        const result = await request.del(`${endpoints.users}/${userId}/student/recommendations/${recommendationId}`);
-        return result.student?.portfolio || null;
+        const result = await request.del(`${endpoints.users}/${userId}/portfolio/recommendations/${recommendationId}`);
+        return result;
     } catch (error) {
         console.error('Error removing recommendation:', error);
         throw error;
@@ -125,8 +100,8 @@ export const removeRecommendation = async (userId, recommendationId) => {
 // Извличане на цели на ученик
 export const getStudentGoals = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.users}/${userId}/student`);
-        return result.student?.goals || {};
+        const result = await request.get(`${endpoints.users}/${userId}/goals`);
+        return result.goals || [];
     } catch (error) {
         console.error('Error fetching student goals:', error);
         throw error;
@@ -136,8 +111,8 @@ export const getStudentGoals = async (userId) => {
 // Обновяване/Създаване на цел за определена категория
 export const updateGoal = async (userId, category, goalData) => {
     try {
-        const result = await request.patch(`${endpoints.users}/${userId}/student/goals/${category}`, goalData);
-        return result.student?.goals || {};
+        const result = await request.put(`${endpoints.users}/${userId}/goals/${category}`, goalData);
+        return result.goal || {};
     } catch (error) {
         console.error('Error updating goal:', error);
         throw error;
@@ -147,8 +122,8 @@ export const updateGoal = async (userId, category, goalData) => {
 // Изтриване на цел за определена категория
 export const deleteGoal = async (userId, category) => {
     try {
-        const result = await request.del(`${endpoints.users}/${userId}/student/goals/${category}`);
-        return result.student?.goals || {};
+        const result = await request.del(`${endpoints.users}/${userId}/goals/${category}`);
+        return result;
     } catch (error) {
         console.error('Error deleting goal:', error);
         throw error;
@@ -158,8 +133,8 @@ export const deleteGoal = async (userId, category) => {
 // Извличане на интереси на ученик
 export const getStudentInterests = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.users}/${userId}/student`);
-        return result.student?.interests || { interests: [], hobbies: [] };
+        const result = await request.get(`${endpoints.users}/${userId}/interests`);
+        return result || { interests: [], hobbies: [] };
     } catch (error) {
         console.error('Error fetching student interests:', error);
         throw error;
@@ -169,10 +144,8 @@ export const getStudentInterests = async (userId) => {
 // Обновяване/Създаване на интереси
 export const updateInterests = async (userId, interestsData) => {
     try {
-        const result = await request.patch(`${endpoints.users}/${userId}/student`, {
-            interests: interestsData
-        });
-        return result.student?.interests || { interests: [], hobbies: [] };
+        const result = await request.put(`${endpoints.users}/${userId}/interests`, interestsData);
+        return result || { interests: [], hobbies: [] };
     } catch (error) {
         console.error('Error updating interests:', error);
         throw error;
@@ -182,7 +155,7 @@ export const updateInterests = async (userId, interestsData) => {
 // Извличане на постижения на ученик
 export const getStudentAchievements = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.achievements}?studentId=${userId}`);
+        const result = await request.get(`${endpoints.achievements}/user/${userId}`);
         return result.achievements || [];
     } catch (error) {
         console.error('Error fetching student achievements:', error);
@@ -195,7 +168,7 @@ export const addAchievement = async (userId, achievementData) => {
     try {
         const result = await request.post(endpoints.achievements, {
             ...achievementData,
-            studentId: userId
+            userId // Променено от studentId на userId
         });
         return result.achievement || result;
     } catch (error) {
@@ -218,8 +191,8 @@ export const removeAchievement = async (userId, achievementId) => {
 // Извличане на санкции и забележки на ученик
 export const getStudentSanctions = async (userId) => {
     try {
-        const result = await request.get(`${endpoints.users}/${userId}/student`);
-        return result.student?.sanctions || {
+        const result = await request.get(`${endpoints.users}/${userId}/sanctions`);
+        return result.sanctions || {
             absences: {
                 excused: 0,
                 unexcused: 0,
@@ -244,14 +217,13 @@ export const getAllStudents = async (filters = {}) => {
         if (filters.grade) queryParams.append('grade', filters.grade);
         if (filters.specialization) queryParams.append('specialization', filters.specialization);
         if (filters.search) queryParams.append('search', filters.search);
-        queryParams.append('role', 'student');
 
         const url = queryParams.toString() ?
-            `${endpoints.users}?${queryParams.toString()}` :
-            `${endpoints.users}?role=student`;
+            `${endpoints.users}/students?${queryParams.toString()}` :
+            `${endpoints.users}/students`;
 
         const result = await request.get(url);
-        return result.users || [];
+        return result.students || [];
     } catch (error) {
         console.error('Error fetching all students:', error);
         throw error;
@@ -261,8 +233,8 @@ export const getAllStudents = async (filters = {}) => {
 // Получаване на статистики за студенти
 export const getStudentsStatistics = async () => {
     try {
-        const result = await request.get(`${endpoints.reports}/students/statistics`);
-        return result.statistics || {};
+        const result = await request.get(`${endpoints.users}/students/stats`);
+        return result.stats || {};
     } catch (error) {
         console.error('Error fetching students statistics:', error);
         throw error;
@@ -274,13 +246,12 @@ export const searchStudents = async (searchCriteria) => {
     try {
         const queryParams = new URLSearchParams();
 
-        if (searchCriteria.q) queryParams.append('search', searchCriteria.q);
+        if (searchCriteria.q) queryParams.append('q', searchCriteria.q);
         if (searchCriteria.grade) queryParams.append('grade', searchCriteria.grade);
         if (searchCriteria.minGrade) queryParams.append('minGrade', searchCriteria.minGrade);
         if (searchCriteria.maxGrade) queryParams.append('maxGrade', searchCriteria.maxGrade);
-        queryParams.append('role', 'student');
 
-        const result = await request.get(`${endpoints.users}?${queryParams.toString()}`);
+        const result = await request.get(`${endpoints.users}/search?${queryParams.toString()}`);
         return result.users || [];
     } catch (error) {
         console.error('Error searching students:', error);
@@ -291,7 +262,7 @@ export const searchStudents = async (searchCriteria) => {
 // Извличане на всички ментори (учители)
 export const getAllMentors = async () => {
     try {
-        const result = await request.get(`${endpoints.users}?role=teacher`);
+        const result = await request.get(`${endpoints.users}/role/teacher`);
         return result.users || [];
     } catch (error) {
         console.error('Error fetching mentors:', error);
