@@ -1,4 +1,40 @@
-/* Добавете към client/styles/layout/_header.css */
+/* client/styles/layout/_header.css */
+.site-header {
+    background-color: var(--bg-color);
+    box-shadow: var(--shadow-sm);
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-lg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.logo h1 {
+    font-size: 24px;
+    color: var(--primary-color);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: var(--spacing-lg);
+}
+
+.nav-links li a {
+    color: var(--text-color);
+    font-weight: 500;
+    transition: color var(--transition-fast);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+}
+
+.nav-links li a:hover {
+    color: var(--primary-color);
+    background-color: var(--bg-light);
+}
 
 /* NavLink active стилове */
 .nav-links li a.active {
@@ -18,6 +54,11 @@
     cursor: pointer;
     padding: var(--spacing-xs) var(--spacing-sm);
     display: block;
+    transition: color var(--transition-fast);
+}
+
+.nav-dropdown:hover>span {
+    color: var(--primary-color);
 }
 
 .dropdown-menu {
@@ -30,14 +71,12 @@
     min-width: 180px;
     display: none;
     z-index: var(--z-index-dropdown);
+    list-style: none;
+    padding: var(--spacing-xs) 0;
 }
 
 .nav-dropdown:hover .dropdown-menu {
     display: block;
-}
-
-.dropdown-menu li {
-    list-style: none;
 }
 
 .dropdown-menu li a {
@@ -57,17 +96,146 @@
     color: white;
 }
 
+/* User actions */
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.username {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.role-badge {
+    background-color: var(--primary-light);
+    color: white;
+    font-size: var(--font-size-xs);
+    padding: 2px var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+    font-weight: normal;
+}
+
 /* Auth buttons */
-.auth-buttons .register-btn {
+.auth-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.login-btn {
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+}
+
+.login-btn:hover {
+    background-color: var(--primary-light);
+    color: white;
+}
+
+.register-btn {
     background-color: var(--secondary-color);
     color: white;
 }
 
-.auth-buttons .register-btn:hover {
+.register-btn:hover {
     background-color: #e05a5a;
 }
 
+/* Не оцветяваме активния register бутон */
 .auth-buttons .register-btn.active {
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color);
     color: white;
+}
+
+.logout-btn {
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+}
+
+.logout-btn:hover {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+/* Theme toggle */
+.theme-toggle {
+    background: var(--bg-dark);
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-sm);
+}
+
+.theme-toggle:hover {
+    background: var(--primary-light);
+    color: white;
+}
+
+/* Responsive стилове */
+@media (max-width: 1023px) {
+    .site-header {
+        flex-wrap: wrap;
+        height: auto;
+        padding: var(--spacing-md);
+    }
+
+    .nav-links {
+        order: 3;
+        width: 100%;
+        margin-top: var(--spacing-md);
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .dropdown-menu {
+        position: static;
+        box-shadow: none;
+        background: var(--bg-light);
+        margin-top: var(--spacing-xs);
+    }
+}
+
+@media (max-width: 767px) {
+    .site-header {
+        padding: var(--spacing-sm);
+    }
+
+    .logo h1 {
+        font-size: 20px;
+    }
+
+    .nav-links {
+        gap: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    .user-actions {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .username {
+        font-size: var(--font-size-sm);
+    }
+
+    .auth-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .auth-buttons .btn {
+        width: 100%;
+        text-align: center;
+    }
 }

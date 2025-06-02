@@ -21,11 +21,8 @@ import StudentProfile from './components/student/StudentProfile.jsx';
 import { initTheme } from './utils/themeUtils.js';
 import ConfirmRegistration from './components/auth/ConfirmRegistration.jsx';
 
-
-// В Routes секцията (след учителските маршрути)
-{/* Админ маршрути */ }
-
 // Зареждане на ученически компоненти
+const StudentDashboard = lazy(() => import('./components/student/StudentDashboard.jsx'));
 const Portfolio = lazy(() => import('./components/student/Portfolio.jsx'));
 const Goals = lazy(() => import('./components/student/Goals.jsx'));
 const CreditSystem = lazy(() => import('./components/student/CreditSystem.jsx'));
@@ -42,11 +39,18 @@ const TeacherCredits = lazy(() => import('./components/teacher/TeacherCreditsMan
 const TeacherEvents = lazy(() => import('./components/teacher/TeacherEvents.jsx'));
 const TeacherSanctions = lazy(() => import('./components/teacher/TeacherSanctions.jsx'));
 const TeacherReports = lazy(() => import('./components/teacher/TeacherReports.jsx'));
-const ApiTester = lazy(() => import('./components/test/ApiTester.jsx'));
 
 // Зареждане на админ компоненти
 const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard.jsx'));
 const AdminCreditCategories = lazy(() => import('./components/admin/AdminCreditCategories.jsx'));
+//const AdminUsers = lazy(() => import('./components/admin/AdminUsers.jsx'));
+//const AdminSettings = lazy(() => import('./components/admin/AdminSettings.jsx'));
+//const AdminReports = lazy(() => import('./components/admin/AdminReports.jsx'));
+//const AdminLogs = lazy(() => import('./components/admin/AdminLogs.jsx'));
+//const AdminBackup = lazy(() => import('./components/admin/AdminBackup.jsx'));
+
+// Тестови компонент
+const ApiTester = lazy(() => import('./components/test/ApiTester.jsx'));
 
 function AppWithNotifications() {
   const notificationService = useNotifications();
@@ -86,9 +90,11 @@ function AppWithAuth() {
               <Route path={Path.EmailLogin} element={<EmailLogin />} />
               <Route path={Path.ConfirmRegistration} element={<ConfirmRegistration />} />
               <Route path={Path.TestApi} element={<ApiTester />} />
+
               {/* Защитени маршрути */}
               <Route element={<AuthGuard />}>
-                {/* Ученически маршрути */}
+                {/* Студентски маршрути */}
+                <Route path={Path.StudentDashboard} element={<StudentDashboard />} />
                 <Route path={Path.StudentProfile} element={<StudentProfile />} />
                 <Route path={Path.Portfolio} element={<Portfolio />} />
                 <Route path={Path.Goals} element={<Goals />} />
@@ -107,8 +113,17 @@ function AppWithAuth() {
                 <Route path={Path.TeacherEvents} element={<TeacherEvents />} />
                 <Route path={Path.TeacherCredits} element={<TeacherCredits />} />
                 <Route path={Path.TeacherReports} element={<TeacherReports />} />
+
+                {/* Админ маршрути */}
                 <Route path={Path.AdminDashboard} element={<AdminDashboard />} />
+                {/* <Route path={Path.AdminUsers} element={<AdminUsers />} /> */}
+                {/* <Route path={Path.AdminUserDetails} element={<AdminUsers />} /> */}
                 <Route path={Path.AdminCreditCategories} element={<AdminCreditCategories />} />
+                {/* <Route path={Path.AdminSettings} element={<AdminSettings />} />
+                <Route path={Path.AdminReports} element={<AdminReports />} />
+                <Route path={Path.AdminLogs} element={<AdminLogs />} />
+                <Route path={Path.AdminBackup} element={<AdminBackup />} /> */}
+
                 {/* Общи */}
                 <Route path={Path.Logout} element={<Logout />} />
               </Route>

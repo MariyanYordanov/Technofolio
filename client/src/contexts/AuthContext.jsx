@@ -1,3 +1,4 @@
+// client/src/contexts/AuthContext.jsx
 import { createContext, useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import * as authService from "../services/authService.js";
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
                 Path.Register,
                 Path.EmailLogin,
                 Path.ConfirmRegistration,
+                Path.TestApi,
                 "/"
             ].some(path => pathname.startsWith(path));
         };
@@ -61,7 +63,16 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
                 const result = await authService.login(values.email, values.password);
                 setAuth(result.user || result);
                 success("Успешен вход в системата!");
-                navigate(Path.Home);
+
+                // Пренасочване според ролята
+                const user = result.user || result;
+                if (user.role === 'admin') {
+                    navigate(Path.AdminDashboard);
+                } else if (user.role === 'teacher') {
+                    navigate(Path.TeacherDashboard);
+                } else {
+                    navigate(Path.StudentDashboard);
+                }
                 return;
             }
 
@@ -81,7 +92,16 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
             const result = await authService.verifyEmailLogin(token);
             setAuth(result.user || result);
             success("Успешен вход в системата!");
-            navigate(Path.Home);
+
+            // Пренасочване според ролята
+            const user = result.user || result;
+            if (user.role === 'admin') {
+                navigate(Path.AdminDashboard);
+            } else if (user.role === 'teacher') {
+                navigate(Path.TeacherDashboard);
+            } else {
+                navigate(Path.StudentDashboard);
+            }
         } catch (err) {
             console.log(err);
             showError(err.message || "Невалиден или изтекъл линк.");
@@ -121,7 +141,16 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
             const result = await authService.confirmRegistration(token);
             setAuth(result.user || result);
             success("Регистрацията е потвърдена успешно!");
-            navigate(Path.Home);
+
+            // Пренасочване според ролята
+            const user = result.user || result;
+            if (user.role === 'admin') {
+                navigate(Path.AdminDashboard);
+            } else if (user.role === 'teacher') {
+                navigate(Path.TeacherDashboard);
+            } else {
+                navigate(Path.StudentDashboard);
+            }
         } catch (err) {
             console.log(err);
             showError(err.message || "Невалиден или изтекъл линк.");
@@ -151,10 +180,12 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
     }, [navigate, success, showError]);
 
     const redirectAfterLogin = useCallback(() => {
-        if (auth?.role === "teacher" || auth?.role === "admin") {
+        if (auth?.role === "teacher") {
             navigate(Path.TeacherDashboard);
+        } else if (auth?.role === "admin") {
+            navigate(Path.AdminDashboard);
         } else {
-            navigate(Path.StudentProfile);
+            navigate(Path.StudentDashboard);
         }
     }, [auth?.role, navigate]);
 
