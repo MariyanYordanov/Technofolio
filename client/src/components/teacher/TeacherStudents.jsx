@@ -50,7 +50,7 @@ export default function TeacherStudents() {
             ) : (
                 <div className="students-container">
                     {students.map(student => (
-                        <div key={student._id} className="student-card">
+                        <div key={student.id} className="student-card">
                             <div className="student-header">
                                 <h2>{student.firstName} {student.lastName}</h2>
                                 <span className="student-grade">{student.grade} клас</span>
@@ -60,10 +60,10 @@ export default function TeacherStudents() {
                                 <p className="student-average">Среден успех: {student.averageGrade || 'Няма данни'}</p>
                             </div>
                             <div className="student-actions">
-                                <Link to={`/teacher/students/${student._id}/profile`} className="btn">
+                                <Link to={`/teacher/students/${student.id}/profile`} className="btn">
                                     Преглед на профил
                                 </Link>
-                                <Link to={`/teacher/students/${student._id}/credits`} className="btn">
+                                <Link to={`/teacher/students/${student.id}/credits`} className="btn">
                                     Кредити
                                 </Link>
                             </div>

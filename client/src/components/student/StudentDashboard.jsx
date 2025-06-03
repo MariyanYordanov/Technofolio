@@ -29,7 +29,7 @@ export default function StudentDashboard() {
             ]);
 
             // Обработваме профила
-            if (profileData && profileData._id) {
+            if (profileData && profileData.id) {
                 setStudent(profileData);
             } else {
                 // Ако няма профил, използваме базови данни от AuthContext
@@ -157,7 +157,7 @@ export default function StudentDashboard() {
                     ) : (
                         <div className="events-list">
                             {upcomingEvents.map(event => (
-                                <div key={event._id} className="mini-event-card">
+                                <div key={event.id} className="mini-event-card">
                                     <div className="event-date">
                                         {new Date(event.startDate).toLocaleDateString('bg-BG', {
                                             day: 'numeric',
@@ -185,7 +185,7 @@ export default function StudentDashboard() {
                     ) : (
                         <div className="achievements-list">
                             {recentAchievements.map(achievement => (
-                                <div key={achievement._id} className="mini-achievement-card">
+                                <div key={achievement.id} className="mini-achievement-card">
                                     <div className="achievement-icon">🏅</div>
                                     <div className="achievement-info">
                                         <h4>{achievement.title}</h4>

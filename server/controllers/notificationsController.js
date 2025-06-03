@@ -147,19 +147,19 @@ export const createBulkNotification = catchAsync(async (req, res, next) => {
 
     if (role) {
         // Филтър по роля
-        const users = await User.find({ role }).select('_id');
-        recipients = users.map(user => user._id);
+        const users = await User.find({ role }).select('id');
+        recipients = users.map(user => user.id);
     } else if (grade) {
         // Филтър по клас (само за ученици)
         const students = await User.find({
             role: 'student',
             'studentInfo.grade': grade
-        }).select('_id');
-        recipients = students.map(student => student._id);
+        }).select('id');
+        recipients = students.map(student => student.id);
     } else {
         // Всички потребители
-        const users = await User.find().select('_id');
-        recipients = users.map(user => user._id);
+        const users = await User.find().select('id');
+        recipients = users.map(user => user.id);
     }
 
     if (recipients.length === 0) {

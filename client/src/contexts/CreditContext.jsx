@@ -30,13 +30,13 @@ const creditReducer = (state, action) => {
             return {
                 ...state,
                 credits: state.credits.map(credit =>
-                    credit._id === action.payload._id ? action.payload : credit
+                    credit.id === action.payload.id ? action.payload : credit
                 ),
             };
         case 'DELETE_CREDIT':
             return {
                 ...state,
-                credits: state.credits.filter(credit => credit._id !== action.payload),
+                credits: state.credits.filter(credit => credit.id !== action.payload),
             };
         case 'SET_LOADING':
             return {
@@ -120,7 +120,6 @@ export const CreditProvider = ({ children }) => {
             const initializeData = async () => {
                 const profile = await loadStudentProfile();
                 if (profile) {
-                    // Използваме userId вместо profile._id
                     await loadCredits(userId);
                     await loadCreditCategories();
                 }
@@ -132,7 +131,6 @@ export const CreditProvider = ({ children }) => {
 
     const addCredit = useCallback(async (creditData) => {
         try {
-            // Използваме userId вместо studentProfile._id
             const newCredit = await creditService.addCredit(userId, creditData);
             dispatch({ type: 'ADD_CREDIT', payload: newCredit });
             success('Кредитът е добавен успешно!');

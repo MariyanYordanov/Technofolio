@@ -51,7 +51,7 @@ export default function AdminCreditCategories() {
 
             if (editingCategory) {
                 // Редактиране
-                await adminService.updateCreditCategory(editingCategory._id, formValues);
+                await adminService.updateCreditCategory(editingCategory.id, formValues);
                 success('Категорията е обновена успешно!');
             } else {
                 // Добавяне
@@ -240,7 +240,7 @@ export default function AdminCreditCategories() {
                         ) : (
                             <div className="categories-grid">
                                 {pillarCategories.map(category => (
-                                    <div key={category._id} className="category-card">
+                                    <div key={category.id} className="category-card">
                                         <div className="category-header">
                                             <h4>{category.name}</h4>
                                             <div className="category-actions">
@@ -253,7 +253,7 @@ export default function AdminCreditCategories() {
                                                 </button>
                                                 <button
                                                     className="btn delete-btn"
-                                                    onClick={() => handleDeleteCategory(category._id, category.name)}
+                                                    onClick={() => handleDeleteCategory(category.id, category.name)}
                                                     title="Изтрий"
                                                 >
                                                     🗑️

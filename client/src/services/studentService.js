@@ -31,7 +31,7 @@ export const getStudentProfile = async (userId) => {
         }
 
         // Или директно user обекта
-        if (result && result._id) {
+        if (result && result.id) {
             return result;
         }
 

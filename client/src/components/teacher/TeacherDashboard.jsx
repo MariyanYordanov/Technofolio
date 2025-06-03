@@ -124,7 +124,7 @@ export default function TeacherDashboard() {
                 ) : (
                     <div className="pending-credits-list">
                         {pendingCredits.slice(0, 5).map(credit => (
-                            <div key={credit._id} className="pending-credit-item">
+                            <div key={credit.id} className="pending-credit-item">
                                 <div className="credit-content">
                                     <div className="credit-student">{credit.studentName}</div>
                                     <div className="credit-details">

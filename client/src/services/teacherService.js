@@ -188,10 +188,10 @@ export const getPendingCredits = async () => {
                         ...credit,
                         student: user,
                         studentName: `${user.firstName} ${user.lastName}`,
-                        studentId: user._id
+                        studentId: user.id
                     };
                 } catch (err) {
-                    console.error(`Error fetching user for credit ${credit._id}:`, err);
+                    console.error(`Error fetching user for credit ${credit.id}:`, err);
                     return credit;
                 }
             })

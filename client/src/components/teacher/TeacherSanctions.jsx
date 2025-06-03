@@ -449,7 +449,7 @@ export default function TeacherSanctions() {
                                             <div className="sanction-type">{sanction.type}</div>
                                             <button
                                                 className="btn delete-btn"
-                                                onClick={() => handleRemoveSanction(sanction._id)}
+                                                onClick={() => handleRemoveSanction(sanction.id)}
                                             >
                                                 Премахни
                                             </button>

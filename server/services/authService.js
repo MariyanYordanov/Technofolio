@@ -23,8 +23,8 @@ const signRefreshToken = (id) => {
 
 // Функция за създаване на token response обект
 const createTokenResponse = (user) => {
-    const token = signToken(user._id);
-    const refreshToken = signRefreshToken(user._id);
+    const token = signToken(user.id);
+    const refreshToken = signRefreshToken(user.id);
 
     // Запазване на refresh token в базата данни
     user.refreshToken = refreshToken;
@@ -33,7 +33,7 @@ const createTokenResponse = (user) => {
         token,
         refreshToken,
         user: {
-            id: user._id,
+            id: user.id,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
@@ -69,7 +69,7 @@ export const registerUser = async (userData) => {
 
     // Генериране на токен за потвърждение на имейла
     const confirmationToken = jwt.sign(
-        { id: user._id, email: user.email, purpose: 'confirm-registration' },
+        { id: user.id, email: user.email, purpose: 'confirm-registration' },
         config.JWT_SECRET,
         { expiresIn: '24h' }
     );
@@ -158,7 +158,7 @@ export const loginUser = async (loginData) => {
     // Проверка за 2FA ако е активирана
     if (user.twoFactorEnabled) {
         const tempToken = jwt.sign(
-            { id: user._id, requiresTwoFactor: true },
+            { id: user.id, requiresTwoFactor: true },
             config.JWT_SECRET,
             { expiresIn: '5m' }
         );
@@ -291,7 +291,7 @@ export const refreshUserToken = async (refreshToken) => {
         }
 
         // Създаване на нов access token
-        const token = signToken(user._id);
+        const token = signToken(user.id);
 
         return { token };
 
@@ -423,7 +423,7 @@ export const requestUserLoginLink = async (email) => {
 
     // Генериране на токен за вход
     const loginToken = jwt.sign(
-        { id: user._id, email: user.email, purpose: 'email-login' },
+        { id: user.id, email: user.email, purpose: 'email-login' },
         config.JWT_SECRET,
         { expiresIn: '15m' }
     );

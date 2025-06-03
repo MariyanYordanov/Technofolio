@@ -17,10 +17,9 @@ export const getMe = async () => {
         const result = await request.get(endpoints.getMe);
 
         if (result && result.success && result.user) {
-            // Преобразуваме id към _id за консистентност
             return {
                 ...result.user,
-                _id: result.user.id || result.user._id
+                id: result.user.id
             };
         }
 

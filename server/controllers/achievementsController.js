@@ -9,7 +9,7 @@ export const getUserAchievements = catchAsync(async (req, res, next) => {
 
     const achievements = await achievementsService.getUserAchievements(
         userId,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -32,7 +32,7 @@ export const addAchievement = catchAsync(async (req, res, next) => {
 
     const achievement = await achievementsService.addAchievement(
         req.body,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -58,7 +58,7 @@ export const updateAchievement = catchAsync(async (req, res, next) => {
     const achievement = await achievementsService.updateAchievement(
         achievementId,
         req.body,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -75,7 +75,7 @@ export const deleteAchievement = catchAsync(async (req, res, next) => {
 
     const result = await achievementsService.deleteAchievement(
         achievementId,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 

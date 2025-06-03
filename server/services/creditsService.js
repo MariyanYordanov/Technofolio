@@ -24,7 +24,7 @@ export const getStudentCredits = async (userId, currentUserId, currentUserRole) 
     ensureUserIsStudent(user);
 
     // Проверка за права
-    const isOwner = compareIds(user._id, currentUserId);
+    const isOwner = compareIds(user.id, currentUserId);
     const isTeacherOrAdmin = currentUserRole === 'teacher' || currentUserRole === 'admin';
 
     if (!isOwner && !isTeacherOrAdmin) {
@@ -98,10 +98,10 @@ export const addCredit = async (creditData, userId) => {
     });
 
     // Известяване на учители
-    const teachers = await User.find({ role: 'teacher' }).select('_id');
+    const teachers = await User.find({ role: 'teacher' }).select('id');
 
     if (teachers.length > 0) {
-        const teacherIds = teachers.map(teacher => teacher._id);
+        const teacherIds = teachers.map(teacher => teacher.id);
 
         await notificationService.createBulkNotifications(teacherIds, {
             title: 'Нова заявка за кредит',
@@ -110,7 +110,7 @@ export const addCredit = async (creditData, userId) => {
             category: 'credit',
             relatedTo: {
                 model: 'Credit',
-                id: credit._id
+                id: credit.id
             },
             sendEmail: false
         });
@@ -153,7 +153,7 @@ export const validateCredit = async (creditId, validationData, validatorId, vali
 
     // Известяване на ученика
     await notificationService.createNotification({
-        recipient: credit.user._id,
+        recipient: credit.user.id,
         title: status === 'validated' ? 'Кредит одобрен' : 'Кредит отхвърлен',
         message: status === 'validated'
             ? `Вашият кредит за "${credit.activity}" е одобрен.`
@@ -162,7 +162,7 @@ export const validateCredit = async (creditId, validationData, validatorId, vali
         category: 'credit',
         relatedTo: {
             model: 'Credit',
-            id: credit._id
+            id: credit.id
         },
         sendEmail: true
     });
@@ -179,7 +179,7 @@ export const deleteCredit = async (creditId, currentUserId, currentUserRole) => 
     }
 
     // Проверка за права
-    const isOwner = compareIds(credit.user._id, currentUserId);
+    const isOwner = compareIds(credit.user.id, currentUserId);
 
     if (!isOwner && currentUserRole !== 'admin') {
         throw new AppError('Нямате права да изтривате този кредит', 403);
@@ -189,7 +189,7 @@ export const deleteCredit = async (creditId, currentUserId, currentUserRole) => 
         throw new AppError('Не можете да изтриете валидиран кредит', 400);
     }
 
-    await Credit.deleteOne({ _id: creditId });
+    await Credit.deleteOne({ id: creditId });
 
     return {
         message: 'Кредитът е изтрит успешно',
@@ -242,14 +242,14 @@ export const getAllCredits = async (filters, currentUserRole) => {
         { $match: query },
         {
             $group: {
-                _id: '$status',
+                id: '$status',
                 count: { $sum: 1 }
             }
         }
     ]);
 
     const statusStats = stats.reduce((acc, stat) => {
-        acc[stat._id] = stat.count;
+        acc[stat.id] = stat.count;
         return acc;
     }, { pending: 0, validated: 0, rejected: 0 });
 
@@ -323,7 +323,7 @@ export const deleteCreditCategory = async (categoryId, currentUserRole) => {
         throw new AppError('Тази категория не може да бъде изтрита, защото се използва в кредити', 400);
     }
 
-    const result = await CreditCategory.deleteOne({ _id: categoryId });
+    const result = await CreditCategory.deleteOne({ id: categoryId });
 
     if (result.deletedCount === 0) {
         throw new AppError('Категорията не е намерена', 404);
@@ -353,7 +353,7 @@ export const getCreditsStatistics = async (filters = {}) => {
         { $match: creditQuery },
         {
             $group: {
-                _id: null,
+                id: null,
                 total: { $sum: 1 },
                 pending: {
                     $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
@@ -416,7 +416,7 @@ export const bulkValidateCredits = async (creditIds, validationData, validatorId
     }
 
     const credits = await Credit.find({
-        _id: { $in: creditIds },
+        id: { $in: creditIds },
         status: 'pending'
     }).populate('user');
 
@@ -435,14 +435,14 @@ export const bulkValidateCredits = async (creditIds, validationData, validatorId
     }
 
     const result = await Credit.updateMany(
-        { _id: { $in: credits.map(c => c._id) } },
+        { id: { $in: credits.map(c => c.id) } },
         { $set: updateData }
     );
 
     // Изпращане на известия
     for (const credit of credits) {
         await notificationService.createNotification({
-            recipient: credit.user._id,
+            recipient: credit.user.id,
             title: status === 'validated' ? 'Кредит одобрен' : 'Кредит отхвърлен',
             message: status === 'validated'
                 ? `Вашият кредит за "${credit.activity}" е одобрен.`

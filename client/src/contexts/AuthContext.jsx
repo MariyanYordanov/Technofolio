@@ -219,7 +219,7 @@ export const AuthProvider = ({ children, notificationService = {} }) => {
         logoutHandler,
         username: auth?.username || auth?.email,
         email: auth?.email,
-        userId: auth?._id,
+        userId: auth?.id,
         firstName: auth?.firstName,
         lastName: auth?.lastName,
         role: auth?.role,

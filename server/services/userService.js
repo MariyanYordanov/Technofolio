@@ -15,7 +15,7 @@ const ensureUserIsStudent = (user) => {
 
 // Проверка за права за достъп
 const checkAccessRights = (user, currentUserId, currentUserRole) => {
-    const isOwner = compareIds(user._id, currentUserId);
+    const isOwner = compareIds(user.id, currentUserId);
     const isTeacherOrAdmin = currentUserRole === 'teacher' || currentUserRole === 'admin';
 
     if (!isOwner && !isTeacherOrAdmin) {
@@ -114,7 +114,7 @@ export const updateUser = async (id, updateData, currentUser) => {
     }
 
     // Проверка за права
-    if (user.role === 'admin' && currentUser._id.toString() !== user._id.toString()) {
+    if (user.role === 'admin' && currentUser.id.toString() !== user.id.toString()) {
         throw new AppError('Администратор не може да променя друг администратор', 403);
     }
 
@@ -141,7 +141,7 @@ export const deleteUser = async (id) => {
         throw new AppError('Администратор не може да бъде изтрит', 403);
     }
 
-    await User.deleteOne({ _id: id });
+    await User.deleteOne({ id: id });
 
     return {
         message: 'Потребителят е успешно изтрит',
@@ -201,7 +201,7 @@ export const updateStudentInfo = async (id, updateData, currentUser) => {
     }
 
     ensureUserIsStudent(user);
-    checkAccessRights(user, currentUser._id, currentUser.role);
+    checkAccessRights(user, currentUser.id, currentUser.role);
 
     const { grade, specialization, averageGrade } = updateData;
 
@@ -224,8 +224,8 @@ export const getStudentsStatistics = async () => {
 
     const byGrade = await User.aggregate([
         { $match: { role: 'student' } },
-        { $group: { _id: '$studentInfo.grade', count: { $sum: 1 } } },
-        { $sort: { _id: 1 } }
+        { $group: { id: '$studentInfo.grade', count: { $sum: 1 } } },
+        { $sort: { id: 1 } }
     ]);
 
     const withHighAbsences = await User.findStudentsWithHighAbsences(0.8);
@@ -453,7 +453,7 @@ export const removePortfolioRecommendation = async (userId, recommendationId, cu
 
     const initialLength = user.portfolio.recommendations.length;
     user.portfolio.recommendations = user.portfolio.recommendations.filter(
-        r => r._id.toString() !== recommendationId
+        r => r.id.toString() !== recommendationId
     );
 
     if (user.portfolio.recommendations.length === initialLength) {
@@ -525,7 +525,7 @@ export const updateUserAbsences = async (userId, updateData, currentUserId, curr
 
     if (absenceRate >= 0.8) {
         await notificationService.createNotification({
-            recipient: user._id,
+            recipient: user.id,
             title: 'Внимание: Високи отсъствия',
             message: `Имате ${totalAbsences} от ${user.sanctions.absences.maxAllowed} допустими отсъствия.`,
             type: 'warning',
@@ -574,7 +574,7 @@ export const addUserSanction = async (userId, sanctionData, currentUserId, curre
 
     // Известяване за новата санкция
     await notificationService.createNotification({
-        recipient: user._id,
+        recipient: user.id,
         title: 'Нова санкция',
         message: `Имате нова санкция: ${type}. Причина: ${reason}.`,
         type: 'error',
@@ -607,7 +607,7 @@ export const removeUserSanction = async (userId, sanctionId, currentUserId, curr
 
     const initialLength = user.sanctions.activeSanctions.length;
     user.sanctions.activeSanctions = user.sanctions.activeSanctions.filter(
-        s => s._id.toString() !== sanctionId
+        s => s.id.toString() !== sanctionId
     );
 
     if (user.sanctions.activeSanctions.length === initialLength) {
@@ -661,7 +661,7 @@ export const changeUserRole = async (id, newRole, currentUser) => {
     }
 
     // Проверка за права
-    if (user.role === 'admin' && currentUser._id.toString() !== user._id.toString()) {
+    if (user.role === 'admin' && currentUser.id.toString() !== user.id.toString()) {
         throw new AppError('Не можете да променяте ролята на администратор', 403);
     }
 
@@ -697,7 +697,7 @@ export const resetUserPassword = async (id, password, currentUser) => {
     }
 
     // Проверка за права
-    if (user.role === 'admin' && currentUser._id.toString() !== user._id.toString()) {
+    if (user.role === 'admin' && currentUser.id.toString() !== user.id.toString()) {
         throw new AppError('Не можете да променяте паролата на администратор', 403);
     }
 
@@ -748,7 +748,7 @@ export const getUsersByRole = async (role) => {
         throw new AppError('Невалидна роля', 400);
     }
 
-    const users = await User.find({ role }).select('_id firstName lastName email');
+    const users = await User.find({ role }).select('id firstName lastName email');
     return users;
 };
 
@@ -759,7 +759,7 @@ export const bulkUpdateUsers = async (userIds, updateData, currentUser) => {
         throw new AppError('Не са предоставени валидни ID-та на потребители', 400);
     }
 
-    const users = await User.find({ _id: { $in: userIds } });
+    const users = await User.find({ id: { $in: userIds } });
 
     if (users.length === 0) {
         throw new AppError('Няма намерени потребители', 404);
@@ -776,7 +776,7 @@ export const bulkUpdateUsers = async (userIds, updateData, currentUser) => {
     if (emailConfirmed !== undefined) updateFields.emailConfirmed = emailConfirmed;
 
     const result = await User.updateMany(
-        { _id: { $in: userIds } },
+        { id: { $in: userIds } },
         { $set: updateFields }
     );
 
@@ -806,7 +806,7 @@ export const toggleUserAccount = async (id, currentUser) => {
     }
 
     // Проверка за права
-    if (user.role === 'admin' && currentUser._id.toString() !== user._id.toString()) {
+    if (user.role === 'admin' && currentUser.id.toString() !== user.id.toString()) {
         throw new AppError('Не можете да променяте статуса на администратор', 403);
     }
 

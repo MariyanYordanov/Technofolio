@@ -42,11 +42,11 @@ export default function TeacherEvents() {
 
             if (selectedEvent) {
                 // Updating existing event
-                const updatedEvent = await eventService.updateEvent(selectedEvent._id, formValues);
+                const updatedEvent = await eventService.updateEvent(selectedEvent.id, formValues);
 
                 setEvents(prevEvents =>
                     prevEvents.map(event =>
-                        event._id === updatedEvent._id ? updatedEvent : event
+                        event.id === updatedEvent.id ? updatedEvent : event
                     )
                 );
 
@@ -115,7 +115,7 @@ export default function TeacherEvents() {
         try {
             setLoading(true);
             await eventService.deleteEvent(eventId);
-            setEvents(prevEvents => prevEvents.filter(event => event._id !== eventId));
+            setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
             success('Събитието е успешно изтрито!');
             setLoading(false);
         } catch (err) {
@@ -260,7 +260,7 @@ export default function TeacherEvents() {
             ) : (
                 <div className="events-list">
                     {events.map(event => (
-                        <div key={event._id} className="event-card">
+                        <div key={event.id} className="event-card">
                             <div className="event-header">
                                 <h2>{event.title}</h2>
                                 <div className="event-date">
@@ -296,7 +296,7 @@ export default function TeacherEvents() {
                                 </button>
                                 <button
                                     className="btn delete-btn"
-                                    onClick={() => handleDeleteEvent(event._id)}
+                                    onClick={() => handleDeleteEvent(event.id)}
                                 >
                                     Изтрий
                                 </button>

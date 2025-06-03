@@ -81,7 +81,7 @@ export default function TeacherStudentDetails() {
             // Обновяване на списъка с кредити
             setCredits(prevCredits =>
                 prevCredits.map(credit =>
-                    credit._id === updatedCredit._id ? updatedCredit : credit
+                    credit.id === updatedCredit.id ? updatedCredit : credit
                 )
             );
 
@@ -276,7 +276,7 @@ export default function TeacherStudentDetails() {
                                 </div>
 
                                 {credits.map(credit => (
-                                    <div key={credit._id} className="table-row">
+                                    <div key={credit.id} className="table-row">
                                         <div className="column">{credit.pillar}</div>
                                         <div className="column">{credit.activity}</div>
                                         <div className="column">{credit.description}</div>
@@ -291,13 +291,13 @@ export default function TeacherStudentDetails() {
                                                 <>
                                                     <button
                                                         className="btn btn-primary validate-btn"
-                                                        onClick={() => handleValidateCredit(credit._id, 'validated')}
+                                                        onClick={() => handleValidateCredit(credit.id, 'validated')}
                                                     >
                                                         Одобри
                                                     </button>
                                                     <button
                                                         className="btn btn-secondary reject-btn"
-                                                        onClick={() => handleValidateCredit(credit._id, 'rejected')}
+                                                        onClick={() => handleValidateCredit(credit.id, 'rejected')}
                                                     >
                                                         Отхвърли
                                                     </button>

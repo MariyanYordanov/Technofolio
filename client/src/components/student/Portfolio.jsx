@@ -140,7 +140,7 @@ export default function Portfolio() {
                         >
                             <option value="">Изберете ментор</option>
                             {mentors.map(mentor => (
-                                <option key={mentor._id} value={mentor._id}>
+                                <option key={mentor.id} value={mentor.id}>
                                     {mentor.firstName} {mentor.lastName} - {mentor.teacherInfo?.subjects?.join(', ') || 'Учител'}
                                 </option>
                             ))}

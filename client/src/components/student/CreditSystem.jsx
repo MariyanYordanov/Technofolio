@@ -184,7 +184,7 @@ export default function CreditSystem() {
                                     <div className="column">Статус</div>
                                 </div>
                                 {credits.map(credit => (
-                                    <div key={credit._id} className="table-row">
+                                    <div key={credit.id} className="table-row">
                                         <div className="column">{credit.pillar}</div>
                                         <div className="column">{credit.activity}</div>
                                         <div className="column">{credit.description}</div>

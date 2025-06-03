@@ -78,8 +78,8 @@ export const createEvent = async (eventData, creatorId) => {
     });
 
     // Известяване на всички ученици
-    const students = await User.find({ role: 'student' }).select('_id firstName lastName');
-    const studentIds = students.map(student => student._id);
+    const students = await User.find({ role: 'student' }).select('id firstName lastName');
+    const studentIds = students.map(student => student.id);
 
     if (studentIds.length > 0) {
         await notificationService.createBulkNotifications(studentIds, {
@@ -89,7 +89,7 @@ export const createEvent = async (eventData, creatorId) => {
             category: 'event',
             relatedTo: {
                 model: 'Event',
-                id: event._id
+                id: event.id
             },
             sendEmail: true
         });
@@ -130,9 +130,9 @@ export const updateEvent = async (eventId, updateData, currentUserId, currentUse
         const participations = await EventParticipation.find({
             event: eventId,
             status: { $in: ['registered', 'confirmed'] }
-        }).populate('user', '_id');
+        }).populate('user', 'id');
 
-        const participantIds = participations.map(p => p.user._id);
+        const participantIds = participations.map(p => p.user.id);
 
         if (participantIds.length > 0) {
             await notificationService.createBulkNotifications(participantIds, {
@@ -142,7 +142,7 @@ export const updateEvent = async (eventId, updateData, currentUserId, currentUse
                 category: 'event',
                 relatedTo: {
                     model: 'Event',
-                    id: event._id
+                    id: event.id
                 },
                 sendEmail: true
             });
@@ -170,12 +170,12 @@ export const deleteEvent = async (eventId, currentUserId, currentUserRole) => {
     const participations = await EventParticipation.find({
         event: eventId,
         status: { $in: ['registered', 'confirmed'] }
-    }).populate('user', '_id');
+    }).populate('user', 'id');
 
-    const participantIds = participations.map(p => p.user._id);
+    const participantIds = participations.map(p => p.user.id);
 
     // Изтриване
-    await Event.deleteOne({ _id: eventId });
+    await Event.deleteOne({ id: eventId });
     await EventParticipation.deleteMany({ event: eventId });
 
     // Известяване
@@ -236,14 +236,14 @@ export const participateInEvent = async (eventId, userId) => {
     const organizer = await User.findById(event.createdBy);
     if (organizer) {
         await notificationService.createNotification({
-            recipient: organizer._id,
+            recipient: organizer.id,
             title: 'Нова регистрация за събитие',
             message: `${user.firstName} ${user.lastName} се регистрира за събитие "${event.title}"`,
             type: 'info',
             category: 'event',
             relatedTo: {
                 model: 'Event',
-                id: event._id
+                id: event.id
             },
             sendEmail: false
         });
@@ -263,7 +263,7 @@ export const confirmParticipation = async (participationId, currentUserId, curre
     }
 
     // Проверка за права
-    const isOwner = compareIds(participation.user._id, currentUserId);
+    const isOwner = compareIds(participation.user.id, currentUserId);
     if (!isOwner && currentUserRole !== 'admin') {
         throw new AppError('Нямате права да потвърждавате това участие', 403);
     }
@@ -276,14 +276,14 @@ export const confirmParticipation = async (participationId, currentUserId, curre
     const organizer = await User.findById(participation.event.createdBy);
     if (organizer) {
         await notificationService.createNotification({
-            recipient: organizer._id,
+            recipient: organizer.id,
             title: 'Потвърдено участие в събитие',
             message: `${participation.user.firstName} ${participation.user.lastName} потвърди участието си в събитие "${participation.event.title}"`,
             type: 'success',
             category: 'event',
             relatedTo: {
                 model: 'Event',
-                id: participation.event._id
+                id: participation.event.id
             },
             sendEmail: false
         });
@@ -305,7 +305,7 @@ export const getStudentParticipations = async (userId, currentUserId, currentUse
     }
 
     // Проверка за права
-    const isOwner = compareIds(user._id, currentUserId);
+    const isOwner = compareIds(user.id, currentUserId);
     const isTeacherOrAdmin = currentUserRole === 'teacher' || currentUserRole === 'admin';
 
     if (!isOwner && !isTeacherOrAdmin) {
@@ -339,14 +339,14 @@ export const markAttendance = async (participationId, currentUserRole) => {
 
     // Известяване на ученика
     await notificationService.createNotification({
-        recipient: participation.user._id,
+        recipient: participation.user.id,
         title: 'Отбелязано присъствие на събитие',
         message: `Вашето присъствие на събитие "${participation.event.title}" беше отбелязано.`,
         type: 'success',
         category: 'event',
         relatedTo: {
             model: 'Event',
-            id: participation.event._id
+            id: participation.event.id
         },
         sendEmail: false
     });
@@ -357,7 +357,7 @@ export const markAttendance = async (participationId, currentUserRole) => {
 // Предоставяне на обратна връзка
 export const provideFeedback = async (participationId, feedback, currentUserId, currentUserRole) => {
     const participation = await EventParticipation.findById(participationId)
-        .populate('user', '_id')
+        .populate('user', 'id')
         .populate('event', 'title createdBy');
 
     if (!participation) {
@@ -365,7 +365,7 @@ export const provideFeedback = async (participationId, feedback, currentUserId, 
     }
 
     // Проверка за права
-    const isOwner = compareIds(participation.user._id, currentUserId);
+    const isOwner = compareIds(participation.user.id, currentUserId);
     if (!isOwner && currentUserRole !== 'admin') {
         throw new AppError('Нямате права да предоставяте обратна връзка за това участие', 403);
     }
@@ -382,14 +382,14 @@ export const provideFeedback = async (participationId, feedback, currentUserId, 
     const organizer = await User.findById(participation.event.createdBy);
     if (organizer) {
         await notificationService.createNotification({
-            recipient: organizer._id,
+            recipient: organizer.id,
             title: 'Нова обратна връзка за събитие',
             message: `Получена е нова обратна връзка за събитие "${participation.event.title}".`,
             type: 'info',
             category: 'event',
             relatedTo: {
                 model: 'Event',
-                id: participation.event._id
+                id: participation.event.id
             },
             sendEmail: false
         });
@@ -409,7 +409,7 @@ export const cancelParticipation = async (participationId, currentUserId, curren
     }
 
     // Проверка за права
-    const isOwner = compareIds(participation.user._id, currentUserId);
+    const isOwner = compareIds(participation.user.id, currentUserId);
     if (!isOwner && currentUserRole !== 'admin') {
         throw new AppError('Нямате права да отменяте тази регистрация', 403);
     }
@@ -426,14 +426,14 @@ export const cancelParticipation = async (participationId, currentUserId, curren
     const organizer = await User.findById(participation.event.createdBy);
     if (organizer) {
         await notificationService.createNotification({
-            recipient: organizer._id,
+            recipient: organizer.id,
             title: 'Отменена регистрация за събитие',
             message: `${participation.user.firstName} ${participation.user.lastName} отмени регистрацията си за събитие "${participation.event.title}".`,
             type: 'warning',
             category: 'event',
             relatedTo: {
                 model: 'Event',
-                id: participation.event._id
+                id: participation.event.id
             },
             sendEmail: false
         });

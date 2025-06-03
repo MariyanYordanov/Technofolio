@@ -12,10 +12,10 @@ export const auditAction = (action, entity) => {
             try {
                 // Записваме действието в AuditLog
                 const entityId = req.params.id ||
-                    (typeof data === 'string' && isJsonString(data) ? JSON.parse(data)._id : null);
+                    (typeof data === 'string' && isJsonString(data) ? JSON.parse(data).id : null);
 
                 const log = {
-                    user: req.user ? req.user._id : null,
+                    user: req.user ? req.user.id : null,
                     action,
                     entity,
                     entityId,

@@ -162,7 +162,7 @@ export const updateStudentInfo = catchAsync(async (req, res, next) => {
 
 // Получаване на целите на потребител
 export const getUserGoals = catchAsync(async (req, res, next) => {
-    const result = await userService.getUserGoals(req.params.id, req.user._id, req.user.role);
+    const result = await userService.getUserGoals(req.params.id, req.user.id, req.user.role);
 
     res.status(200).json({
         success: true,
@@ -186,7 +186,7 @@ export const updateUserGoal = catchAsync(async (req, res, next) => {
         req.params.id,
         category,
         req.body,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -203,7 +203,7 @@ export const deleteUserGoal = catchAsync(async (req, res, next) => {
     const result = await userService.deleteUserGoal(
         req.params.id,
         category,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -217,7 +217,7 @@ export const deleteUserGoal = catchAsync(async (req, res, next) => {
 
 // Получаване на интереси и хобита
 export const getUserInterests = catchAsync(async (req, res, next) => {
-    const result = await userService.getUserInterests(req.params.id, req.user._id, req.user.role);
+    const result = await userService.getUserInterests(req.params.id, req.user.id, req.user.role);
 
     res.status(200).json({
         success: true,
@@ -239,7 +239,7 @@ export const updateUserInterests = catchAsync(async (req, res, next) => {
     const result = await userService.updateUserInterests(
         req.params.id,
         req.body,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -255,7 +255,7 @@ export const updateUserInterests = catchAsync(async (req, res, next) => {
 
 // Получаване на портфолио
 export const getUserPortfolio = catchAsync(async (req, res, next) => {
-    const result = await userService.getUserPortfolio(req.params.id, req.user._id, req.user.role);
+    const result = await userService.getUserPortfolio(req.params.id, req.user.id, req.user.role);
 
     res.status(200).json({
         success: true,
@@ -276,7 +276,7 @@ export const updateUserPortfolio = catchAsync(async (req, res, next) => {
     const result = await userService.updateUserPortfolio(
         req.params.id,
         req.body,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -299,7 +299,7 @@ export const addPortfolioRecommendation = catchAsync(async (req, res, next) => {
     const result = await userService.addPortfolioRecommendation(
         req.params.id,
         req.body,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -315,7 +315,7 @@ export const removePortfolioRecommendation = catchAsync(async (req, res, next) =
     const result = await userService.removePortfolioRecommendation(
         req.params.id,
         req.params.recommendationId,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -329,7 +329,7 @@ export const removePortfolioRecommendation = catchAsync(async (req, res, next) =
 
 // Получаване на санкции и отсъствия
 export const getUserSanctions = catchAsync(async (req, res, next) => {
-    const result = await userService.getUserSanctions(req.params.id, req.user._id, req.user.role);
+    const result = await userService.getUserSanctions(req.params.id, req.user.id,, req.user.role);
 
     res.status(200).json({
         success: true,
@@ -350,7 +350,7 @@ export const updateUserAbsences = catchAsync(async (req, res, next) => {
     const result = await userService.updateUserAbsences(
         req.params.id,
         req.body,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -373,7 +373,7 @@ export const addUserSanction = catchAsync(async (req, res, next) => {
     const result = await userService.addUserSanction(
         req.params.id,
         req.body,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 
@@ -389,7 +389,7 @@ export const removeUserSanction = catchAsync(async (req, res, next) => {
     const result = await userService.removeUserSanction(
         req.params.id,
         req.params.sanctionId,
-        req.user._id,
+        req.user.id,
         req.user.role
     );
 

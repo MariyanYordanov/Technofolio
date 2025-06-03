@@ -187,7 +187,7 @@ const seedData = async () => {
                     endDate: new Date('2025-03-15T16:00:00'),
                     location: 'НПМГ "Акад. Любомир Чакалов"',
                     organizer: 'Училищно ръководство',
-                    createdBy: teacher._id
+                    createdBy: teacher.id
                 },
                 {
                     title: 'Хакатон "Иновации в образованието"',
@@ -196,7 +196,7 @@ const seedData = async () => {
                     endDate: new Date('2025-04-21T15:00:00'),
                     location: 'Компютърни зали',
                     organizer: 'Клуб по програмиране',
-                    createdBy: teacher._id
+                    createdBy: teacher.id
                 },
                 {
                     title: 'Кариерен форум',
@@ -204,7 +204,7 @@ const seedData = async () => {
                     startDate: new Date('2025-05-10T13:00:00'),
                     location: 'Актова зала',
                     organizer: 'Кариерен център',
-                    createdBy: teacher._id
+                    createdBy: teacher.id
                 }
             ];
 

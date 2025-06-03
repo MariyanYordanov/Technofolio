@@ -159,7 +159,7 @@ export default function TeacherCreditsManagement() {
                     ) : (
                         <div className="credits-list">
                             {pendingCredits.map(credit => (
-                                <div key={credit._id} className="credit-card">
+                                <div key={credit.id} className="credit-card">
                                     <div className="credit-header">
                                         <div className="credit-student">
                                             <span className="label">Ученик:</span>
@@ -197,13 +197,13 @@ export default function TeacherCreditsManagement() {
                                     <div className="credit-actions">
                                         <button
                                             className="btn btn-primary validate-btn"
-                                            onClick={() => handleValidateCredit(credit._id, 'validated')}
+                                            onClick={() => handleValidateCredit(credit.id, 'validated')}
                                         >
                                             Одобри
                                         </button>
                                         <button
                                             className="btn btn-secondary reject-btn"
-                                            onClick={() => handleValidateCredit(credit._id, 'rejected')}
+                                            onClick={() => handleValidateCredit(credit.id, 'rejected')}
                                         >
                                             Отхвърли
                                         </button>
@@ -293,10 +293,10 @@ export default function TeacherCreditsManagement() {
                             </div>
 
                             {filteredCredits.map(credit => (
-                                <div key={credit._id}>
+                                <div key={credit.id}>
                                     <div
                                         className="table-row"
-                                        onClick={() => toggleCreditDetails(credit._id)}
+                                        onClick={() => toggleCreditDetails(credit.id)}
                                     >
                                         <div className="column student-column">
                                             <Link to={`/teacher/students/${credit.studentId}/profile`}>
@@ -321,7 +321,7 @@ export default function TeacherCreditsManagement() {
                                                         className="btn btn-primary validate-btn"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleValidateCredit(credit._id, 'validated');
+                                                            handleValidateCredit(credit.id, 'validated');
                                                         }}
                                                     >
                                                         Одобри
@@ -330,7 +330,7 @@ export default function TeacherCreditsManagement() {
                                                         className="btn btn-secondary reject-btn"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleValidateCredit(credit._id, 'rejected');
+                                                            handleValidateCredit(credit.id, 'rejected');
                                                         }}
                                                     >
                                                         Отхвърли
@@ -344,7 +344,7 @@ export default function TeacherCreditsManagement() {
                                         </div>
                                     </div>
 
-                                    {expandedCreditId === credit._id && (
+                                    {expandedCreditId === credit.id && (
                                         <div className="credit-details">
                                             <div className="detail-row">
                                                 <span className="detail-label">Описание:</span>

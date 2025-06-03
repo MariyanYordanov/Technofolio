@@ -248,7 +248,7 @@ export const checkTokenValidity = catchAsync(async (req, res) => {
         success: true,
         message: 'Токенът е валиден',
         user: {
-            id: req.user._id,
+            id: req.user.id,
             email: req.user.email,
             firstName: req.user.firstName,
             lastName: req.user.lastName,

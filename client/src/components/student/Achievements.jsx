@@ -83,7 +83,7 @@ export default function Achievements() {
             // Използваме userId директно
             await studentService.removeAchievement(userId, achievementId);
             setAchievements(prevAchievements =>
-                prevAchievements.filter(achievement => achievement._id !== achievementId)
+                prevAchievements.filter(achievement => achievement.id !== achievementId)
             );
 
             setLoading(false);
@@ -222,13 +222,13 @@ export default function Achievements() {
                             const category = achievementCategories.find(c => c.id === achievement.category);
 
                             return (
-                                <div key={achievement._id} className="achievement-card">
+                                <div key={achievement.id} className="achievement-card">
                                     <div className="achievement-header">
                                         <h2>{achievement.title}</h2>
                                         <div className="achievement-actions">
                                             <button
                                                 className="btn delete-btn"
-                                                onClick={() => handleDeleteAchievement(achievement._id)}
+                                                onClick={() => handleDeleteAchievement(achievement.id)}
                                             >
                                                 Изтрий
                                             </button>

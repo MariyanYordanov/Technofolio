@@ -13,7 +13,7 @@ const ensureUserIsStudent = (user) => {
 
 // Проверка за права за достъп
 const checkAccessRights = (user, currentUserId, currentUserRole) => {
-    const isOwner = compareIds(user._id, currentUserId);
+    const isOwner = compareIds(user.id, currentUserId);
     const isTeacherOrAdmin = currentUserRole === 'teacher' || currentUserRole === 'admin';
 
     if (!isOwner && !isTeacherOrAdmin) {
@@ -56,7 +56,7 @@ export const addAchievement = async (achievementData, currentUserId, currentUser
     ensureUserIsStudent(user);
 
     // Проверка за права - само собственикът или админ може да добавя
-    const isOwner = compareIds(user._id, currentUserId);
+    const isOwner = compareIds(user.id, currentUserId);
     if (!isOwner && currentUserRole !== 'admin') {
         throw new AppError('Нямате права да добавяте постижения за този потребител', 403);
     }
@@ -99,7 +99,7 @@ export const updateAchievement = async (achievementId, updateData, currentUserId
     }
 
     // Проверка за права
-    const isOwner = compareIds(achievement.user._id, currentUserId);
+    const isOwner = compareIds(achievement.user.id, currentUserId);
     if (!isOwner && currentUserRole !== 'admin') {
         throw new AppError('Нямате права да редактирате това постижение', 403);
     }
@@ -132,12 +132,12 @@ export const deleteAchievement = async (achievementId, currentUserId, currentUse
     }
 
     // Проверка за права
-    const isOwner = compareIds(achievement.user._id, currentUserId);
+    const isOwner = compareIds(achievement.user.id, currentUserId);
     if (!isOwner && currentUserRole !== 'admin') {
         throw new AppError('Нямате права да изтривате това постижение', 403);
     }
 
-    await Achievement.deleteOne({ _id: achievementId });
+    await Achievement.deleteOne({ id: achievementId });
 
     return {
         message: 'Постижението е изтрито успешно',
@@ -222,7 +222,7 @@ export const getAchievementsStats = async (filters, currentUserRole) => {
         { $match: matchQuery },
         {
             $group: {
-                _id: null,
+                id: null,
                 total: { $sum: 1 },
                 byCategory: { $push: '$category' }
             }
@@ -242,13 +242,13 @@ export const getAchievementsStats = async (filters, currentUserRole) => {
         { $match: matchQuery },
         {
             $group: {
-                _id: '$user',
+                id: '$user',
                 count: { $sum: 1 }
             }
         },
         {
             $group: {
-                _id: null,
+                id: null,
                 studentsWithAchievements: { $sum: 1 },
                 avgAchievementsPerStudent: { $avg: '$count' }
             }
@@ -265,7 +265,7 @@ export const getAchievementsStats = async (filters, currentUserRole) => {
         { $match: matchQuery },
         {
             $group: {
-                _id: '$user',
+                id: '$user',
                 count: { $sum: 1 }
             }
         },
@@ -274,8 +274,8 @@ export const getAchievementsStats = async (filters, currentUserRole) => {
         {
             $lookup: {
                 from: 'users',
-                localField: '_id',
-                foreignField: '_id',
+                localField: 'id',
+                foreignField: 'id',
                 as: 'userInfo'
             }
         },

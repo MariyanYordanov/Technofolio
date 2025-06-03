@@ -19,7 +19,7 @@ export default function StudentProfile() {
             const profileData = await studentService.getStudentProfile(userId);
 
             // Проверяваме дали профилът съществува
-            if (profileData && profileData._id) {
+            if (profileData && profileData.id) {
                 setStudent(profileData);
             } else {
                 setStudent(null);

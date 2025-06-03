@@ -114,7 +114,7 @@ export const sendNotificationEmail = async (notification) => {
         });
 
         // Обновяване на флага за изпратен имейл
-        await Notification.findByIdAndUpdate(notification._id, { isEmailSent: true });
+        await Notification.findByIdAndUpdate(notification.id, { isEmailSent: true });
 
         return true;
     } catch (error) {
@@ -127,7 +127,7 @@ export const sendNotificationEmail = async (notification) => {
 export const markNotificationAsRead = async (notificationId, userId) => {
     try {
         const notification = await Notification.findOneAndUpdate(
-            { _id: notificationId, recipient: userId },
+            { id: notificationId, recipient: userId },
             { isRead: true },
             { new: true }
         );
@@ -158,7 +158,7 @@ export const markAllNotificationsAsRead = async (userId) => {
 export const deleteNotification = async (notificationId, userId) => {
     try {
         const result = await Notification.deleteOne({
-            _id: notificationId,
+            id: notificationId,
             recipient: userId
         });
 
@@ -179,7 +179,7 @@ export const notifyAboutNewEvent = async (event, recipients) => {
             category: 'event',
             relatedTo: {
                 model: 'Event',
-                id: event._id
+                id: event.id
             },
             sendEmail: true
         };
@@ -214,7 +214,7 @@ export const notifyAboutCreditStatusChange = async (credit, status) => {
             category: 'credit',
             relatedTo: {
                 model: 'Credit',
-                id: credit._id
+                id: credit.id
             },
             sendEmail: true
         };
@@ -237,7 +237,7 @@ export const notifyAboutAbsences = async (student, absences) => {
             category: 'absence',
             relatedTo: {
                 model: 'Sanction',
-                id: absences._id
+                id: absences.id
             },
             sendEmail: true
         };
@@ -260,7 +260,7 @@ export const notifyAboutNewSanction = async (student, sanction) => {
             category: 'sanction',
             relatedTo: {
                 model: 'Sanction',
-                id: sanction._id
+                id: sanction.id
             },
             sendEmail: true
         };

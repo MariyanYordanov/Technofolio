@@ -52,7 +52,7 @@ const authMiddleware = catchAsync(async (req, res, next) => {
 
                 // Намиране на потребителя с този refresh token
                 const user = await User.findOne({
-                    _id: decoded.id,
+                    id: decoded.id,
                     refreshToken: req.cookies.refreshToken
                 });
 
@@ -61,7 +61,7 @@ const authMiddleware = catchAsync(async (req, res, next) => {
                 }
 
                 // Създаване на нов access token
-                const newToken = jwt.sign({ id: user._id }, config.JWT_SECRET, {
+                const newToken = jwt.sign({ id: user.id }, config.JWT_SECRET, {
                     expiresIn: config.JWT_EXPIRE
                 });
 

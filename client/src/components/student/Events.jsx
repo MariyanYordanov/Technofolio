@@ -84,17 +84,17 @@ export default function Events() {
     };
 
     const isRegistered = (eventId) => {
-        return participations.some(p => p.event === eventId || p.event?._id === eventId);
+        return participations.some(p => p.event === eventId);
     };
 
     const getParticipationStatus = (eventId) => {
-        const participation = participations.find(p => p.event === eventId || p.event?._id === eventId);
+        const participation = participations.find(p => p.event === eventId);
         return participation ? participation.status : null;
     };
 
     const getParticipationId = (eventId) => {
-        const participation = participations.find(p => p.event === eventId || p.event?._id === eventId);
-        return participation ? participation._id : null;
+        const participation = participations.find(p => p.event === eventId);
+        return participation ? participation.id : null;
     };
 
     if (loading) {
@@ -108,7 +108,7 @@ export default function Events() {
     const now = new Date();
     const upcomingEvents = events.filter(event => new Date(event.startDate) > now);
     const pastEvents = events.filter(event => new Date(event.startDate) <= now);
-    const myEvents = events.filter(event => isRegistered(event._id));
+    const myEvents = events.filter(event => isRegistered(event.id));
 
     return (
         <section className="events-view">
@@ -142,7 +142,7 @@ export default function Events() {
                             <p className="no-events">Няма предстоящи събития.</p>
                         ) : (
                             upcomingEvents.map(event => (
-                                <div key={event._id} className="event-card">
+                                <div key={event.id} className="event-card">
                                     <div className="event-header">
                                         <h2>{event.title}</h2>
                                         <div className="event-date">
@@ -170,16 +170,16 @@ export default function Events() {
                                     </div>
 
                                     <div className="event-footer">
-                                        {!isRegistered(event._id) ? (
+                                        {!isRegistered(event.id) ? (
                                             <button
                                                 className="btn btn-primary"
-                                                onClick={() => handleParticipate(event._id)}
+                                                onClick={() => handleParticipate(event.id)}
                                             >
                                                 Ще участвам
                                             </button>
                                         ) : (
                                             <div className="participation-status">
-                                                {getParticipationStatus(event._id) === 'registered' ? (
+                                                {getParticipationStatus(event.id) === 'registered' ? (
                                                     <span className="status-registered">Регистриран/а сте за това събитие</span>
                                                 ) : (
                                                     <span className="status-confirmed">Потвърдено участие</span>
@@ -199,7 +199,7 @@ export default function Events() {
                             <p className="no-events">Не сте регистрирани за събития.</p>
                         ) : (
                             myEvents.map(event => (
-                                <div key={event._id} className="event-card">
+                                <div key={event.id} className="event-card">
                                     <div className="event-header">
                                         <h2>{event.title}</h2>
                                         <div className="event-date">
@@ -228,13 +228,13 @@ export default function Events() {
 
                                     <div className="event-footer">
                                         <div className="participation-status">
-                                            {getParticipationStatus(event._id) === 'registered' ? (
+                                            {getParticipationStatus(event.id) === 'registered' ? (
                                                 <>
                                                     <span className="status-registered">Регистриран/а сте за това събитие</span>
                                                     {new Date(event.startDate) < now && (
                                                         <button
                                                             className="btn btn-primary"
-                                                            onClick={() => handleConfirmParticipation(getParticipationId(event._id))}
+                                                            onClick={() => handleConfirmParticipation(getParticipationId(event.id))}
                                                         >
                                                             Потвърди участие
                                                         </button>
@@ -245,7 +245,7 @@ export default function Events() {
                                             )}
                                         </div>
 
-                                        {event.feedbackUrl && getParticipationStatus(event._id) === 'confirmed' && (
+                                        {event.feedbackUrl && getParticipationStatus(event.id) === 'confirmed' && (
                                             <a
                                                 href={event.feedbackUrl}
                                                 target="_blank"
@@ -268,7 +268,7 @@ export default function Events() {
                             <p className="no-events">Няма минали събития.</p>
                         ) : (
                             pastEvents.map(event => (
-                                <div key={event._id} className="event-card past-event">
+                                <div key={event.id} className="event-card past-event">
                                     <div className="event-header">
                                         <h2>{event.title}</h2>
                                         <div className="event-date">
@@ -296,14 +296,14 @@ export default function Events() {
                                     </div>
 
                                     <div className="event-footer">
-                                        {isRegistered(event._id) && (
+                                        {isRegistered(event.id) && (
                                             <div className="participation-status">
-                                                {getParticipationStatus(event._id) === 'registered' ? (
+                                                {getParticipationStatus(event.id) === 'registered' ? (
                                                     <>
                                                         <span className="status-registered">Регистриран/а сте за това събитие</span>
                                                         <button
                                                             className="btn btn-primary"
-                                                            onClick={() => handleConfirmParticipation(getParticipationId(event._id))}
+                                                            onClick={() => handleConfirmParticipation(getParticipationId(event.id))}
                                                         >
                                                             Потвърди участие
                                                         </button>
@@ -314,7 +314,7 @@ export default function Events() {
                                             </div>
                                         )}
 
-                                        {event.feedbackUrl && isRegistered(event._id) && getParticipationStatus(event._id) === 'confirmed' && (
+                                        {event.feedbackUrl && isRegistered(event.id) && getParticipationStatus(event.id) === 'confirmed' && (
                                             <a
                                                 href={event.feedbackUrl}
                                                 target="_blank"
