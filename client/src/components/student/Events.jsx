@@ -10,6 +10,10 @@ export default function Events() {
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('upcoming');
 
+    // Debug logging
+    console.log('Events component - userId:', userId);
+    console.log('Events component - isAuthenticated:', isAuthenticated);
+
     const fetchEvents = useCallback(async () => {
         try {
             setLoading(true);
@@ -47,6 +51,9 @@ export default function Events() {
     }, [isAuthenticated, userId, fetchEvents, fetchParticipations]);
 
     const handleParticipate = async (eventId) => {
+        console.log('handleParticipate - userId:', userId); // Debug log
+        console.log('handleParticipate - isAuthenticated:', isAuthenticated); // Debug log
+
         if (!userId) {
             alert('Моля, влезте в системата за да се регистрирате за събитие.');
             return;
@@ -77,16 +84,16 @@ export default function Events() {
     };
 
     const isRegistered = (eventId) => {
-        return participations.some(p => p.eventId === eventId);
+        return participations.some(p => p.event === eventId || p.event?._id === eventId);
     };
 
     const getParticipationStatus = (eventId) => {
-        const participation = participations.find(p => p.eventId === eventId);
+        const participation = participations.find(p => p.event === eventId || p.event?._id === eventId);
         return participation ? participation.status : null;
     };
 
     const getParticipationId = (eventId) => {
-        const participation = participations.find(p => p.eventId === eventId);
+        const participation = participations.find(p => p.event === eventId || p.event?._id === eventId);
         return participation ? participation._id : null;
     };
 
