@@ -2,38 +2,59 @@ import { useContext, useEffect, useState, useCallback } from 'react';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import CreditContext from '../../contexts/CreditContext.jsx';
 import useForm from '../../hooks/useForm.js';
+import * as studentService from '../../services/studentService.js';
 
 export default function CreditSystem() {
-    const { isAuthenticated } = useContext(AuthContext);
+    const { isAuthenticated, userId, firstName, lastName } = useContext(AuthContext);
     const {
         credits,
         loading,
         error,
         addCredit,
         getStudentGradeLevel,
-        getCompletedCredits
+        getCompletedCredits,
+        categories
     } = useContext(CreditContext);
 
     const [isAddingCredit, setIsAddingCredit] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
-    const [studentClass, setStudentClass] = useState(null);
     const [studentProfile, setStudentProfile] = useState(null);
+    const [activities, setActivities] = useState([]);
 
-    const setupStudentData = useCallback(() => {
-        setStudentClass(9);
-        setStudentProfile({
-            firstName: 'Иван',
-            lastName: 'Иванов',
-            grade: 9,
-            specialization: 'Софтуерни и хардуерни науки'
-        });
-    }, []);
+    // Зареждане на профила на студента
+    const fetchStudentProfile = useCallback(async () => {
+        try {
+            const profile = await studentService.getStudentProfile(userId);
+            setStudentProfile(profile);
+        } catch (err) {
+            console.error('Error fetching student profile:', err);
+            // Използваме fallback данни от AuthContext
+            setStudentProfile({
+                firstName: firstName || 'Потребител',
+                lastName: lastName || '',
+                studentInfo: {
+                    grade: 'N/A',
+                    specialization: 'N/A',
+                    averageGrade: null
+                }
+            });
+        }
+    }, [userId, firstName, lastName]);
 
     useEffect(() => {
-        if (isAuthenticated) {
-            setupStudentData();
+        if (isAuthenticated && userId) {
+            fetchStudentProfile();
         }
-    }, [isAuthenticated, setupStudentData]);
+    }, [isAuthenticated, userId, fetchStudentProfile]);
+
+    // Обновяване на активностите при промяна на избрания стълб
+    const updateActivities = useCallback((pillar) => {
+        if (categories && categories[pillar]) {
+            setActivities(categories[pillar].map(cat => cat.name));
+        } else {
+            setActivities([]);
+        }
+    }, [categories]);
 
     const { values, onChange, onSubmit, changeValues } = useForm(async (formValues) => {
         try {
@@ -48,8 +69,9 @@ export default function CreditSystem() {
                 activity: '',
                 description: ''
             });
+            setActivities([]);
         } catch (err) {
-            console.log(err);
+            console.error('Error adding credit:', err);
             setIsAddingCredit(false);
         }
     }, {
@@ -58,8 +80,26 @@ export default function CreditSystem() {
         description: ''
     });
 
+    // При промяна на стълба, обновяваме активностите
+    const handlePillarChange = (e) => {
+        onChange(e);
+        updateActivities(e.target.value);
+        // Нулираме избраната активност
+        changeValues(prev => ({
+            ...prev,
+            activity: ''
+        }));
+    };
+
+    // Изчисляване на изискванията според класа
     const getPillarRequirements = useCallback(() => {
-        switch (studentClass) {
+        if (!studentProfile?.studentInfo?.grade) {
+            return { total: 5, pillars: { 'Аз и другите': 0, 'Мислене': 0, 'Професия': 0 } };
+        }
+
+        const grade = parseInt(studentProfile.studentInfo.grade);
+
+        switch (grade) {
             case 8: return { total: 5, pillars: { 'Аз и другите': 3, 'Мислене': 0, 'Професия': 0 } };
             case 9: return { total: 5, pillars: { 'Аз и другите': 0, 'Мислене': 3, 'Професия': 0 } };
             case 10: return { total: 6, pillars: { 'Аз и другите': 0, 'Мислене': 2, 'Професия': 2 } };
@@ -67,7 +107,7 @@ export default function CreditSystem() {
             case 12: return { total: 6, pillars: { 'Аз и другите': 2, 'Мислене': 0, 'Професия': 2 } };
             default: return { total: 5, pillars: { 'Аз и другите': 0, 'Мислене': 0, 'Професия': 0 } };
         }
-    }, [studentClass]);
+    }, [studentProfile]);
 
     if (loading) return <div className="loading">Зареждане на кредитна система...</div>;
     if (error) return <div className="error">{error}</div>;
@@ -75,6 +115,13 @@ export default function CreditSystem() {
     const requirements = getPillarRequirements();
     const gradeLevel = getStudentGradeLevel();
     const completedTotal = getCompletedCredits();
+
+    // Безопасно извличане на данни от профила
+    const studentInfo = studentProfile?.studentInfo || {};
+    const displayFirstName = studentProfile?.firstName || firstName || 'Потребител';
+    const displayLastName = studentProfile?.lastName || lastName || '';
+    const grade = studentInfo.grade || 'N/A';
+    const specialization = studentInfo.specialization || 'N/A';
 
     return (
         <section className="credit-system">
@@ -91,14 +138,12 @@ export default function CreditSystem() {
                     <div className="credit-overview">
                         <div className="student-info">
                             <h2>Профил</h2>
-                            {studentProfile && (
-                                <div className="student-details">
-                                    <p>Име: {studentProfile.firstName} {studentProfile.lastName}</p>
-                                    <p>Клас: {studentProfile.grade}</p>
-                                    <p>Специалност: {studentProfile.specialization}</p>
-                                    <p>Рейтинг: <span className={`rating-${gradeLevel.toLowerCase()}`}>{gradeLevel}</span></p>
-                                </div>
-                            )}
+                            <div className="student-details">
+                                <p>Име: {displayFirstName} {displayLastName}</p>
+                                <p>Клас: {grade}</p>
+                                <p>Специалност: {specialization}</p>
+                                <p>Рейтинг: <span className={`rating-${gradeLevel.toLowerCase()}`}>{gradeLevel}</span></p>
+                            </div>
                         </div>
 
                         <div className="credit-progress">
@@ -163,7 +208,7 @@ export default function CreditSystem() {
                         <form onSubmit={onSubmit}>
                             <div className="form-group">
                                 <label htmlFor="pillar">Стълб:</label>
-                                <select id="pillar" name="pillar" value={values.pillar} onChange={onChange} required>
+                                <select id="pillar" name="pillar" value={values.pillar} onChange={handlePillarChange} required>
                                     <option value="">Избери стълб</option>
                                     <option value="Аз и другите">Аз и другите</option>
                                     <option value="Мислене">Мислене</option>
@@ -175,17 +220,29 @@ export default function CreditSystem() {
                                 <label htmlFor="activity">Дейност:</label>
                                 <select id="activity" name="activity" value={values.activity} onChange={onChange} required disabled={!values.pillar}>
                                     <option value="">Избери дейност</option>
-                                    {/* Постави тук съответните опции както в оригиналния файл */}
+                                    {activities.map(activity => (
+                                        <option key={activity} value={activity}>{activity}</option>
+                                    ))}
                                 </select>
                             </div>
 
                             <div className="form-group">
                                 <label htmlFor="description">Описание:</label>
-                                <textarea id="description" name="description" value={values.description} onChange={onChange} required placeholder="Опишете дейността и как сте я изпълнили..."></textarea>
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    value={values.description}
+                                    onChange={onChange}
+                                    required
+                                    placeholder="Опишете дейността и как сте я изпълнили..."
+                                    rows="4"
+                                ></textarea>
                             </div>
 
                             <div className="form-actions">
-                                <button type="submit" className="btn btn-primary">Запази</button>
+                                <button type="submit" className="btn btn-primary" disabled={isAddingCredit}>
+                                    {isAddingCredit ? 'Запазване...' : 'Запази'}
+                                </button>
                             </div>
                         </form>
                     </div>

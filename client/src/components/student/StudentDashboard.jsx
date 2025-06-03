@@ -23,22 +23,36 @@ export default function StudentDashboard() {
 
             // Паралелно зареждане на данни
             const [profileData, eventsData, achievementsData] = await Promise.all([
-                studentService.getStudentProfile(userId),
-                eventService.getAllEvents(),
-                studentService.getStudentAchievements(userId)
+                studentService.getStudentProfile(userId).catch(() => null),
+                eventService.getAllEvents().catch(() => []),
+                studentService.getStudentAchievements(userId).catch(() => [])
             ]);
 
-            setStudent(profileData);
+            // Обработваме профила
+            if (profileData && profileData._id) {
+                setStudent(profileData);
+            } else {
+                // Ако няма профил, използваме базови данни от AuthContext
+                setStudent({
+                    firstName: firstName || 'Потребител',
+                    lastName: lastName || '',
+                    studentInfo: {
+                        grade: 'N/A',
+                        specialization: 'N/A',
+                        averageGrade: null
+                    }
+                });
+            }
 
             // Филтриране на предстоящи събития (следващите 3)
-            const upcoming = eventsData
+            const upcoming = (eventsData || [])
                 .filter(event => new Date(event.startDate) > new Date())
                 .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
                 .slice(0, 3);
             setUpcomingEvents(upcoming);
 
             // Последните 3 постижения
-            const recent = achievementsData
+            const recent = (achievementsData || [])
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .slice(0, 3);
             setRecentAchievements(recent);
@@ -48,7 +62,7 @@ export default function StudentDashboard() {
             console.error('Error fetching dashboard data:', err);
             setLoading(false);
         }
-    }, [isAuthenticated, userId]);
+    }, [isAuthenticated, userId, firstName, lastName]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -67,19 +81,29 @@ export default function StudentDashboard() {
     const completedCredits = getCompletedCredits();
     const pendingCredits = credits.filter(c => c.status === 'pending').length;
 
+    // Извличаме данни безопасно
+    const studentInfo = student?.studentInfo || {};
+    const grade = studentInfo.grade || 'N/A';
+    const specialization = studentInfo.specialization || 'N/A';
+    const averageGrade = studentInfo.averageGrade || '-';
+    const displayFirstName = student?.firstName || firstName || 'Потребител';
+    const displayLastName = student?.lastName || lastName || '';
+
     return (
         <section className="student-dashboard">
             <div className="dashboard-header">
-                <h1>Добре дошли, {firstName} {lastName}!</h1>
+                <h1>Добре дошли, {displayFirstName} {displayLastName}!</h1>
                 <p className="dashboard-subtitle">
-                    {student?.grade} клас • {student?.specialization}
+                    {grade !== 'N/A' ? `${grade} клас` : ''}
+                    {grade !== 'N/A' && specialization !== 'N/A' ? ' • ' : ''}
+                    {specialization !== 'N/A' ? specialization : ''}
                 </p>
             </div>
 
             {/* Бърз преглед */}
             <div className="quick-stats">
                 <div className="stat-card">
-                    <div className="stat-value">{student?.averageGrade || '-'}</div>
+                    <div className="stat-value">{averageGrade}</div>
                     <div className="stat-label">Среден успех</div>
                 </div>
                 <div className="stat-card">
@@ -112,7 +136,7 @@ export default function StudentDashboard() {
                     </Link>
                     <Link to={Path.Events} className="action-card">
                         <span className="action-icon">📅</span>
-                        <span className="action-title">События</span>
+                        <span className="action-title">Събития</span>
                     </Link>
                     <Link to={Path.Achievements} className="action-card">
                         <span className="action-icon">🏆</span>
