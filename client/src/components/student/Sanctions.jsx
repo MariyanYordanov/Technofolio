@@ -1,10 +1,8 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as studentService from '../../services/studentService.js';
 
 export default function Sanctions() {
-    const navigate = useNavigate();
     const { userId, isAuthenticated } = useContext(AuthContext);
     const [sanctions, setSanctions] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -13,14 +11,9 @@ export default function Sanctions() {
     const fetchSanctions = useCallback(async () => {
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            if (!studentProfile) {
-                navigate('/profile');
-                return;
-            }
-
-            const sanctionsData = await studentService.getStudentSanctions(studentProfile._id);
+            // Директно използваме userId
+            const sanctionsData = await studentService.getStudentSanctions(userId);
             setSanctions(sanctionsData || {
                 absences: {
                     excused: 0,
@@ -37,13 +30,13 @@ export default function Sanctions() {
             setError('Грешка при зареждане на забележките.');
             setLoading(false);
         }
-    }, [userId, navigate]);
+    }, [userId]);
 
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && userId) {
             fetchSanctions();
         }
-    }, [isAuthenticated, fetchSanctions]);
+    }, [isAuthenticated, userId, fetchSanctions]);
 
     if (loading) {
         return <div className="loading">Зареждане на забележки и санкции...</div>;
