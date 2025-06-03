@@ -32,7 +32,6 @@ export const getMe = async () => {
 };
 
 // Заявка за вход с имейл и парола
-// Заявка за вход с имейл и парола
 export const login = async (email, password) => {
     try {
         const result = await request.post(endpoints.login, {

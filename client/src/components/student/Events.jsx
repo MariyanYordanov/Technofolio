@@ -24,6 +24,11 @@ export default function Events() {
     }, []);
 
     const fetchParticipations = useCallback(async () => {
+        if (!userId) {
+            console.log('No userId available, skipping participations fetch');
+            return;
+        }
+
         try {
             const participationsData = await eventService.getStudentParticipations(userId);
             setParticipations(participationsData);
@@ -35,17 +40,29 @@ export default function Events() {
     useEffect(() => {
         if (isAuthenticated) {
             fetchEvents();
-            fetchParticipations();
+            if (userId) {
+                fetchParticipations();
+            }
         }
-    }, [isAuthenticated, fetchEvents, fetchParticipations]);
+    }, [isAuthenticated, userId, fetchEvents, fetchParticipations]);
 
     const handleParticipate = async (eventId) => {
+        if (!userId) {
+            alert('Моля, влезте в системата за да се регистрирате за събитие.');
+            return;
+        }
+
         try {
-            await eventService.participateInEvent(eventId, userId);
-            fetchParticipations();
+            await eventService.participateInEvent(eventId);
+            await fetchParticipations();
+            alert('Успешно се регистрирахте за събитието!');
         } catch (err) {
             console.log(err);
-            alert('Грешка при регистрация за събитието.');
+            if (err.message && err.message.includes('Вече сте регистрирани')) {
+                alert('Вече сте регистрирани за това събитие.');
+            } else {
+                alert('Грешка при регистрация за събитието.');
+            }
         }
     };
 
