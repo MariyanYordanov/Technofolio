@@ -1,11 +1,9 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
 import * as studentService from '../../services/studentService.js';
 import useForm from '../../hooks/useForm.js';
 
 export default function Portfolio() {
-    const navigate = useNavigate();
     const { userId, isAuthenticated } = useContext(AuthContext);
     const [portfolio, setPortfolio] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -14,38 +12,22 @@ export default function Portfolio() {
     const [mentor, setMentor] = useState(null);
     const [mentors, setMentors] = useState([]);
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            fetchPortfolio();
-            fetchMentors();
-        }
-    }, [isAuthenticated, fetchPortfolio, fetchMentors]);
-
     const fetchMentors = useCallback(async () => {
         try {
             // API повикване за вземане на списъка с ментори
-            // Симулирано за момента
-            setMentors([
-                { _id: '1', name: 'Иван Иванов', specialization: 'Математика' },
-                { _id: '2', name: 'Петър Петров', specialization: 'Програмиране' },
-                { _id: '3', name: 'Мария Георгиева', specialization: 'Физика' },
-            ]);
+            const mentorsList = await studentService.getAllMentors();
+            setMentors(mentorsList || []);
         } catch (err) {
-            console.log(err);
+            console.error('Error fetching mentors:', err);
         }
     }, []);
 
     const fetchPortfolio = useCallback(async () => {
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            if (!studentProfile) {
-                navigate('/profile');
-                return;
-            }
-
-            const portfolioData = await studentService.getStudentPortfolio(studentProfile._id);
+            // Директно използваме userId
+            const portfolioData = await studentService.getStudentPortfolio(userId);
             setPortfolio(portfolioData);
 
             if (portfolioData && portfolioData.mentorId) {
@@ -55,18 +37,25 @@ export default function Portfolio() {
 
             setLoading(false);
         } catch (err) {
-            console.log(err);
+            console.error('Error fetching portfolio:', err);
             setError('Грешка при зареждане на портфолиото.');
             setLoading(false);
         }
-    }, [userId, navigate]);
+    }, [userId]);
+
+    useEffect(() => {
+        if (isAuthenticated && userId) {
+            fetchPortfolio();
+            fetchMentors();
+        }
+    }, [isAuthenticated, userId, fetchPortfolio, fetchMentors]);
 
     const { values, onChange, onSubmit, changeValues } = useForm(async (formValues) => {
         try {
             setLoading(true);
-            const studentProfile = await studentService.getStudentProfile(userId);
 
-            const updatedPortfolio = await studentService.updatePortfolio(studentProfile._id, formValues);
+            // Директно използваме userId
+            const updatedPortfolio = await studentService.updatePortfolio(userId, formValues);
             setPortfolio(updatedPortfolio);
 
             if (updatedPortfolio.mentorId) {
@@ -77,7 +66,7 @@ export default function Portfolio() {
             setIsEditing(false);
             setLoading(false);
         } catch (err) {
-            console.log(err);
+            console.error('Error updating portfolio:', err);
             setError('Грешка при обновяване на портфолиото.');
             setLoading(false);
         }
@@ -152,7 +141,7 @@ export default function Portfolio() {
                             <option value="">Изберете ментор</option>
                             {mentors.map(mentor => (
                                 <option key={mentor._id} value={mentor._id}>
-                                    {mentor.name} - {mentor.specialization}
+                                    {mentor.firstName} {mentor.lastName} - {mentor.teacherInfo?.subjects?.join(', ') || 'Учител'}
                                 </option>
                             ))}
                         </select>
@@ -189,8 +178,10 @@ export default function Portfolio() {
                     <div className="portfolio-section">
                         <h2>Ментор</h2>
                         <div className="mentor-info">
-                            <p className="mentor-name">{mentor.name}</p>
-                            <p className="mentor-specialization">{mentor.specialization}</p>
+                            <p className="mentor-name">{mentor.firstName} {mentor.lastName}</p>
+                            <p className="mentor-specialization">
+                                {mentor.teacherInfo?.subjects?.join(', ') || 'Учител'}
+                            </p>
                         </div>
                     </div>
                 )}
