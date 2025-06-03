@@ -222,7 +222,7 @@ export const getAchievementsStats = async (filters, currentUserRole) => {
         { $match: matchQuery },
         {
             $group: {
-                id: null,
+                _id: null,
                 total: { $sum: 1 },
                 byCategory: { $push: '$category' }
             }
@@ -242,13 +242,13 @@ export const getAchievementsStats = async (filters, currentUserRole) => {
         { $match: matchQuery },
         {
             $group: {
-                id: '$user',
+                _id: '$user',
                 count: { $sum: 1 }
             }
         },
         {
             $group: {
-                id: null,
+                _id: null,
                 studentsWithAchievements: { $sum: 1 },
                 avgAchievementsPerStudent: { $avg: '$count' }
             }
@@ -265,7 +265,7 @@ export const getAchievementsStats = async (filters, currentUserRole) => {
         { $match: matchQuery },
         {
             $group: {
-                id: '$user',
+                _id: '$user',
                 count: { $sum: 1 }
             }
         },

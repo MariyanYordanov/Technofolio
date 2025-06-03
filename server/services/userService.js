@@ -224,7 +224,7 @@ export const getStudentsStatistics = async () => {
 
     const byGrade = await User.aggregate([
         { $match: { role: 'student' } },
-        { $group: { id: '$studentInfo.grade', count: { $sum: 1 } } },
+        { $group: { _id: '$studentInfo.grade', count: { $sum: 1 } } },
         { $sort: { id: 1 } }
     ]);
 

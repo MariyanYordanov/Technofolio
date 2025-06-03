@@ -242,7 +242,7 @@ export const getAllCredits = async (filters, currentUserRole) => {
         { $match: query },
         {
             $group: {
-                id: '$status',
+                _id: '$status',
                 count: { $sum: 1 }
             }
         }
@@ -353,7 +353,7 @@ export const getCreditsStatistics = async (filters = {}) => {
         { $match: creditQuery },
         {
             $group: {
-                id: null,
+                _id: null,
                 total: { $sum: 1 },
                 pending: {
                     $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
