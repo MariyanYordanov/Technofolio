@@ -329,7 +329,7 @@ export const removePortfolioRecommendation = catchAsync(async (req, res, next) =
 
 // Получаване на санкции и отсъствия
 export const getUserSanctions = catchAsync(async (req, res, next) => {
-    const result = await userService.getUserSanctions(req.params.id, req.user.id,, req.user.role);
+    const result = await userService.getUserSanctions(req.params.id, req.user.id, req.user.role);
 
     res.status(200).json({
         success: true,
@@ -373,7 +373,7 @@ export const addUserSanction = catchAsync(async (req, res, next) => {
     const result = await userService.addUserSanction(
         req.params.id,
         req.body,
-        req.user.id,
+        req.user._id,
         req.user.role
     );
 
@@ -389,7 +389,7 @@ export const removeUserSanction = catchAsync(async (req, res, next) => {
     const result = await userService.removeUserSanction(
         req.params.id,
         req.params.sanctionId,
-        req.user.id,
+        req.user._id,
         req.user.role
     );
 
