@@ -16,9 +16,12 @@ export const getMe = async () => {
     try {
         const result = await request.get(endpoints.getMe);
 
-        // Сървърът връща директно user обекта
-        if (result && result._id) {
-            return result;
+        if (result && result.success && result.user) {
+            // Преобразуваме id към _id за консистентност
+            return {
+                ...result.user,
+                _id: result.user.id || result.user._id
+            };
         }
 
         throw new Error('Не е намерен активен потребител');
@@ -29,6 +32,7 @@ export const getMe = async () => {
 };
 
 // Заявка за вход с имейл и парола
+// Заявка за вход с имейл и парола
 export const login = async (email, password) => {
     try {
         const result = await request.post(endpoints.login, {
@@ -36,9 +40,11 @@ export const login = async (email, password) => {
             password
         });
 
-        // Сървърът връща { accessToken, _id, email, firstName, lastName, role, ... }
-        if (result && result.accessToken) {
-            return result;
+        if (result && result.success && result.accessToken && result.user) {
+            return {
+                accessToken: result.accessToken,
+                ...result.user
+            };
         }
 
         throw new Error(result.message || 'Неуспешен вход');
@@ -69,9 +75,11 @@ export const confirmRegistration = async (token) => {
     try {
         const result = await request.get(`${endpoints.confirmRegistration}?token=${token}`);
 
-        // Сървърът връща { accessToken, _id, email, ... }
-        if (result && result.accessToken) {
-            return result;
+        if (result && result.success && result.accessToken && result.user) {
+            return {
+                accessToken: result.accessToken,
+                ...result.user
+            };
         }
 
         throw new Error('Невалиден токен за потвърждение');
@@ -97,9 +105,11 @@ export const verifyEmailLogin = async (token) => {
     try {
         const result = await request.get(`${endpoints.verifyEmailLogin}?token=${token}`);
 
-        // Сървърът връща { accessToken, _id, email, ... }
-        if (result && result.accessToken) {
-            return result;
+        if (result && result.success && result.accessToken && result.user) {
+            return {
+                accessToken: result.accessToken,
+                ...result.user
+            };
         }
 
         throw new Error('Невалиден токен за вход');
