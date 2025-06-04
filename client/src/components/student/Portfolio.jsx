@@ -54,7 +54,6 @@ export default function Portfolio() {
         try {
             setLoading(true);
 
-            // Директно използваме userId
             const updatedPortfolio = await studentService.updatePortfolio(userId, formValues);
             setPortfolio(updatedPortfolio);
 
@@ -70,7 +69,11 @@ export default function Portfolio() {
             setError('Грешка при обновяване на портфолиото.');
             setLoading(false);
         }
-    }, portfolio || {
+    }, portfolio ? {
+        experience: portfolio.experience || '',
+        projects: portfolio.projects || '',
+        mentorId: portfolio.mentorId || '',
+    } : {
         experience: '',
         projects: '',
         mentorId: '',
@@ -140,7 +143,7 @@ export default function Portfolio() {
                         >
                             <option value="">Изберете ментор</option>
                             {mentors.map(mentor => (
-                                <option key={mentor.id} value={mentor.id}>
+                                <option key={mentor.id || mentor._id} value={mentor.id}>
                                     {mentor.firstName} {mentor.lastName} - {mentor.teacherInfo?.subjects?.join(', ') || 'Учител'}
                                 </option>
                             ))}

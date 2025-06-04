@@ -1,4 +1,5 @@
-// client/src/components/student/StudentDashboard.jsx
+// client/src/components/student/StudentDashboard.jsx - ПОПРАВЕНИ ПРОБЛЕМИ
+
 import { useContext, useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from '../../contexts/AuthContext.jsx';
@@ -9,7 +10,7 @@ import Path from '../../paths.js';
 
 export default function StudentDashboard() {
     const { userId, firstName, lastName, isAuthenticated } = useContext(AuthContext);
-    const { credits, getCompletedCredits, getStudentGradeLevel } = useContext(CreditContext);
+    const { credits = [], getCompletedCredits, getStudentGradeLevel } = useContext(CreditContext); // Добавяме default []
     const [student, setStudent] = useState(null);
     const [upcomingEvents, setUpcomingEvents] = useState([]);
     const [recentAchievements, setRecentAchievements] = useState([]);
@@ -79,7 +80,7 @@ export default function StudentDashboard() {
 
     const gradeLevel = getStudentGradeLevel();
     const completedCredits = getCompletedCredits();
-    const pendingCredits = credits.filter(c => c.status === 'pending').length;
+    const pendingCredits = (credits || []).filter(c => c.status === 'pending').length; // Добавено || []
 
     // Извличаме данни безопасно
     const studentInfo = student?.studentInfo || {};
@@ -156,8 +157,8 @@ export default function StudentDashboard() {
                         <p className="no-data">Няма предстоящи събития</p>
                     ) : (
                         <div className="events-list">
-                            {upcomingEvents.map(event => (
-                                <div key={event.id} className="mini-event-card">
+                            {upcomingEvents.map((event, index) => (
+                                <div key={event.id || event._id || `event-${index}`} className="mini-event-card">
                                     <div className="event-date">
                                         {new Date(event.startDate).toLocaleDateString('bg-BG', {
                                             day: 'numeric',
@@ -184,8 +185,8 @@ export default function StudentDashboard() {
                         <p className="no-data">Още нямате постижения</p>
                     ) : (
                         <div className="achievements-list">
-                            {recentAchievements.map(achievement => (
-                                <div key={achievement.id} className="mini-achievement-card">
+                            {recentAchievements.map((achievement, index) => (
+                                <div key={achievement.id || achievement._id || `achievement-${index}`} className="mini-achievement-card">
                                     <div className="achievement-icon">🏅</div>
                                     <div className="achievement-info">
                                         <h4>{achievement.title}</h4>

@@ -14,41 +14,15 @@ const ensureUserIsStudent = (user) => {
 };
 
 // Получаване на кредитите на потребител
-export const getStudentCredits = async (userId, currentUserId, currentUserRole) => {
-    const user = await User.findById(userId);
-
-    if (!user) {
-        throw new AppError('Потребителят не е намерен', 404);
+export const getStudentCredits = async (userId) => {
+    try {
+        // За студенти - използваме базовия endpoint, който автоматично филтрира по текущия user
+        const result = await request.get(endpoints.credits);
+        return result.credits || [];
+    } catch (error) {
+        console.error('Error fetching student credits:', error);
+        throw error;
     }
-
-    ensureUserIsStudent(user);
-
-    // Проверка за права
-    const isOwner = compareIds(user.id, currentUserId);
-    const isTeacherOrAdmin = currentUserRole === 'teacher' || currentUserRole === 'admin';
-
-    if (!isOwner && !isTeacherOrAdmin) {
-        throw new AppError('Нямате права да преглеждате тези кредити', 403);
-    }
-
-    const credits = await Credit.find({ user: userId })
-        .populate('validatedBy', 'firstName lastName')
-        .sort({ createdAt: -1 });
-
-    // Статистики
-    const stats = {
-        total: credits.length,
-        pending: credits.filter(c => c.status === 'pending').length,
-        validated: credits.filter(c => c.status === 'validated').length,
-        rejected: credits.filter(c => c.status === 'rejected').length,
-        byPillar: {
-            'Аз и другите': credits.filter(c => c.pillar === 'Аз и другите').length,
-            'Мислене': credits.filter(c => c.pillar === 'Мислене').length,
-            'Професия': credits.filter(c => c.pillar === 'Професия').length
-        }
-    };
-
-    return { credits, stats };
 };
 
 // Получаване на категориите кредити

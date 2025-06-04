@@ -197,8 +197,7 @@ router.post(
 router.delete('/:id/portfolio/recommendations/:recommendationId', removePortfolioRecommendation);
 
 // ===== САНКЦИИ И ОТСЪСТВИЯ =====
-router.get('/:id/sanctions', restrictTo('teacher', 'admin'), getUserSanctions);
-
+router.get('/:id/sanctions', getUserSanctions);
 router.put(
     '/:id/sanctions/absences',
     restrictTo('teacher', 'admin'),

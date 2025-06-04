@@ -469,15 +469,19 @@ export const removePortfolioRecommendation = async (userId, recommendationId, cu
 
 // ===== САНКЦИИ И ОТСЪСТВИЯ =====
 
-export const getUserSanctions = async (userId, currentUserId, currentUserRole) => {
-    const user = await User.findById(userId);
+export const getUserSanctions = async (userId, requesterId, requesterRole) => {
+    // Проверка за права - позволяваме на потребителя да вижда собствените си санкции
+    if (requesterRole !== 'teacher' &&
+        requesterRole !== 'admin' &&
+        userId !== requesterId) {
+        throw new AppError('Нямате разрешение да изпълните това действие', 403);
+    }
+
+    const user = await User.findById(userId).select('sanctions');
 
     if (!user) {
         throw new AppError('Потребителят не е намерен', 404);
     }
-
-    ensureUserIsStudent(user);
-    checkAccessRights(user, currentUserId, currentUserRole);
 
     return {
         sanctions: user.sanctions || {
@@ -667,19 +671,19 @@ export const changeUserRole = async (id, newRole, currentUser) => {
 
     // Забрана за определени промени
     const currentRole = user.role;
-    
+
     // Ученик не може да става учител/админ (губи данните си)
     if (currentRole === 'student' && newRole !== 'student') {
         throw new AppError('Ученик не може да променя ролята си. Създайте нов акаунт за учител/админ роля.', 400);
     }
-    
+
     // Учител/админ не може да става ученик
     if ((currentRole === 'teacher' || currentRole === 'admin') && newRole === 'student') {
         throw new AppError('Учител или администратор не може да стане ученик', 400);
     }
 
     // Позволени са само teacher <-> admin
-    if ((currentRole === 'teacher' && newRole === 'admin') || 
+    if ((currentRole === 'teacher' && newRole === 'admin') ||
         (currentRole === 'admin' && newRole === 'teacher')) {
         user.role = newRole;
         await user.save();
