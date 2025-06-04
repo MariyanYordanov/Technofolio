@@ -65,7 +65,7 @@ export default function TeacherDashboard() {
         return (
             <div className="loading">
                 <div className="loading-spinner"></div>
-                <p>Зареждане на дашборда...</p>
+                <p>Зареждане на таблото...</p>
             </div>
         );
     }

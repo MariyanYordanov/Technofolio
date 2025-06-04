@@ -88,10 +88,10 @@ const startServer = async () => {
         // След това стартираме сървъра
         const PORT = process.env.PORT || 3030;
         app.listen(PORT, () => {
-            console.log(`✅ Сървърът работи на http://localhost:${PORT}`);
+            console.log(`Сървърът работи на http://localhost:${PORT}`);
         });
     } catch (error) {
-        console.error('❌ Грешка при стартиране на сървъра:', error);
+        console.error('Грешка при стартиране на сървъра:', error);
         process.exit(1);
     }
 };
