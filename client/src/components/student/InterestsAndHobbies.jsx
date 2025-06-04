@@ -22,7 +22,6 @@ export default function InterestsAndHobbies() {
         try {
             setLoading(true);
 
-            // Директно използваме userId
             const interestsData = await studentService.getStudentInterests(userId);
             setInterests(interestsData || { interests: [], hobbies: [] });
 
@@ -44,7 +43,6 @@ export default function InterestsAndHobbies() {
         try {
             setLoading(true);
 
-            // Директно използваме userId
             const updatedInterests = await studentService.updateInterests(userId, formValues);
             setInterests(updatedInterests);
 

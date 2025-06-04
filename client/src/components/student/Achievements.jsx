@@ -222,13 +222,13 @@ export default function Achievements() {
                             const category = achievementCategories.find(c => c.id === achievement.category);
 
                             return (
-                                <div key={achievement.id} className="achievement-card">
+                                <div key={achievement._id} className="achievement-card">
                                     <div className="achievement-header">
                                         <h2>{achievement.title}</h2>
                                         <div className="achievement-actions">
                                             <button
                                                 className="btn delete-btn"
-                                                onClick={() => handleDeleteAchievement(achievement.id)}
+                                                onClick={() => handleDeleteAchievement(achievement._id)}
                                             >
                                                 Изтрий
                                             </button>

@@ -107,10 +107,10 @@ export default function Goals() {
                     };
 
                     const emptyGoals = {};
-                    categories.forEach(cat => {
-                        emptyGoals[cat] = {
-                            category: cat,
-                            title: categoryTitles[cat],
+                    categories.forEach(c => {
+                        emptyGoals[c] = {
+                            category: c,
+                            title: categoryTitles[c],
                             description: '',
                             activities: []
                         };

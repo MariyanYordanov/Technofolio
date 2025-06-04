@@ -192,22 +192,28 @@ export default function TeacherDashboard() {
                 <div className="grades-section">
                     <h2>Ученици по класове</h2>
                     <div className="grades-grid">
-                        {Object.entries(statistics.studentsPerGrade).map(([grade, count]) => (
-                            <div key={grade} className="grade-card">
-                                <div className="grade-header">
-                                    <h3>{grade} клас</h3>
-                                    <span className="students-count">{count} ученици</span>
+                        {Object.entries(statistics.studentsPerGrade).map(([grade, gradeData]) => {
+                            // gradeData може да е обект {_id, count} или директно число
+                            const count = typeof gradeData === 'object' ? gradeData.count : gradeData;
+
+                            return (
+                                <div key={grade} className="grade-card">
+                                    <div className="grade-header">
+                                        <h3>{grade} клас</h3>
+                                        <span className="students-count">{count} ученици</span>
+                                    </div>
+                                    <div className="grade-actions">
+                                        <Link to={`/teacher/students?grade=${grade}`} className="btn">
+                                            Виж ученици
+                                        </Link>
+                                        <Link to={`/teacher/reports?grade=${grade}`} className="btn">
+                                            Генерирай отчет
+                                        </Link>
+                                    </div>
                                 </div>
-                                <div className="grade-actions">
-                                    <Link to={`/teacher/students?grade=${grade}`} className="btn">
-                                        Виж ученици
-                                    </Link>
-                                    <Link to={`/teacher/reports?grade=${grade}`} className="btn">
-                                        Генерирай отчет
-                                    </Link>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
+
                     </div>
                 </div>
             )}
